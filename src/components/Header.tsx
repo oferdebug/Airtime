@@ -40,7 +40,7 @@ export function Header() {
                   className={
                     isDashboard
                       ? "h-6 w-6 text-emerald-700 group-hover:rotate-12 transition-transform duration-300"
-                      : "h-6 w-6 text-white group-hover:rotate-12 transition-transform duration-300"
+                      : "h-6 w-6 text-gray-700 group-hover:rotate-12 transition-transform duration-300"
                   }
                 />
                 <Image
@@ -66,7 +66,7 @@ export function Header() {
             {/* Dashboard Navigation */}
             {isDashboard && (
               <div className="flex items-center pl-3 sm:pl-5">
-                {/*<DashboardNav/>*/}
+                {/* TODO: render <DashboardNav/> when implemented */}
               </div>
             )}
           </div>
@@ -89,8 +89,8 @@ export function Header() {
                         : "flex items-center px-4 py-2 rounded-full gradient-emerald text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300"
                     }
                   >
-                    <Zap className="h-5 w-6" />
-                    <span className="hidden sm:inline">Upgrade to Pro</span>
+                    <Zap className="h-5 w-5" />
+                    <span className="hidden lg:inline">Upgrade to Pro</span>
                     <span className="lg:hidden">Pro</span>
                   </Link>
                 </Protect>
@@ -109,8 +109,8 @@ export function Header() {
                         : "flex items-center px-4 py-2 rounded-full gradient-emerald text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300"
                     }
                   >
-                    <Zap className="h-5 w-6" />
-                    <span className="hidden sm:inline">Upgrade to Ultra</span>
+                    <Zap className="h-5 w-5" />
+                    <span className="hidden lg:inline">Upgrade to Ultra</span>
                     <span className="lg:hidden">Ultra</span>
                   </Link>
                 </Protect>
@@ -135,11 +135,7 @@ export function Header() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={
-                        isDashboard
-                          ? "hover-scale text-white hover:bg-white/20 transition-all duration-300"
-                          : "hover-scale transition-all duration-300"
-                      }
+                      className="hover-scale transition-all duration-300"
                     >
                       <span className="hidden lg:inline"> My Projects</span>
                       <span className="lg:hidden">Projects</span>
@@ -185,4 +181,3 @@ export function Header() {
     </header>
   );
 }
-export default Header;

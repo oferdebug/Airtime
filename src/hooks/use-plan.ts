@@ -1,9 +1,11 @@
 'use client';
 
 import { useUser } from "@clerk/nextjs";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
 export type Plan = 'free' | 'pro' | 'ultra' | null;
+
+export const VALID_PLANS: Plan[] = ['free', 'pro', 'ultra'];
 
 export interface UsePlanReturn {
   plan: Plan;
@@ -30,25 +32,17 @@ export function usePlan(): UsePlanReturn {
 
     // Check publicMetadata first (commonly used for plan info)
     const publicPlan = user.publicMetadata?.plan as string | undefined;
-    if (publicPlan && ['free', 'pro', 'ultra'].includes(publicPlan)) {
+    if (publicPlan && VALID_PLANS.includes(publicPlan as Plan)) {
       return publicPlan as Plan;
-    }
-
-    // Check privateMetadata as fallback
-    const privatePlan = user.privateMetadata?.plan as string | undefined;
-    if (privatePlan && ['free', 'pro', 'ultra'].includes(privatePlan)) {
-      return privatePlan as Plan;
     }
 
     // If user exists but no plan found, default to free
     return 'free';
   }, [user, isLoaded]);
 
-  const hasPlan = useMemo(() => {
-    return (planName: string): boolean => {
-      if (!plan) return false;
-      return plan === planName.toLowerCase();
-    };
+  const hasPlan = useCallback((planName: string): boolean => {
+    if (!plan) return false;
+    return plan === planName.toLowerCase();
   }, [plan]);
 
   return {
