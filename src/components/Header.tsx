@@ -7,7 +7,7 @@ import { Protect, SignInButton, useAuth, UserButton } from "@clerk/nextjs";
 import { Crown, Home, Mic, Zap } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import DashboardNav from "./DashboardNav";
+import DashboardNav from "./Dashboard-Nav";
 
 export function Header() {
   const { isSignedIn } = useAuth();
