@@ -2,8 +2,12 @@
 @import "tw-animate-css";
 
 
-@custom-variant dark (&:is(.dark *));
 
+/* Theme Inline Styles */
+:root {
+  --emerald-500:rgb(16, 123, 185);
+  --emerald-600:rgb(5, 150, 148);
+}
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -80,45 +84,10 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  --emerald-500: #10b981;
-  --emerald-600: #059669;
+  --emerald-500:rgb(16, 123, 185);
+  --emerald-600:rgb(5, 150, 148);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --emerald-500: #10b981;
-  --emerald-600: #059669;
-}
 
 @layer base {
   * {
@@ -142,3 +111,132 @@
 @utility shadow-xxl {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
+
+
+/* Clerk Pricing Table And Modal Styles */
+.cl-pricingTableCardPeriodToggle label,
+.cl-pricingTableCardPeriodToggle span {
+    color:white;
+}
+
+/* Clerk Modal Styles Div Styles From Clerk */
+div[role='dialog'],
+div[role='alertdialog'] {
+    z-index:99999 !important;
+}
+
+
+/* Custom Emerald Theme Variables */
+:root {
+    --emerald-50:236 253 245;
+    --emerald-100:209 250 229;
+    --emerald-200:167 243 208;
+    --emerald-300:100 204 154;
+    --emerald-400:34 197 94;
+    --emerald-500:22 163 74;
+    --emerald-600:21 128 61;
+    --emerald-700:22 101 52;
+    --emerald-800:26 86 42;
+    --emerald-900:32 64 25;
+
+
+    --teal-50:240 249 250;
+    --teal-100:204 251 241;
+    --teal-200:153 246 228;
+    --teal-300:94 234 212;
+    --teal-400:45 212 191;
+    --teal-500:20 184 166;
+    --teal-600:13 148 136;
+    --teal-700:15 118 110;
+    --teal-800:17 94 66;
+    --teal-900:19 78 58;
+}
+
+
+/* Custom Gradient Emerald Theme Variables */
+
+:root {
+    --gradient-emerald: linear-gradient(
+        135deg,
+        rgb(var(--emerald-500)) 0%,
+        rgb(var(--emerald-600)) 100%
+    );
+}
+
+
+/* Custom Gradient Teal Theme Variables */
+
+:root {
+    --gradient-emerald: linear-gradient(
+    135deg,
+    rgba(185, 10, 170, 0.1) 0%,
+    rgba(185, 16, 179, 0.2) 100%
+);
+};
+
+
+:root {
+    --gradient-teal: linear-gradient(
+        135deg,
+        rgba(185, 16, 176, 0.1) 0%,
+        rgba(179, 16, 185, 0.2) 100%
+    );
+    --gradient-emerald-glow: linear-gradient(
+        135deg,
+        rgba(140, 16, 185, 0.1) 0%,
+        rgba(185, 16, 185, 0.2) 100%
+    );
+}
+
+
+/* Custom Gradient Blue Theme Variables */
+
+:root {
+    --gradient-purple: linear-gradient(
+        135deg,
+        rgba(179, 16, 185, 0.1) 0%,
+        rgba(192, 7, 213, 0.2) 100%
+    );
+}
+
+/* Glass Nav Styles */
+.glass-card {
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,0.7);
+    box-shadow:0 8px 32px rgba(116, 31, 135, 0.37);
+}
+
+.glass-card-strong {
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,0.7);
+    box-shadow:0 12px 48px rgba(95, 31, 135, 0.37);
+}
+
+.glass-nav {
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(22px);
+    border-bottom:1px solid rgba(255,255,255,0.7);
+}
+
+/* Gradient Utilities */
+.gradient-emerald {
+        background:linear-gradient(135deg, rgb(140, 16, 185) 0%, rgb(213, 7, 213) 100%);
+    }
+
+    .gradient-emerald-text {
+        background:linear-gradient(135deg,rgb(140, 16, 185)0%,rgb(192, 7, 213)100%);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        background-clip:text;
+    }
+
+
+    .gradient-emerald-hover {
+        position:relative;
+        overflow:hidden;
+    }
