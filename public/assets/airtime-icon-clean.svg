@@ -1,0 +1,14 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="airtimeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="40" fill="url(#airtimeGradient)"/>
+  <rect x="24" y="32" width="4" height="16" rx="2" fill="white"/>
+  <rect x="32" y="24" width="4" height="32" rx="2" fill="white"/>
+  <rect x="40" y="18" width="4" height="44" rx="2" fill="white"/>
+  <rect x="48" y="24" width="4" height="32" rx="2" fill="white"/>
+  <rect x="56" y="32" width="4" height="16" rx="2" fill="white"/>
+</svg>

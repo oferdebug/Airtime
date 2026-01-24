@@ -1,12 +1,20 @@
-import {Button} from "@/components/ui/button";
+
+import Header from "@/components/Header";
+import FeaturesSection from "@/components/Home/Features-Section-";
+import { HeroSection } from "@/components/Home/Hero-Section";
+import PricingSection from "@/components/Home/Pricing-Section";
 
 export default function Home() {
   return (
-      <div>
-          <h1 className="text-3xl font-bold underline">Hello World</h1>
-          <Button className={'flex bg-background transition-all text-black'}>
-              Hello World
-          </Button>
+    <div className="">
+      <Header />
+      <HeroSection />
+      <FeaturesSection />
+      <PricingSection /> 
+      {/* <CTASection /> */}
+      {/* <Footer /> */}
     </div>
   );
 }
+
+

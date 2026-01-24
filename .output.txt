@@ -1,0 +1,761 @@
+ at src\app\globals.css:136:19 lint/complexity/noImportantStyles  FIXABLE  ━━━━━━━━━━
+  ! Avoid the use of the !important style.
+
+    134 │ div[role='dialog'],
+    135 │ div[role='alertdialog'] {
+  > 136 │     z-index:99999 !important;
+        │                   ^^^^^^^^^^
+    137 │ }
+    138 │
+
+  i This style reverses the cascade logic, and precedence is reversed. This could lead to having styles with higher specificity being overridden by styles with lower specificity.
+
+  i Unsafe fix: Remove the style.
+
+    136 │ ····z-index:99999·!important;
+        │                  -----------
+ at src\app\api\inngest\route.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     4  4 │   // Create an API that serves zero functions
+     5  5 │   export const { GET, POST, PUT } = serve({
+     6    │ - ····client:·ingest,
+     7    │ - ····functions:·[
+     8    │ - ········/*·your·functions·will·be·passed·here·later!·*/
+     9    │ - ····],
+    10    │ - });
+        6 │ + ··client:·ingest,
+        7 │ + ··functions:·[
+        8 │ + ····/*·your·functions·will·be·passed·here·later!·*/
+        9 │ + ··],
+       10 │ + });
+       11 │ +
+
+ at src\app\globals.css:11:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+     9 │   --emerald-600:rgb(192, 7, 213);
+    10 │ }
+  > 11 │ @theme inline {
+       │  ^^^^^^^^^^^^^^
+  > 12 │   --color-emerald-50: rgb(250 245 255);
+        ...
+  > 62 │   --radius-4xl: calc(var(--radius) + 16px);
+  > 63 │ }
+       │ ^
+    64 │
+    65 │ :root {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:105:6 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    103 │ @layer base {
+    104 │   * {
+  > 105 │     @apply border-border outline-ring/50;
+        │      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    106 │   }
+    107 │   body {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:108:6 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    106 │   }
+    107 │   body {
+  > 108 │     @apply bg-background text-foreground;
+        │      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    109 │   }
+    110 │ }
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:112:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    110 │ }
+    111 │
+  > 112 │ @utility glass-nav {
+        │  ^^^^^^^^^^^^^^^^^^^
+  > 113 │   background-color: color-mix(in srgb, var(--background), transparent 20%);
+  > 114 │   backdrop-filter: blur(12px);
+  > 115 │ }
+        │ ^
+    116 │
+    117 │ @utility gradient-emerald {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:117:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    115 │ }
+    116 │
+  > 117 │ @utility gradient-emerald {
+        │  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 118 │   background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
+  > 119 │   color: white;
+  > 120 │ }
+        │ ^
+    121 │
+    122 │ @utility shadow-xxl {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:122:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    120 │ }
+    121 │
+  > 122 │ @utility shadow-xxl {
+        │  ^^^^^^^^^^^^^^^^^^^^
+  > 123 │   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  > 124 │ }
+        │ ^
+    125 │
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:186:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Expected a qualified rule, or an at rule but instead found ';'.
+
+    184 │     rgba(185, 16, 179, 0.2) 100%
+    185 │ );
+  > 186 │ };
+        │  ^
+    187 │
+
+  i Expected a qualified rule, or an at rule here.
+
+    184 │     rgba(185, 16, 179, 0.2) 100%
+    185 │ );
+  > 186 │ };
+        │  ^
+    187 │
+
+ at src\app\globals.css:11:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+     9 │   --emerald-600:rgb(192, 7, 213);
+    10 │ }
+  > 11 │ @theme inline {
+       │  ^^^^^^^^^^^^^^
+  > 12 │   --color-emerald-50: rgb(250 245 255);
+        ...
+  > 62 │   --radius-4xl: calc(var(--radius) + 16px);
+  > 63 │ }
+       │ ^
+    64 │
+    65 │ :root {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\layout.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - import·type·{·Metadata·}·from·"next";␍
+     2    │ - import·{·Geist,·Geist_Mono·}·from·"next/font/google";␍
+     3    │ - import·"./globals.css";␍
+     4    │ - import·{·ClerkProvider·}·from·"@clerk/nextjs";␍
+     5    │ - import·ConvexClientProvider·from·"@/components/ConvexClientProvider";␍
+     6    │ - ␍
+     7    │ - const·geistSans·=·Geist({␍
+     8    │ - ··variable:·"--font-geist-sans",␍
+     9    │ - ··subsets:·["latin"],␍
+    10    │ - });␍
+    11    │ - ␍
+    12    │ - const·geistMono·=·Geist_Mono({␍
+    13    │ - ··variable:·"--font-geist-mono",␍
+    14    │ - ··subsets:·["latin"],␍
+    15    │ - });␍
+    16    │ - ␍
+    17    │ - export·const·metadata:·Metadata·=·{␍
+    18    │ - ··title:·"Airtime",␍
+    19    │ - ··description:·"Airtime·is·a·podcast·platform·that·allows·you·to·create·and·share·your·own·podcasts.",␍
+    20    │ - };␍
+    21    │ - ␍
+    22    │ - export·default·function·RootLayout({␍
+    23    │ - ··children,␍
+    24    │ - }:·Readonly<{␍
+    25    │ - ··children:·React.ReactNode;␍
+    26    │ - }>)·{␍
+    27    │ - ····return·(␍
+    28    │ - ········<ClerkProvider>␍
+    29    │ - ············<ConvexClientProvider>␍
+    30    │ - ················<html·lang="en">␍
+    31    │ - ····················<body·className={`${geistSans.variable}·${geistMono.variable}·antialiased`}>␍
+    32    │ - ························<main·className="min-h-screen">␍
+    33    │ - ····························{·children·}␍
+    34    │ - ························</main>␍
+    35    │ - ····················</body>␍
+    36    │ - ················</html>␍
+    37    │ - ············</ConvexClientProvider>␍
+    38    │ - ········</ClerkProvider>␍
+    39    │ - ····);␍
+    40    │ - }␍
+        1 │ + import·type·{·Metadata·}·from·"next";
+        2 │ + import·{·Geist,·Geist_Mono·}·from·"next/font/google";
+        3 │ + import·"./globals.css";
+        4 │ + import·{·ClerkProvider·}·from·"@clerk/nextjs";
+        5 │ + import·ConvexClientProvider·from·"@/components/ConvexClientProvider";
+        6 │ +
+        7 │ + const·geistSans·=·Geist({
+        8 │ + ··variable:·"--font-geist-sans",
+        9 │ + ··subsets:·["latin"],
+       10 │ + });
+       11 │ +
+       12 │ + const·geistMono·=·Geist_Mono({
+       13 │ + ··variable:·"--font-geist-mono",
+       14 │ + ··subsets:·["latin"],
+       15 │ + });
+       16 │ +
+       17 │ + export·const·metadata:·Metadata·=·{
+       18 │ + ··title:·"Airtime",
+       19 │ + ··description:
+       20 │ + ····"Airtime·is·a·podcast·platform·that·allows·you·to·create·and·share·your·own·podcasts.",
+       21 │ + };
+       22 │ +
+       23 │ + export·default·function·RootLayout({
+       24 │ + ··children,
+       25 │ + }:·Readonly<{
+       26 │ + ··children:·React.ReactNode;
+       27 │ + }>)·{
+       28 │ + ··return·(
+       29 │ + ····<ClerkProvider>
+       30 │ + ······<ConvexClientProvider>
+       31 │ + ········<html·lang="en">
+       32 │ + ··········<body
+       33 │ + ············className={`${geistSans.variable}·${geistMono.variable}·antialiased`}
+       34 │ + ··········>
+       35 │ + ············<main·className="min-h-screen">{children}</main>
+       36 │ + ··········</body>
+       37 │ + ········</html>
+       38 │ + ······</ConvexClientProvider>
+       39 │ + ····</ClerkProvider>
+       40 │ + ··);
+       41 │ + }
+    41 42 │
+
+ at src\app\page.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - ␍
+     2    │ - import·Header·from·"@/components/Header";␍
+     3    │ - import·FeaturesSection·from·"@/components/Home/Features-Section-";␍
+     4    │ - import·{·HeroSection·}·from·"@/components/Home/Hero-Section";␍
+     5    │ - import·PricingSection·from·"@/components/Home/Pricing-Section";␍
+     6    │ - ␍
+     7    │ - export·default·function·Home()·{␍
+     8    │ - ··return·(␍
+     9    │ - ····<div·className="">␍
+    10    │ - ······<Header·/>␍
+    11    │ - ······<HeroSection·/>␍
+    12    │ - ······<FeaturesSection·/>␍
+    13    │ - ······<PricingSection·/>·␍
+    14    │ - ······{/*·<CTASection·/>·*/}␍
+    15    │ - ······{/*·<Footer·/>·*/}␍
+    16    │ - ····</div>␍
+    17    │ - ··);␍
+    18    │ - }␍
+    19    │ - ␍
+    20    │ - ␍
+        1 │ + import·Header·from·"@/components/Header";
+        2 │ + import·FeaturesSection·from·"@/components/Home/Features-Section-";
+        3 │ + import·{·HeroSection·}·from·"@/components/Home/Hero-Section";
+        4 │ + import·PricingSection·from·"@/components/Home/Pricing-Section";
+        5 │ +
+        6 │ + export·default·function·Home()·{
+        7 │ + ··return·(
+        8 │ + ····<div·className="">
+        9 │ + ······<Header·/>
+       10 │ + ······<HeroSection·/>
+       11 │ + ······<FeaturesSection·/>
+       12 │ + ······<PricingSection·/>
+       13 │ + ······{/*·<CTASection·/>·*/}
+       14 │ + ······{/*·<Footer·/>·*/}
+       15 │ + ····</div>
+       16 │ + ··);
+       17 │ + }
+    21 18 │
+
+ at src\components\Home\Features-Section-.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+  × The imports and exports are not sorted.
+
+  > 1 │ import {BookMarked, FileText, MessageCircle, Mic2, Users, Zap, type LucideIcon} from "lucide-react";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │
+    3 │ interface Feature {
+
+  i Safe fix: Organize Imports (Biome)
+
+     1    │ - import·{BookMarked,·FileText,·MessageCircle,·Mic2,·Users,·Zap,·type·LucideIcon}·from·"lucide-react";
+        1 │ + import·{BookMarked,·FileText,·type·LucideIcon,·MessageCircle,·Mic2,·Users,·Zap·}·from·"lucide-react";
+     2  2 │
+     3  3 │   interface Feature {
+
+ at src\components\Home\Features-Section-.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1     │ - import·{BookMarked,·FileText,·MessageCircle,·Mic2,·Users,·Zap,·type·LucideIcon}·from·"lucide-react";
+         1 │ + import·{
+         2 │ + ··BookMarked,
+         3 │ + ··FileText,
+         4 │ + ··MessageCircle,
+         5 │ + ··Mic2,
+         6 │ + ··Users,
+         7 │ + ··Zap,
+         8 │ + ··type·LucideIcon,
+         9 │ + }·from·"lucide-react";
+     2  10 │
+     3  11 │   interface Feature {
+     4     │ - ····id:·string
+     5     │ - ····icon:·LucideIcon
+     6     │ - ····title:·string
+     7     │ - ····description:·string
+     8     │ - ····premium?:·boolean
+        12 │ + ··id:·string;
+        13 │ + ··icon:·LucideIcon;
+        14 │ + ··title:·string;
+        15 │ + ··description:·string;
+        16 │ + ··premium?:·boolean;
+     9  17 │   }
+    10  18 │
+    11  19 │   export function FeaturesSection() {
+    12     │ - ····const·features:·Feature[]·=·[
+    13     │ - ········{
+    14     │ - ············id:·'realtime-transcription',
+    15     │ - ············icon:·Mic2,
+    16     │ - ············title:·'Real-Time·Transcription',
+    17     │ - ············description:·'Transcribe·your·audio·in·real-time·with·our·advanced·AI·model.'
+    18     │ - ········},
+    19     │ - ········{
+    20     │ - ············id:·'semantic-search',
+    21     │ - ············icon:·FileText,
+    22     │ - ············title:·'Semantic·Search',
+    23     │ - ············description:·'Search·for·specific·moments·within·an·episode·using·semantic·text·search.'
+    24     │ - ········},
+    25     │ - ········{
+    26     │ - ············id:·'social-posts',
+    27     │ - ············icon:·MessageCircle,
+    28     │ - ············title:·'AI-Generated·Social·Posts',
+    29     │ - ············description:·'Generate·social·posts·for·your·podcast·using·AI.'
+    30     │ - ········},
+    31     │ - ········{
+    32     │ - ············id:·'key-moments',
+    33     │ - ············icon:·BookMarked,
+    34     │ - ············title:·'Key·Moments',
+    35     │ - ············description:·'Identify·key·moments·in·your·podcast·using·AI.'
+    36     │ - ········},
+    37     │ - ········{
+    38     │ - ············id:·'key-moments-chapters',
+    39     │ - ············icon:·Zap,
+    40     │ - ············title:·'Key·Moments·&·Chapters',
+    41     │ - ············description:·'Generate·key·moments·and·chapters·for·your·podcast·using·AI.'
+    42     │ - ········},
+    43     │ - ········{
+    44     │ - ············id:·'speaker-dialogue',
+    45     │ - ············icon:·Users,
+    46     │ - ············title:·'Speaker·Dialogue',
+    47     │ - ············description:·'Full·transcript·with·speaker·identification·-·see·exactly·who·said·what·and·when·(ULTRA·only).',
+    48     │ - ············premium:·true,
+    49     │ - ········},
+    50     │ - ········{
+    51     │ - ············id:·'premium-audio-player',
+    52     │ - ············icon:·Users,
+    53     │ - ············title:·'Premium·Audio·Player',
+    54     │ - ············description:·'A·custom-built,·minimalist·player·with·dynamic·waveform·visualization.',
+    55     │ - ············premium:·true,
+    56     │ - ········},
+    57     │ - ····];
+    58     │ - ····return·(
+    59     │ - ········<section·className='container·mx-auto·px-6·py-26·md:py-34'>
+    60     │ - ············<div·className={'max-w-7xl·mx-auto'}>␍
+    61     │ - ················<div·className={'text-center·mb-18'}>␍
+    62     │ - ····················<h2·className={'text-5xl·md:text-6xl·font-bold·mb-4'}>␍
+    63     │ - ························Every·Feature·You·Need·in·{'·'}␍
+    64     │ - ························<span·className={'gradient-emerald-text'}>One·Platform</span>·{'·'}␍
+    65     │ - ····················</h2>␍
+    66     │ - ····················<p·className={'text-xl·text-gray-800·max-w-2xl·mx-auto'}>␍
+    67     │ - ························Power·up·your·podcast·with·AI-driven·transcription,·search,·and·social·media·automation.␍
+    68     │ - ····················</p>␍
+    69     │ - ················</div>
+    70     │ - ················<div·className={'grid·grid-cols-1·sm:grid-cols-2·lg:grid-cols-3·gap-10'}>
+    71     │ - ····················{features.map((feature,·index)·=>·{
+    72     │ - ························const·Icon·=·feature.icon;
+    73     │ - ························return·(
+    74     │ - ····························<div
+    75     │ - ································key={feature.id}
+    76     │ - ································className={'glass-card·rounded-2xl·hover-lift·p-8·group'}
+    77     │ - ································style={{animationDelay:·`${index·*·100}ms`}}
+    78     │ - ····························>
+    79     │ - ································<div·className={'rounded-2xl·gradient-emerald·p-4·w-fit·mb-6·group-hover:animate-pulse-emerald·transition-all'}>
+    80     │ - ····································<Icon·className={'h-8·w-8·text-white'}·/>
+    81     │ - ································</div>
+    82     │ - ································<h3·className={'text-2xl·font-bold·mb-3·group-hover:text-emerald-700·transition-colors'}>
+    83     │ - ····································{feature.title}
+    84     │ - ································</h3>
+    85     │ - ································<p·className={'text-gray-700·leading-relaxed'}>
+    86     │ - ····································{feature.description}
+    87     │ - ································</p>
+    88     │ - ····························</div>
+    89     │ - ························);
+    90     │ - ····················})}
+    91     │ - ················</div>
+    92     │ - ············</div>
+    93     │ - ········</section>
+    94     │ - ····);␍
+    95     │ - };␍
+    96     │ - ␍
+    97     │ - export·default·FeaturesSection
+        20 │ + ··const·features:·Feature[]·=·[
+        21 │ + ····{
+        22 │ + ······id:·"realtime-transcription",
+        23 │ + ······icon:·Mic2,
+        24 │ + ······title:·"Real-Time·Transcription",
+        25 │ + ······description:
+        26 │ + ········"Transcribe·your·audio·in·real-time·with·our·advanced·AI·model.",
+        27 │ + ····},
+        28 │ + ····{
+        29 │ + ······id:·"semantic-search",
+        30 │ + ······icon:·FileText,
+        31 │ + ······title:·"Semantic·Search",
+        32 │ + ······description:
+        33 │ + ········"Search·for·specific·moments·within·an·episode·using·semantic·text·search.",
+        34 │ + ····},
+        35 │ + ····{
+        36 │ + ······id:·"social-posts",
+        37 │ + ······icon:·MessageCircle,
+        38 │ + ······title:·"AI-Generated·Social·Posts",
+        39 │ + ······description:·"Generate·social·posts·for·your·podcast·using·AI.",
+        40 │ + ····},
+        41 │ + ····{
+        42 │ + ······id:·"key-moments",
+        43 │ + ······icon:·BookMarked,
+        44 │ + ······title:·"Key·Moments",
+        45 │ + ······description:·"Identify·key·moments·in·your·podcast·using·AI.",
+        46 │ + ····},
+        47 │ + ····{
+        48 │ + ······id:·"key-moments-chapters",
+        49 │ + ······icon:·Zap,
+        50 │ + ······title:·"Key·Moments·&·Chapters",
+        51 │ + ······description:
+        52 │ + ········"Generate·key·moments·and·chapters·for·your·podcast·using·AI.",
+        53 │ + ····},
+        54 │ + ····{
+        55 │ + ······id:·"speaker-dialogue",
+        56 │ + ······icon:·Users,
+        57 │ + ······title:·"Speaker·Dialogue",
+        58 │ + ······description:
+  64 more lines truncated
+
+ at src\components\Home\Hero-Section.tsx:3:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+  × The imports and exports are not sorted.
+
+  > 3 │ import { auth } from "@clerk/nextjs/server";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    4 │ import Link from "next/link";
+    5 │ import { Button } from "../ui/button";
+
+  i Safe fix: Organize Imports (Biome)
+
+     1  1 │   ␍
+     2  2 │   ␍
+     3    │ - import·{·auth·}·from·"@clerk/nextjs/server";␍
+     4    │ - import·Link·from·"next/link";␍
+     5    │ - import·{·Button·}·from·"../ui/button";␍
+     6    │ - import·{·SignInButton·}·from·"@clerk/nextjs";␍
+     7    │ - import·{·Mic2·}·from·"lucide-react";␍
+        3 │ + import·{·SignInButton·}·from·"@clerk/nextjs";␍
+        4 │ + import·{·auth·}·from·"@clerk/nextjs/server";␍
+        5 │ + import·{·Mic2·}·from·"lucide-react";␍
+        6 │ + import·Link·from·"next/link";␍
+        7 │ + import·{·Button·}·from·"../ui/button";␍
+     8  8 │   ␍
+     9  9 │   export async function HeroSection() {␍
+
+ at src\components\Home\Hero-Section.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1     │ - ␍
+     2     │ - ␍
+     3     │ - import·{·auth·}·from·"@clerk/nextjs/server";␍
+     4     │ - import·Link·from·"next/link";␍
+     5     │ - import·{·Button·}·from·"../ui/button";␍
+     6     │ - import·{·SignInButton·}·from·"@clerk/nextjs";␍
+     7     │ - import·{·Mic2·}·from·"lucide-react";␍
+     8     │ - ␍
+     9     │ - export·async·function·HeroSection()·{␍
+    10     │ - ····const·{·userId·}·=·await·auth();␍
+    11     │ - ····const·isSingedIn·=·!!userId;␍
+    12     │ - ····return·(␍
+    13     │ - ········<section·className={·'relative·overflow-hidden·mesh-background·min-h-screen'·}>␍
+    14     │ - ············<div·className={·'container·mx-auto·px-5·py-26·md:pb-26·lgmd:pt-25'·}>␍
+    15     │ - ················<div·className={·'max-w-5xl·mx-auto'·}>␍
+    16     │ - ····················<div·className={·'text-center·mb-20·animate-float'·}>␍
+    17     │ - ························<div·className={·'inline-flex·items-center·gap-3·px-5·py-2.5·rounded-full·glass-card·hover-glow·mb-8·animate-shimmer'·}>␍
+    18     │ - ····························<span·className={·'text-sm·font-semibold·bg-gradient-to-r·from-emerald-600·to-emerald-500·bg-clip-text·text-transparent'·}>␍
+    19     │ - ································AI-Powered·Podcast·Transcription·&·Search␍
+    20     │ - ····························</span>␍
+    21     │ - ························</div>␍
+    22     │ - ␍
+    23     │ - ························<h1·className={·'text-6xl·md:text-7xl·lg:text-8xl·font-extrabold·text-white·leading-tight'·}>␍
+    24     │ - ····························<span·className={·'gradient-emerald-text'·}>Transform</span>·Your␍
+    25     │ - ····························<br·/>␍
+    26     │ - ····························Podcasts·Into·AI·Content·Machine␍
+    27     │ - ························</h1>␍
+    28     │ - ␍
+    29     │ - ························<p·className={·'text-xl·md:text-2xl·text-gray-800·mb-12·max-w-3xl·mx-auto·leading-relaxed'·}>␍
+    30     │ - ····························Upload·your·audio·and·get·AI·-·generated·transcripts,␍
+    31     │ - ····························summaries,␍
+    32     │ - ····························social·posts,␍
+    33     │ - ····························and·key·moments·-·all·in·minutes.␍
+    34     │ - ························</p>␍
+    35     │ - ····················</div>␍
+    36     │ - ␍
+    37     │ - ····················{·isSingedIn·?·(␍
+    38     │ - ························<div·className={·'space-y-6'·}>␍
+    39     │ - ····························<div·className={·'glass-card-strong·rounded-2xl·p-9·hover-lift'·}>␍
+    40     │ - ································{/*<PodcastUploader·/>*/}␍
+    41     │ - ····························</div>␍
+    42     │ - ····························<div·className={·'text-center'·}>␍
+    43     │ - ································<Link·href={·'/dashboard/projects'·}>␍
+    44     │ - ····································<Button·variant={·'outline'·}·size={·'lg'·}·className={·'hover-glow'·}>␍
+    45     │ - ········································View·Projects␍
+    46     │ - ····································</Button>␍
+    47     │ - ································</Link>␍
+    48     │ - ····························</div>␍
+    49     │ - ························</div>␍
+    50     │ - ····················)·:·(␍
+    51     │ - ························<div·className={·'flex·flex-col·sm:flex-row·items-center·justify-center·gap-6'·}>␍
+    52     │ - ····························<SignInButton·mode={·'modal'·}>␍
+    53     │ - ································<Button␍
+    54     │ - ····································size={·'lg'·}␍
+    55     │ - ····································className={·'gradient-emerald·text-white·hover-glow·text-lg·px-9·py-8·rounded-xl·shadow-lg'·}>␍
+    56     │ - ····································Get·Started·Today␍
+    57     │ - ····································<Mic2·className={·'ml-2·h-7·w-7'·}·/>␍
+    58     │ - ································</Button>␍
+    59     │ - ····························</SignInButton>␍
+    60     │ - ····························<Link·href={·'/dashboard/projects'·}>␍
+    61     │ - ································<Button␍
+    62     │ - ····································variant={·'outline'·}␍
+    63     │ - ····································size={·'lg'·}␍
+    64     │ - ····································className={·'hover-glow·text-xl·px-9·py-7·rounded-xl·shadow-lg'·}>␍
+    65     │ - ····································View·Your·Projects␍
+    66     │ - ································</Button>␍
+    67     │ - ····························</Link>␍
+    68     │ - ························</div>␍
+    69     │ - ····················)·}␍
+    70     │ - ················</div>␍
+    71     │ - ············</div>␍
+    72     │ - ············␍
+    73     │ - ············{/*·Gradient·Orbs·*/·}␍
+    74     │ - ············<div·className={·'absolute·top-0·right-0·w-96·h-96·bg-emerald-300·rounded-full·mix-blend-multiply·filter·blur-3xl·opacity-30·animate-float'·}></div>␍
+    75     │ - ············<div␍
+    76     │ - ················className="absolute·bottom-0·left-0·w-96·h-96·bg-teal-300·rounded-full·mix-blend-multiply·filter·blur-3xl·opacity-30·animate-float"␍
+    77     │ - ················style={·{·animationDelay:·'1s'·}·}␍
+    78     │ - ············/>␍
+    79     │ - ········</section>␍
+    80     │ - ····);␍
+    81     │ - }
+         1 │ + import·{·auth·}·from·"@clerk/nextjs/server";
+         2 │ + import·Link·from·"next/link";
+         3 │ + import·{·Button·}·from·"../ui/button";
+         4 │ + import·{·SignInButton·}·from·"@clerk/nextjs";
+         5 │ + import·{·Mic2·}·from·"lucide-react";
+         6 │ +
+         7 │ + export·async·function·HeroSection()·{
+         8 │ + ··const·{·userId·}·=·await·auth();
+         9 │ + ··const·isSingedIn·=·!!userId;
+        10 │ + ··return·(
+        11 │ + ····<section
+        12 │ + ······className={"relative·overflow-hidden·mesh-background·min-h-screen"}
+        13 │ + ····>
+        14 │ + ······<div·className={"container·mx-auto·px-5·py-26·md:pb-26·lgmd:pt-25"}>
+        15 │ + ········<div·className={"max-w-5xl·mx-auto"}>
+        16 │ + ··········<div·className={"text-center·mb-20·animate-float"}>
+        17 │ + ············<div
+        18 │ + ··············className={
+        19 │ + ················"inline-flex·items-center·gap-3·px-5·py-2.5·rounded-full·glass-card·hover-glow·mb-8·animate-shimmer"
+        20 │ + ··············}
+        21 │ + ············>
+        22 │ + ··············<span
+        23 │ + ················className={
+        24 │ + ··················"text-sm·font-semibold·bg-gradient-to-r·from-emerald-600·to-emerald-500·bg-clip-text·text-transparent"
+        25 │ + ················}
+        26 │ + ··············>
+        27 │ + ················AI-Powered·Podcast·Transcription·&·Search
+        28 │ + ··············</span>
+        29 │ + ············</div>
+        30 │ +
+        31 │ + ············<h1
+        32 │ + ··············className={
+        33 │ + ················"text-6xl·md:text-7xl·lg:text-8xl·font-extrabold·text-white·leading-tight"
+        34 │ + ··············}
+        35 │ + ············>
+        36 │ + ··············<span·className={"gradient-emerald-text"}>Transform</span>·Your
+        37 │ + ··············<br·/>
+        38 │ + ··············Podcasts·Into·AI·Content·Machine
+        39 │ + ············</h1>
+        40 │ +
+        41 │ + ············<p
+        42 │ + ··············className={
+        43 │ + ················"text-xl·md:text-2xl·text-gray-800·mb-12·max-w-3xl·mx-auto·leading-relaxed"
+        44 │ + ··············}
+        45 │ + ············>
+        46 │ + ··············Upload·your·audio·and·get·AI·-·generated·transcripts,·summaries,
+        47 │ + ··············social·posts,·and·key·moments·-·all·in·minutes.
+        48 │ + ············</p>
+        49 │ + ··········</div>
+        50 │ +
+        51 │ + ··········{isSingedIn·?·(
+        52 │ + ············<div·className={"space-y-6"}>
+        53 │ + ··············<div·className={"glass-card-strong·rounded-2xl·p-9·hover-lift"}>
+        54 │ + ················{/*<PodcastUploader·/>*/}
+        55 │ + ··············</div>
+        56 │ + ··············<div·className={"text-center"}>
+        57 │ + ················<Link·href={"/dashboard/projects"}>
+        58 │ + ··················<Button
+        59 │ + ····················variant={"outline"}
+        60 │ + ····················size={"lg"}
+        61 │ + ····················className={"hover-glow"}
+        62 │ + ··················>
+        63 │ + ····················View·Projects
+        64 │ + ··················</Button>
+        65 │ + ················</Link>
+        66 │ + ··············</div>
+        67 │ + ············</div>
+        68 │ + ··········)·:·(
+        69 │ + ············<div
+  45 more lines truncated
+
+ at src\components\Home\Pricing-Section.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - interface·PricingSectionProps·{␍
+     2    │ - ····compact?:·boolean␍
+     3    │ - }␍
+     4    │ - ␍
+     5    │ - ␍
+     6    │ - ····export·default·function·PricingSection({·compact·}:·PricingSectionProps)·{␍
+     7    │ - ········return·(␍
+     8    │ - ············<section·className={'relative·py-26·md:py-34·overflow-hidden'}>␍
+     9    │ - ················<div·className={'max-w-7xl·mx-auto'}>␍
+    10    │ - ····················{/*·Header·*/}␍
+    11    │ - ····················<div·className={'text-center·mb-20'}>␍
+    12    │ - ························<h2·className={'text-5xl·md:text-6xl·font-bold·mb-7'}>␍
+    13    │ - ····························Simple,<span·className={'gradient-emerald-text'}>Transparent</span>Pricing␍
+    14    │ - ························</h2>␍
+    15    │ - ························<p·className={'text-xl·md:text-2xl·text-gray-800·max-w-3xl·mx-auto·leading-relaxed'}>␍
+    16    │ - ····························Choose·the·plan·that·fits·your·podcasting·needs.·No·hidden·fees,·no·surprises.␍
+    17    │ - ························</p>␍
+    18    │ - ····················</div>␍
+    19    │ - ␍
+    20    │ - ····················{/*·Pricing··*/}␍
+    21    │ - ····················<div·className={`flex·justify-center·w-full·${compact·?·'max-w-4xl'·:·'max-w-5xl'}`}>␍
+    22    │ - ························<div·className={compact·?·'max-w-4xl·w-full'·:·'max-w-5xl·w-full'}>␍
+    23    │ - ····························{/*·Pricing·cards·go·here·*/}␍
+    24    │ - ························</div>␍
+    25    │ - ····················</div>␍
+    26    │ - ················</div>␍
+    27    │ - ············</section>␍
+    28    │ - ········)␍
+    29    │ - ····}␍
+    30    │ - ␍
+        1 │ + interface·PricingSectionProps·{
+        2 │ + ··compact?:·boolean;
+        3 │ + }
+        4 │ +
+        5 │ + export·default·function·PricingSection({·compact·}:·PricingSectionProps)·{
+        6 │ + ··return·(
+        7 │ + ····<section·className={"relative·py-26·md:py-34·overflow-hidden"}>
+        8 │ + ······<div·className={"max-w-7xl·mx-auto"}>
+        9 │ + ········{/*·Header·*/}
+       10 │ + ········<div·className={"text-center·mb-20"}>
+       11 │ + ··········<h2·className={"text-5xl·md:text-6xl·font-bold·mb-7"}>
+       12 │ + ············Simple,<span·className={"gradient-emerald-text"}>Transparent</span>
+       13 │ + ············Pricing
+       14 │ + ··········</h2>
+       15 │ + ··········<p
+       16 │ + ············className={
+       17 │ + ··············"text-xl·md:text-2xl·text-gray-800·max-w-3xl·mx-auto·leading-relaxed"
+       18 │ + ············}
+       19 │ + ··········>
+       20 │ + ············Choose·the·plan·that·fits·your·podcasting·needs.·No·hidden·fees,·no
+       21 │ + ············surprises.
+       22 │ + ··········</p>
+       23 │ + ········</div>
+       24 │ +
+       25 │ + ········{/*·Pricing··*/}
+       26 │ + ········<div
+       27 │ + ··········className={`flex·justify-center·w-full·${compact·?·"max-w-4xl"·:·"max-w-5xl"}`}
+       28 │ + ········>
+       29 │ + ··········<div·className={compact·?·"max-w-4xl·w-full"·:·"max-w-5xl·w-full"}>
+       30 │ + ············{/*·Pricing·cards·go·here·*/}
+       31 │ + ··········</div>
+       32 │ + ········</div>
+       33 │ + ······</div>
+       34 │ + ····</section>
+       35 │ + ··);
+       36 │ + }
+    31 37 │
+
+ at src\lib\utils.ts:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━━━━━━
+  × The imports and exports are not sorted.
+
+  > 1 │ import { clsx, type ClassValue } from "clsx"
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { twMerge } from "tailwind-merge"
+    3 │
+
+  i Safe fix: Organize Imports (Biome)
+
+    1   │ - import·{·clsx,·type·ClassValue·}·from·"clsx"
+      1 │ + import·{·type·ClassValue,·clsx·}·from·"clsx"
+    2 2 │   import { twMerge } from "tailwind-merge"
+    3 3 │
+
+ at src\lib\utils.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+    1   │ - import·{·clsx,·type·ClassValue·}·from·"clsx"
+    2   │ - import·{·twMerge·}·from·"tailwind-merge"
+      1 │ + import·{·clsx,·type·ClassValue·}·from·"clsx";
+      2 │ + import·{·twMerge·}·from·"tailwind-merge";
+    3 3 │
+    4 4 │   export function cn(...inputs: ClassValue[]) {
+    5   │ - ··return·twMerge(clsx(inputs))
+      5 │ + ··return·twMerge(clsx(inputs));
+    6 6 │   }
+    7 7 │
+
+ at src\middleware.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - import·{·clerkMiddleware,·createRouteMatcher·}·from·'@clerk/nextjs/server';
+        1 │ + import·{·clerkMiddleware,·createRouteMatcher·}·from·"@clerk/nextjs/server";
+     2  2 │
+     3  3 │   // Protected routes with route matcher
+     4    │ - const·protectedRouters·=·createRouteMatcher(['/dashboard(.*)']);
+        4 │ + const·protectedRouters·=·createRouteMatcher(["/dashboard(.*)"]);
+     5  5 │
+     6  6 │   export default clerkMiddleware(async (auth, req) => {
+    ····· │
+    13 13 │     matcher: [
+    14 14 │       // Skip Next.js internals and all static files, unless found in search params
+    15    │ - ····'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+       15 │ + ····"/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    16 16 │       // Always run for API routes
+    17    │ - ····'/(api|trpc)(.*)',
+       17 │ + ····"/(api|trpc)(.*)",
+    18 18 │     ],
+    19 19 │   };
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 174.
+Checked 69 files in 199ms. No fixes applied.
+Found 150 errors.
+Found 44 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Some errors were emitted while running checks.

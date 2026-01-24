@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="airtimeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <!-- Circle background -->
+  <circle cx="256" cy="256" r="256" fill="url(#airtimeGradient)"/>
+  <!-- Sound wave bars (scaled up) -->
+  <rect x="153" y="204" width="26" height="104" rx="13" fill="white"/>
+  <rect x="204" y="153" width="26" height="206" rx="13" fill="white"/>
+  <rect x="256" y="115" width="26" height="282" rx="13" fill="white"/>
+  <rect x="307" y="153" width="26" height="206" rx="13" fill="white"/>
+  <rect x="358" y="204" width="26" height="104" rx="13" fill="white"/>
+</svg>
