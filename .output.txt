@@ -1,378 +1,761 @@
-On branch working-on-backend+shadcn
-Your branch is based on 'origin/working-on-backend+shadcn', but the upstream is gone.
-  (use "git branch --unset-upstream" to fixup)
-Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
-        new file:   src/components/Header.tsx
-        new file:   src/components/Logo.tsx
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   .idea/workspace.xml
-        modified:   package.json
-        modified:   pnpm-lock.yaml
-        modified:   src/app/globals.css
-        modified:   src/app/layout.tsx
-        modified:   src/app/page.tsx
-        modified:   src/components/Header.tsx
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        biome.json
-        public/assets/
-        src/components/PlanProtect.tsx
-        src/hooks/use-plan.ts
-warning: in the working copy of '.idea/workspace.xml', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'pnpm-lock.yaml', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/app/globals.css', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'src/components/Header.tsx', LF will be replaced by CRLF the next time Git touches it
-diff --git a/.idea/workspace.xml b/.idea/workspace.xml
-index 2c87d81..d465f06 100644
---- a/.idea/workspace.xml
-+++ b/.idea/workspace.xml
-@@ -5,11 +5,13 @@
-   </component>
-   <component name="ChangeListManager">
-     <list default="true" id="dc85ce12-4337-486a-b3cc-7aaefa84ad40" name="Changes" comment="">
-+      <change afterPath="$PROJECT_DIR$/src/components/Header.tsx" afterDir="false" />
-+      <change afterPath="$PROJECT_DIR$/src/components/Logo.tsx" afterDir="false" />
-       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
--      <change beforePath="$PROJECT_DIR$/convex/auth.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/convex/auth.config.ts" afterDir="false" />
-       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-       <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
-       <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-+      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-       <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-     </list>
-     <option name="SHOW_DIALOG" value="false" />
-@@ -44,6 +46,10 @@
-             <RecentBranchesForRepo>
-               <option name="branches">
-                 <list>
-+                  <RecentBranch>
-+                    <option name="branchName" value="working-on-backend+shadcn" />
-+                    <option name="lastUsedInstant" value="1768845652" />
-+                  </RecentBranch>
-                   <RecentBranch>
-                     <option name="branchName" value="main" />
-                     <option name="lastUsedInstant" value="1768805995" />
-@@ -96,18 +102,19 @@
-     "dart.analysis.tool.window.visible": "false",
-     "ejs.close.delimiter": "%>",
-     "ejs.open.delimiter": "<%",
--    "git-widget-placeholder": "main",
-+    "git-widget-placeholder": "working-on-backend+shadcn",
-     "ignore.virus.scanning.warn.message": "true",
-     "js.debugger.nextJs.config.created.client": "true",
-     "js.debugger.nextJs.config.created.server": "true",
-     "junie.onboarding.icon.badge.shown": "true",
-+    "last_opened_file_path": "C:/Users/oferc/WebstormProjects/Airtime/public/assets",
-     "node.js.detected.package.eslint": "true",
-     "node.js.detected.package.tslint": "true",
-     "node.js.selected.package.eslint": "(autodetect)",
-     "node.js.selected.package.tslint": "(autodetect)",
-     "nodejs_package_manager_path": "npm",
-     "prettierjs.PrettierConfiguration.Package": "C:\\Users\\oferc\\WebstormProjects\\Airtime\\node_modules\\prettier",
--    "settings.editor.selected.configurable": "Settings.JavaScript.Templates",
-+    "settings.editor.selected.configurable": "preferences.pluginManager",
-     "to.speed.mode.migration.done": "true",
-     "ts.external.directory.path": "C:\\Users\\oferc\\WebstormProjects\\Airtime\\node_modules\\typescript\\lib",
-     "vue.rearranger.settings.migration": "true"
-@@ -124,12 +131,15 @@
-   </component>
-   <component name="RecapSpentCounter">
-     <option name="endsOfQuotaMs" value="1769109237130" />
--    <option name="spentUsd" value="0.06657555" />
-+    <option name="spentUsd" value="0.09275435" />
-   </component>
-   <component name="RecapUselessUpdatesCounter">
--    <option name="suspendCountdown" value="2" />
-+    <option name="suspendCountdown" value="0" />
-   </component>
-   <component name="RecentsManager">
-+    <key name="CopyFile.RECENT_KEYS">
-+      <recent name="C:\Users\oferc\WebstormProjects\Airtime\public\assets" />
-+    </key>
-     <key name="MoveFile.RECENT_KEYS">
-       <recent name="C:\Users\oferc\WebstormProjects\Airtime\src" />
-     </key>
-@@ -165,7 +175,7 @@
-       <updated>1768633023526</updated>
-       <workItem from="1768633031355" duration="164000" />
-       <workItem from="1768806824634" duration="636000" />
--      <workItem from="1768823889015" duration="8024000" />
-+      <workItem from="1768823889015" duration="22469000" />
-     </task>
-     <servers />
-   </component>
-diff --git a/package.json b/package.json
-index ee3aa2b..e1b7692 100644
---- a/package.json
-+++ b/package.json
-@@ -61,6 +61,7 @@
-     "zod": "^4.3.5"
-   },
-   "devDependencies": {
-+    "@biomejs/biome": "^2.3.11",
-     "@tailwindcss/postcss": "^4",
-     "@types/node": "^20",
-     "@types/react": "^19",
-diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
-index 71da712..7201683 100644
---- a/pnpm-lock.yaml
-+++ b/pnpm-lock.yaml
-@@ -159,6 +159,9 @@ importers:
-         specifier: ^4.3.5
-         version: 4.3.5
-     devDependencies:
-+      '@biomejs/biome':
-+        specifier: ^2.3.11
-+        version: 2.3.11
-       '@tailwindcss/postcss':
-         specifier: ^4
-         version: 4.1.18
-@@ -264,6 +267,59 @@ packages:
-     resolution: {integrity: sha512-0ZrskXVEHSWIqZM/sQZ4EV3jZJXRkio/WCxaqKZP1g//CEWEPSfeZFcms4XeKBCHU0ZKnIkdJeU/kF+eRp5lBg==}
-     engines: {node: '>=6.9.0'}
+ at src\app\globals.css:136:19 lint/complexity/noImportantStyles  FIXABLE  ━━━━━━━━━━
+  ! Avoid the use of the !important style.
 
-+  '@biomejs/biome@2.3.11':
-+    resolution: {integrity: sha512-/zt+6qazBWguPG6+eWmiELqO+9jRsMZ/DBU3lfuU2ngtIQYzymocHhKiZRyrbra4aCOoyTg/BmY+6WH5mv9xmQ==}
-+    engines: {node: '>=14.21.3'}
-+    hasBin: true
-+
-+  '@biomejs/cli-darwin-arm64@2.3.11':
-+    resolution: {integrity: sha512-/uXXkBcPKVQY7rc9Ys2CrlirBJYbpESEDme7RKiBD6MmqR2w3j0+ZZXRIL2xiaNPsIMMNhP1YnA+jRRxoOAFrA==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [arm64]
-+    os: [darwin]
-+
-+  '@biomejs/cli-darwin-x64@2.3.11':
-+    resolution: {integrity: sha512-fh7nnvbweDPm2xEmFjfmq7zSUiox88plgdHF9OIW4i99WnXrAC3o2P3ag9judoUMv8FCSUnlwJCM1B64nO5Fbg==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [x64]
-+    os: [darwin]
-+
-+  '@biomejs/cli-linux-arm64-musl@2.3.11':
-+    resolution: {integrity: sha512-XPSQ+XIPZMLaZ6zveQdwNjbX+QdROEd1zPgMwD47zvHV+tCGB88VH+aynyGxAHdzL+Tm/+DtKST5SECs4iwCLg==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [arm64]
-+    os: [linux]
-+
-+  '@biomejs/cli-linux-arm64@2.3.11':
-+    resolution: {integrity: sha512-l4xkGa9E7Uc0/05qU2lMYfN1H+fzzkHgaJoy98wO+b/7Gl78srbCRRgwYSW+BTLixTBrM6Ede5NSBwt7rd/i6g==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [arm64]
-+    os: [linux]
-+
-+  '@biomejs/cli-linux-x64-musl@2.3.11':
-+    resolution: {integrity: sha512-vU7a8wLs5C9yJ4CB8a44r12aXYb8yYgBn+WeyzbMjaCMklzCv1oXr8x+VEyWodgJt9bDmhiaW/I0RHbn7rsNmw==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [x64]
-+    os: [linux]
-+
-+  '@biomejs/cli-linux-x64@2.3.11':
-+    resolution: {integrity: sha512-/1s9V/H3cSe0r0Mv/Z8JryF5x9ywRxywomqZVLHAoa/uN0eY7F8gEngWKNS5vbbN/BsfpCG5yeBT5ENh50Frxg==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [x64]
-+    os: [linux]
-+
-+  '@biomejs/cli-win32-arm64@2.3.11':
-+    resolution: {integrity: sha512-PZQ6ElCOnkYapSsysiTy0+fYX+agXPlWugh6+eQ6uPKI3vKAqNp6TnMhoM3oY2NltSB89hz59o8xIfOdyhi9Iw==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [arm64]
-+    os: [win32]
-+
-+  '@biomejs/cli-win32-x64@2.3.11':
-+    resolution: {integrity: sha512-43VrG813EW+b5+YbDbz31uUsheX+qFKCpXeY9kfdAx+ww3naKxeVkTD9zLIWxUPfJquANMHrmW3wbe/037G0Qg==}
-+    engines: {node: '>=14.21.3'}
-+    cpu: [x64]
-+    os: [win32]
-+
-   '@bufbuild/protobuf@2.10.2':
-     resolution: {integrity: sha512-uFsRXwIGyu+r6AMdz+XijIIZJYpoWeYzILt5yZ2d3mCjQrWUTVpVD9WL/jZAbvp+Ed04rOhrsk7FiTcEDseB5A==}
+    134 │ div[role='dialog'],
+    135 │ div[role='alertdialog'] {
+  > 136 │     z-index:99999 !important;
+        │                   ^^^^^^^^^^
+    137 │ }
+    138 │
 
-@@ -4152,6 +4208,41 @@ snapshots:
-       '@babel/helper-string-parser': 7.27.1
-       '@babel/helper-validator-identifier': 7.28.5
+  i This style reverses the cascade logic, and precedence is reversed. This could lead to having styles with higher specificity being overridden by styles with lower specificity.
 
-+  '@biomejs/biome@2.3.11':
-+    optionalDependencies:
-+      '@biomejs/cli-darwin-arm64': 2.3.11
-+      '@biomejs/cli-darwin-x64': 2.3.11
-+      '@biomejs/cli-linux-arm64': 2.3.11
-+      '@biomejs/cli-linux-arm64-musl': 2.3.11
-+      '@biomejs/cli-linux-x64': 2.3.11
-+      '@biomejs/cli-linux-x64-musl': 2.3.11
-+      '@biomejs/cli-win32-arm64': 2.3.11
-+      '@biomejs/cli-win32-x64': 2.3.11
-+
-+  '@biomejs/cli-darwin-arm64@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-darwin-x64@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-linux-arm64-musl@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-linux-arm64@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-linux-x64-musl@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-linux-x64@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-win32-arm64@2.3.11':
-+    optional: true
-+
-+  '@biomejs/cli-win32-x64@2.3.11':
-+    optional: true
-+
-   '@bufbuild/protobuf@2.10.2': {}
+  i Unsafe fix: Remove the style.
 
-   '@clerk/backend@2.29.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
-diff --git a/src/app/globals.css b/src/app/globals.css
-index e38096d..924d32a 100644
---- a/src/app/globals.css
-+++ b/src/app/globals.css
-@@ -124,3 +124,17 @@
-     @apply bg-background text-foreground;
-   }
- }
-+
-+@utility glass-nav {
-+  background-color: color-mix(in srgb, var(--background), transparent 20%);
-+  backdrop-filter: blur(12px);
-+}
-+
-+@utility gradient-emerald {
-+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-+  color: white;
-+}
-+
-+@utility shadow-xxl {
-+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-+}
-diff --git a/src/app/layout.tsx b/src/app/layout.tsx
-index 300eb71..aabf08a 100644
---- a/src/app/layout.tsx
-+++ b/src/app/layout.tsx
-@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
- import "./globals.css";
- import { ClerkProvider } from "@clerk/nextjs";
- import ConvexClientProvider from "@/components/ConvexClientProvider";
-+import { Header } from "@/components/Header";
+    136 │ ····z-index:99999·!important;
+        │                  -----------
+ at src\app\api\inngest\route.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
 
- const geistSans = Geist({
-   variable: "--font-geist-sans",
-@@ -29,7 +30,10 @@ export default function RootLayout({
-             <ConvexClientProvider>
-                 <html lang="en">
-                     <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
--                        {children}
-+                        <Header />
-+                        <main className="min-h-screen">
-+                            { children }
-+                        </main>
-                     </body>
-                 </html>
-             </ConvexClientProvider>
-diff --git a/src/app/page.tsx b/src/app/page.tsx
-index 42c259f..330275c 100644
---- a/src/app/page.tsx
-+++ b/src/app/page.tsx
-@@ -2,11 +2,21 @@ import {Button} from "@/components/ui/button";
+     4  4 │   // Create an API that serves zero functions
+     5  5 │   export const { GET, POST, PUT } = serve({
+     6    │ - ····client:·ingest,
+     7    │ - ····functions:·[
+     8    │ - ········/*·your·functions·will·be·passed·here·later!·*/
+     9    │ - ····],
+    10    │ - });
+        6 │ + ··client:·ingest,
+        7 │ + ··functions:·[
+        8 │ + ····/*·your·functions·will·be·passed·here·later!·*/
+        9 │ + ··],
+       10 │ + });
+       11 │ +
 
- export default function Home() {
-   return (
--      <div>
--          <h1 className="text-3xl font-bold underline">Hello World</h1>
--          <Button className={'flex bg-background transition-all text-black'}>
--              Hello World
--          </Button>
-+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
-+        <h1 className="text-6xl font-extrabold tracking-tighter sm:text-7xl md:text-8xl lg:text-9xl">
-+          AIRTIME
-+        </h1>
-+        <p className="mt-8 text-xl text-gray-500 max-w-[600px] leading-relaxed">
-+          The next generation AI podcast platform. Stream, create, and discover content like never before with deep intelligence.
-+        </p>
-+        <div className="mt-12 flex flex-col sm:flex-row gap-4">
-+            <button className="bg-black text-white px-10 py-4 rounded-full font-semibold hover:bg-gray-800 transition-all transform hover:scale-105">
-+                Get Started Free
-+            </button>
-+            <button className="border border-gray-200 px-10 py-4 rounded-full font-semibold hover:bg-gray-50 transition-all">
-+                Explore Episodes
-+            </button>
-+        </div>
-     </div>
-   );
--}
-+};
-diff --git a/src/components/Header.tsx b/src/components/Header.tsx
-index e69de29..9196587 100644
---- a/src/components/Header.tsx
-+++ b/src/components/Header.tsx
-@@ -0,0 +1,60 @@
-+'use client';
-+
-+import {Button} from "@/components/ui/button";
-+import {SignInButton,UserButton,useAuth,Protect} from "@clerk/clerk-react";
-+import {Home,Sparkles,Zap,Crown} from 'lucide-react';
-+import Link from 'next/link';
-+import { usePathname } from "next/navigation";
-+//import {DashboardNav} from '@/components/dashboard-nav';
-+import { Badge } from "@/components/ui/badge";
-+import { PlanProtect } from "./PlanProtect";
-+import { usePlan } from "@/hooks/use-plan";
-+import Image from "next/image";
-+import airtimeLogo from "@/public/assets/airtime-logo.svg";
-+
-+export function Header() {
-+    const {isSignedIn}=useAuth();
-+    const pathname=usePathname();
-+    const isDashboard=pathname?.startsWith('/dashboard');
-+    const showsDashboardNav=isDashboard;
-+    return (
-+        <header className=
-+            {
-+            isDashboard
-+                ? 'gradient-emerald sticky top-0 transition-all shadow-xxl ' +
-+                'backdrop-blur-sm z-50 border-b border-white/10'
-+                : 'glass-nav sticky top-0 transition-all z-50 backdrop-blur-md ' +
-+                'border-b border-gray-200/50 shadow-sm'
-+        }
-+        >
-+            <div className='container mx-auto px-5 lg:px-8'>
-+                <div className="flex items-center justify-between h-24">
-+                    <div className={'flex items-center gap-4 lg:gap-9'}>
-+                        <Link href='/' className='flex items-center gap-5 hover:opacity-80 transition-all duration-400 group'>
-+                            <Image src='/assets/Air.svg' alt='Airtime' width={200} height={60} className='h-14 w-auto object-contain' />
-+                        </Link>
-+                    </div>
-+
-+                    <div className="flex items-center gap-4">
-+                        {!isSignedIn ? (
-+                            <SignInButton mode='modal'>
-+                                <Button variant='ghost' className="font-semibold text-base hover:bg-black/5 rounded-full px-6">
-+                                    Sign In
-+                                </Button>
-+                            </SignInButton>
-+                        ) : (
-+                            <div className="flex items-center gap-4">
-+                                <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
-+                                    Dashboard
-+                                </Link>
-+                                <UserButton afterSignOutUrl="/" />
-+                            </div>
-+                        )}
-+                    </div>
-+                </div>
-+                </div>
-+
-+         </header>
-+    )
-+}
-+
+ at src\app\globals.css:11:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+     9 │   --emerald-600:rgb(192, 7, 213);
+    10 │ }
+  > 11 │ @theme inline {
+       │  ^^^^^^^^^^^^^^
+  > 12 │   --color-emerald-50: rgb(250 245 255);
+        ...
+  > 62 │   --radius-4xl: calc(var(--radius) + 16px);
+  > 63 │ }
+       │ ^
+    64 │
+    65 │ :root {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:105:6 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    103 │ @layer base {
+    104 │   * {
+  > 105 │     @apply border-border outline-ring/50;
+        │      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    106 │   }
+    107 │   body {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:108:6 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    106 │   }
+    107 │   body {
+  > 108 │     @apply bg-background text-foreground;
+        │      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    109 │   }
+    110 │ }
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:112:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    110 │ }
+    111 │
+  > 112 │ @utility glass-nav {
+        │  ^^^^^^^^^^^^^^^^^^^
+  > 113 │   background-color: color-mix(in srgb, var(--background), transparent 20%);
+  > 114 │   backdrop-filter: blur(12px);
+  > 115 │ }
+        │ ^
+    116 │
+    117 │ @utility gradient-emerald {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:117:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    115 │ }
+    116 │
+  > 117 │ @utility gradient-emerald {
+        │  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  > 118 │   background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
+  > 119 │   color: white;
+  > 120 │ }
+        │ ^
+    121 │
+    122 │ @utility shadow-xxl {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:122:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+    120 │ }
+    121 │
+  > 122 │ @utility shadow-xxl {
+        │  ^^^^^^^^^^^^^^^^^^^^
+  > 123 │   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  > 124 │ }
+        │ ^
+    125 │
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\globals.css:186:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Expected a qualified rule, or an at rule but instead found ';'.
+
+    184 │     rgba(185, 16, 179, 0.2) 100%
+    185 │ );
+  > 186 │ };
+        │  ^
+    187 │
+
+  i Expected a qualified rule, or an at rule here.
+
+    184 │     rgba(185, 16, 179, 0.2) 100%
+    185 │ );
+  > 186 │ };
+        │  ^
+    187 │
+
+ at src\app\globals.css:11:2 parse ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Tailwind-specific syntax is disabled.
+
+     9 │   --emerald-600:rgb(192, 7, 213);
+    10 │ }
+  > 11 │ @theme inline {
+       │  ^^^^^^^^^^^^^^
+  > 12 │   --color-emerald-50: rgb(250 245 255);
+        ...
+  > 62 │   --radius-4xl: calc(var(--radius) + 16px);
+  > 63 │ }
+       │ ^
+    64 │
+    65 │ :root {
+
+  i Enable `tailwindDirectives` in the css parser options, or remove this if you are not using Tailwind CSS.
+
+ at src\app\layout.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - import·type·{·Metadata·}·from·"next";␍
+     2    │ - import·{·Geist,·Geist_Mono·}·from·"next/font/google";␍
+     3    │ - import·"./globals.css";␍
+     4    │ - import·{·ClerkProvider·}·from·"@clerk/nextjs";␍
+     5    │ - import·ConvexClientProvider·from·"@/components/ConvexClientProvider";␍
+     6    │ - ␍
+     7    │ - const·geistSans·=·Geist({␍
+     8    │ - ··variable:·"--font-geist-sans",␍
+     9    │ - ··subsets:·["latin"],␍
+    10    │ - });␍
+    11    │ - ␍
+    12    │ - const·geistMono·=·Geist_Mono({␍
+    13    │ - ··variable:·"--font-geist-mono",␍
+    14    │ - ··subsets:·["latin"],␍
+    15    │ - });␍
+    16    │ - ␍
+    17    │ - export·const·metadata:·Metadata·=·{␍
+    18    │ - ··title:·"Airtime",␍
+    19    │ - ··description:·"Airtime·is·a·podcast·platform·that·allows·you·to·create·and·share·your·own·podcasts.",␍
+    20    │ - };␍
+    21    │ - ␍
+    22    │ - export·default·function·RootLayout({␍
+    23    │ - ··children,␍
+    24    │ - }:·Readonly<{␍
+    25    │ - ··children:·React.ReactNode;␍
+    26    │ - }>)·{␍
+    27    │ - ····return·(␍
+    28    │ - ········<ClerkProvider>␍
+    29    │ - ············<ConvexClientProvider>␍
+    30    │ - ················<html·lang="en">␍
+    31    │ - ····················<body·className={`${geistSans.variable}·${geistMono.variable}·antialiased`}>␍
+    32    │ - ························<main·className="min-h-screen">␍
+    33    │ - ····························{·children·}␍
+    34    │ - ························</main>␍
+    35    │ - ····················</body>␍
+    36    │ - ················</html>␍
+    37    │ - ············</ConvexClientProvider>␍
+    38    │ - ········</ClerkProvider>␍
+    39    │ - ····);␍
+    40    │ - }␍
+        1 │ + import·type·{·Metadata·}·from·"next";
+        2 │ + import·{·Geist,·Geist_Mono·}·from·"next/font/google";
+        3 │ + import·"./globals.css";
+        4 │ + import·{·ClerkProvider·}·from·"@clerk/nextjs";
+        5 │ + import·ConvexClientProvider·from·"@/components/ConvexClientProvider";
+        6 │ +
+        7 │ + const·geistSans·=·Geist({
+        8 │ + ··variable:·"--font-geist-sans",
+        9 │ + ··subsets:·["latin"],
+       10 │ + });
+       11 │ +
+       12 │ + const·geistMono·=·Geist_Mono({
+       13 │ + ··variable:·"--font-geist-mono",
+       14 │ + ··subsets:·["latin"],
+       15 │ + });
+       16 │ +
+       17 │ + export·const·metadata:·Metadata·=·{
+       18 │ + ··title:·"Airtime",
+       19 │ + ··description:
+       20 │ + ····"Airtime·is·a·podcast·platform·that·allows·you·to·create·and·share·your·own·podcasts.",
+       21 │ + };
+       22 │ +
+       23 │ + export·default·function·RootLayout({
+       24 │ + ··children,
+       25 │ + }:·Readonly<{
+       26 │ + ··children:·React.ReactNode;
+       27 │ + }>)·{
+       28 │ + ··return·(
+       29 │ + ····<ClerkProvider>
+       30 │ + ······<ConvexClientProvider>
+       31 │ + ········<html·lang="en">
+       32 │ + ··········<body
+       33 │ + ············className={`${geistSans.variable}·${geistMono.variable}·antialiased`}
+       34 │ + ··········>
+       35 │ + ············<main·className="min-h-screen">{children}</main>
+       36 │ + ··········</body>
+       37 │ + ········</html>
+       38 │ + ······</ConvexClientProvider>
+       39 │ + ····</ClerkProvider>
+       40 │ + ··);
+       41 │ + }
+    41 42 │
+
+ at src\app\page.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - ␍
+     2    │ - import·Header·from·"@/components/Header";␍
+     3    │ - import·FeaturesSection·from·"@/components/Home/Features-Section-";␍
+     4    │ - import·{·HeroSection·}·from·"@/components/Home/Hero-Section";␍
+     5    │ - import·PricingSection·from·"@/components/Home/Pricing-Section";␍
+     6    │ - ␍
+     7    │ - export·default·function·Home()·{␍
+     8    │ - ··return·(␍
+     9    │ - ····<div·className="">␍
+    10    │ - ······<Header·/>␍
+    11    │ - ······<HeroSection·/>␍
+    12    │ - ······<FeaturesSection·/>␍
+    13    │ - ······<PricingSection·/>·␍
+    14    │ - ······{/*·<CTASection·/>·*/}␍
+    15    │ - ······{/*·<Footer·/>·*/}␍
+    16    │ - ····</div>␍
+    17    │ - ··);␍
+    18    │ - }␍
+    19    │ - ␍
+    20    │ - ␍
+        1 │ + import·Header·from·"@/components/Header";
+        2 │ + import·FeaturesSection·from·"@/components/Home/Features-Section-";
+        3 │ + import·{·HeroSection·}·from·"@/components/Home/Hero-Section";
+        4 │ + import·PricingSection·from·"@/components/Home/Pricing-Section";
+        5 │ +
+        6 │ + export·default·function·Home()·{
+        7 │ + ··return·(
+        8 │ + ····<div·className="">
+        9 │ + ······<Header·/>
+       10 │ + ······<HeroSection·/>
+       11 │ + ······<FeaturesSection·/>
+       12 │ + ······<PricingSection·/>
+       13 │ + ······{/*·<CTASection·/>·*/}
+       14 │ + ······{/*·<Footer·/>·*/}
+       15 │ + ····</div>
+       16 │ + ··);
+       17 │ + }
+    21 18 │
+
+ at src\components\Home\Features-Section-.tsx:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+  × The imports and exports are not sorted.
+
+  > 1 │ import {BookMarked, FileText, MessageCircle, Mic2, Users, Zap, type LucideIcon} from "lucide-react";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │
+    3 │ interface Feature {
+
+  i Safe fix: Organize Imports (Biome)
+
+     1    │ - import·{BookMarked,·FileText,·MessageCircle,·Mic2,·Users,·Zap,·type·LucideIcon}·from·"lucide-react";
+        1 │ + import·{BookMarked,·FileText,·type·LucideIcon,·MessageCircle,·Mic2,·Users,·Zap·}·from·"lucide-react";
+     2  2 │
+     3  3 │   interface Feature {
+
+ at src\components\Home\Features-Section-.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1     │ - import·{BookMarked,·FileText,·MessageCircle,·Mic2,·Users,·Zap,·type·LucideIcon}·from·"lucide-react";
+         1 │ + import·{
+         2 │ + ··BookMarked,
+         3 │ + ··FileText,
+         4 │ + ··MessageCircle,
+         5 │ + ··Mic2,
+         6 │ + ··Users,
+         7 │ + ··Zap,
+         8 │ + ··type·LucideIcon,
+         9 │ + }·from·"lucide-react";
+     2  10 │
+     3  11 │   interface Feature {
+     4     │ - ····id:·string
+     5     │ - ····icon:·LucideIcon
+     6     │ - ····title:·string
+     7     │ - ····description:·string
+     8     │ - ····premium?:·boolean
+        12 │ + ··id:·string;
+        13 │ + ··icon:·LucideIcon;
+        14 │ + ··title:·string;
+        15 │ + ··description:·string;
+        16 │ + ··premium?:·boolean;
+     9  17 │   }
+    10  18 │
+    11  19 │   export function FeaturesSection() {
+    12     │ - ····const·features:·Feature[]·=·[
+    13     │ - ········{
+    14     │ - ············id:·'realtime-transcription',
+    15     │ - ············icon:·Mic2,
+    16     │ - ············title:·'Real-Time·Transcription',
+    17     │ - ············description:·'Transcribe·your·audio·in·real-time·with·our·advanced·AI·model.'
+    18     │ - ········},
+    19     │ - ········{
+    20     │ - ············id:·'semantic-search',
+    21     │ - ············icon:·FileText,
+    22     │ - ············title:·'Semantic·Search',
+    23     │ - ············description:·'Search·for·specific·moments·within·an·episode·using·semantic·text·search.'
+    24     │ - ········},
+    25     │ - ········{
+    26     │ - ············id:·'social-posts',
+    27     │ - ············icon:·MessageCircle,
+    28     │ - ············title:·'AI-Generated·Social·Posts',
+    29     │ - ············description:·'Generate·social·posts·for·your·podcast·using·AI.'
+    30     │ - ········},
+    31     │ - ········{
+    32     │ - ············id:·'key-moments',
+    33     │ - ············icon:·BookMarked,
+    34     │ - ············title:·'Key·Moments',
+    35     │ - ············description:·'Identify·key·moments·in·your·podcast·using·AI.'
+    36     │ - ········},
+    37     │ - ········{
+    38     │ - ············id:·'key-moments-chapters',
+    39     │ - ············icon:·Zap,
+    40     │ - ············title:·'Key·Moments·&·Chapters',
+    41     │ - ············description:·'Generate·key·moments·and·chapters·for·your·podcast·using·AI.'
+    42     │ - ········},
+    43     │ - ········{
+    44     │ - ············id:·'speaker-dialogue',
+    45     │ - ············icon:·Users,
+    46     │ - ············title:·'Speaker·Dialogue',
+    47     │ - ············description:·'Full·transcript·with·speaker·identification·-·see·exactly·who·said·what·and·when·(ULTRA·only).',
+    48     │ - ············premium:·true,
+    49     │ - ········},
+    50     │ - ········{
+    51     │ - ············id:·'premium-audio-player',
+    52     │ - ············icon:·Users,
+    53     │ - ············title:·'Premium·Audio·Player',
+    54     │ - ············description:·'A·custom-built,·minimalist·player·with·dynamic·waveform·visualization.',
+    55     │ - ············premium:·true,
+    56     │ - ········},
+    57     │ - ····];
+    58     │ - ····return·(
+    59     │ - ········<section·className='container·mx-auto·px-6·py-26·md:py-34'>
+    60     │ - ············<div·className={'max-w-7xl·mx-auto'}>␍
+    61     │ - ················<div·className={'text-center·mb-18'}>␍
+    62     │ - ····················<h2·className={'text-5xl·md:text-6xl·font-bold·mb-4'}>␍
+    63     │ - ························Every·Feature·You·Need·in·{'·'}␍
+    64     │ - ························<span·className={'gradient-emerald-text'}>One·Platform</span>·{'·'}␍
+    65     │ - ····················</h2>␍
+    66     │ - ····················<p·className={'text-xl·text-gray-800·max-w-2xl·mx-auto'}>␍
+    67     │ - ························Power·up·your·podcast·with·AI-driven·transcription,·search,·and·social·media·automation.␍
+    68     │ - ····················</p>␍
+    69     │ - ················</div>
+    70     │ - ················<div·className={'grid·grid-cols-1·sm:grid-cols-2·lg:grid-cols-3·gap-10'}>
+    71     │ - ····················{features.map((feature,·index)·=>·{
+    72     │ - ························const·Icon·=·feature.icon;
+    73     │ - ························return·(
+    74     │ - ····························<div
+    75     │ - ································key={feature.id}
+    76     │ - ································className={'glass-card·rounded-2xl·hover-lift·p-8·group'}
+    77     │ - ································style={{animationDelay:·`${index·*·100}ms`}}
+    78     │ - ····························>
+    79     │ - ································<div·className={'rounded-2xl·gradient-emerald·p-4·w-fit·mb-6·group-hover:animate-pulse-emerald·transition-all'}>
+    80     │ - ····································<Icon·className={'h-8·w-8·text-white'}·/>
+    81     │ - ································</div>
+    82     │ - ································<h3·className={'text-2xl·font-bold·mb-3·group-hover:text-emerald-700·transition-colors'}>
+    83     │ - ····································{feature.title}
+    84     │ - ································</h3>
+    85     │ - ································<p·className={'text-gray-700·leading-relaxed'}>
+    86     │ - ····································{feature.description}
+    87     │ - ································</p>
+    88     │ - ····························</div>
+    89     │ - ························);
+    90     │ - ····················})}
+    91     │ - ················</div>
+    92     │ - ············</div>
+    93     │ - ········</section>
+    94     │ - ····);␍
+    95     │ - };␍
+    96     │ - ␍
+    97     │ - export·default·FeaturesSection
+        20 │ + ··const·features:·Feature[]·=·[
+        21 │ + ····{
+        22 │ + ······id:·"realtime-transcription",
+        23 │ + ······icon:·Mic2,
+        24 │ + ······title:·"Real-Time·Transcription",
+        25 │ + ······description:
+        26 │ + ········"Transcribe·your·audio·in·real-time·with·our·advanced·AI·model.",
+        27 │ + ····},
+        28 │ + ····{
+        29 │ + ······id:·"semantic-search",
+        30 │ + ······icon:·FileText,
+        31 │ + ······title:·"Semantic·Search",
+        32 │ + ······description:
+        33 │ + ········"Search·for·specific·moments·within·an·episode·using·semantic·text·search.",
+        34 │ + ····},
+        35 │ + ····{
+        36 │ + ······id:·"social-posts",
+        37 │ + ······icon:·MessageCircle,
+        38 │ + ······title:·"AI-Generated·Social·Posts",
+        39 │ + ······description:·"Generate·social·posts·for·your·podcast·using·AI.",
+        40 │ + ····},
+        41 │ + ····{
+        42 │ + ······id:·"key-moments",
+        43 │ + ······icon:·BookMarked,
+        44 │ + ······title:·"Key·Moments",
+        45 │ + ······description:·"Identify·key·moments·in·your·podcast·using·AI.",
+        46 │ + ····},
+        47 │ + ····{
+        48 │ + ······id:·"key-moments-chapters",
+        49 │ + ······icon:·Zap,
+        50 │ + ······title:·"Key·Moments·&·Chapters",
+        51 │ + ······description:
+        52 │ + ········"Generate·key·moments·and·chapters·for·your·podcast·using·AI.",
+        53 │ + ····},
+        54 │ + ····{
+        55 │ + ······id:·"speaker-dialogue",
+        56 │ + ······icon:·Users,
+        57 │ + ······title:·"Speaker·Dialogue",
+        58 │ + ······description:
+  64 more lines truncated
+
+ at src\components\Home\Hero-Section.tsx:3:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━
+  × The imports and exports are not sorted.
+
+  > 3 │ import { auth } from "@clerk/nextjs/server";
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    4 │ import Link from "next/link";
+    5 │ import { Button } from "../ui/button";
+
+  i Safe fix: Organize Imports (Biome)
+
+     1  1 │   ␍
+     2  2 │   ␍
+     3    │ - import·{·auth·}·from·"@clerk/nextjs/server";␍
+     4    │ - import·Link·from·"next/link";␍
+     5    │ - import·{·Button·}·from·"../ui/button";␍
+     6    │ - import·{·SignInButton·}·from·"@clerk/nextjs";␍
+     7    │ - import·{·Mic2·}·from·"lucide-react";␍
+        3 │ + import·{·SignInButton·}·from·"@clerk/nextjs";␍
+        4 │ + import·{·auth·}·from·"@clerk/nextjs/server";␍
+        5 │ + import·{·Mic2·}·from·"lucide-react";␍
+        6 │ + import·Link·from·"next/link";␍
+        7 │ + import·{·Button·}·from·"../ui/button";␍
+     8  8 │   ␍
+     9  9 │   export async function HeroSection() {␍
+
+ at src\components\Home\Hero-Section.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1     │ - ␍
+     2     │ - ␍
+     3     │ - import·{·auth·}·from·"@clerk/nextjs/server";␍
+     4     │ - import·Link·from·"next/link";␍
+     5     │ - import·{·Button·}·from·"../ui/button";␍
+     6     │ - import·{·SignInButton·}·from·"@clerk/nextjs";␍
+     7     │ - import·{·Mic2·}·from·"lucide-react";␍
+     8     │ - ␍
+     9     │ - export·async·function·HeroSection()·{␍
+    10     │ - ····const·{·userId·}·=·await·auth();␍
+    11     │ - ····const·isSingedIn·=·!!userId;␍
+    12     │ - ····return·(␍
+    13     │ - ········<section·className={·'relative·overflow-hidden·mesh-background·min-h-screen'·}>␍
+    14     │ - ············<div·className={·'container·mx-auto·px-5·py-26·md:pb-26·lgmd:pt-25'·}>␍
+    15     │ - ················<div·className={·'max-w-5xl·mx-auto'·}>␍
+    16     │ - ····················<div·className={·'text-center·mb-20·animate-float'·}>␍
+    17     │ - ························<div·className={·'inline-flex·items-center·gap-3·px-5·py-2.5·rounded-full·glass-card·hover-glow·mb-8·animate-shimmer'·}>␍
+    18     │ - ····························<span·className={·'text-sm·font-semibold·bg-gradient-to-r·from-emerald-600·to-emerald-500·bg-clip-text·text-transparent'·}>␍
+    19     │ - ································AI-Powered·Podcast·Transcription·&·Search␍
+    20     │ - ····························</span>␍
+    21     │ - ························</div>␍
+    22     │ - ␍
+    23     │ - ························<h1·className={·'text-6xl·md:text-7xl·lg:text-8xl·font-extrabold·text-white·leading-tight'·}>␍
+    24     │ - ····························<span·className={·'gradient-emerald-text'·}>Transform</span>·Your␍
+    25     │ - ····························<br·/>␍
+    26     │ - ····························Podcasts·Into·AI·Content·Machine␍
+    27     │ - ························</h1>␍
+    28     │ - ␍
+    29     │ - ························<p·className={·'text-xl·md:text-2xl·text-gray-800·mb-12·max-w-3xl·mx-auto·leading-relaxed'·}>␍
+    30     │ - ····························Upload·your·audio·and·get·AI·-·generated·transcripts,␍
+    31     │ - ····························summaries,␍
+    32     │ - ····························social·posts,␍
+    33     │ - ····························and·key·moments·-·all·in·minutes.␍
+    34     │ - ························</p>␍
+    35     │ - ····················</div>␍
+    36     │ - ␍
+    37     │ - ····················{·isSingedIn·?·(␍
+    38     │ - ························<div·className={·'space-y-6'·}>␍
+    39     │ - ····························<div·className={·'glass-card-strong·rounded-2xl·p-9·hover-lift'·}>␍
+    40     │ - ································{/*<PodcastUploader·/>*/}␍
+    41     │ - ····························</div>␍
+    42     │ - ····························<div·className={·'text-center'·}>␍
+    43     │ - ································<Link·href={·'/dashboard/projects'·}>␍
+    44     │ - ····································<Button·variant={·'outline'·}·size={·'lg'·}·className={·'hover-glow'·}>␍
+    45     │ - ········································View·Projects␍
+    46     │ - ····································</Button>␍
+    47     │ - ································</Link>␍
+    48     │ - ····························</div>␍
+    49     │ - ························</div>␍
+    50     │ - ····················)·:·(␍
+    51     │ - ························<div·className={·'flex·flex-col·sm:flex-row·items-center·justify-center·gap-6'·}>␍
+    52     │ - ····························<SignInButton·mode={·'modal'·}>␍
+    53     │ - ································<Button␍
+    54     │ - ····································size={·'lg'·}␍
+    55     │ - ····································className={·'gradient-emerald·text-white·hover-glow·text-lg·px-9·py-8·rounded-xl·shadow-lg'·}>␍
+    56     │ - ····································Get·Started·Today␍
+    57     │ - ····································<Mic2·className={·'ml-2·h-7·w-7'·}·/>␍
+    58     │ - ································</Button>␍
+    59     │ - ····························</SignInButton>␍
+    60     │ - ····························<Link·href={·'/dashboard/projects'·}>␍
+    61     │ - ································<Button␍
+    62     │ - ····································variant={·'outline'·}␍
+    63     │ - ····································size={·'lg'·}␍
+    64     │ - ····································className={·'hover-glow·text-xl·px-9·py-7·rounded-xl·shadow-lg'·}>␍
+    65     │ - ····································View·Your·Projects␍
+    66     │ - ································</Button>␍
+    67     │ - ····························</Link>␍
+    68     │ - ························</div>␍
+    69     │ - ····················)·}␍
+    70     │ - ················</div>␍
+    71     │ - ············</div>␍
+    72     │ - ············␍
+    73     │ - ············{/*·Gradient·Orbs·*/·}␍
+    74     │ - ············<div·className={·'absolute·top-0·right-0·w-96·h-96·bg-emerald-300·rounded-full·mix-blend-multiply·filter·blur-3xl·opacity-30·animate-float'·}></div>␍
+    75     │ - ············<div␍
+    76     │ - ················className="absolute·bottom-0·left-0·w-96·h-96·bg-teal-300·rounded-full·mix-blend-multiply·filter·blur-3xl·opacity-30·animate-float"␍
+    77     │ - ················style={·{·animationDelay:·'1s'·}·}␍
+    78     │ - ············/>␍
+    79     │ - ········</section>␍
+    80     │ - ····);␍
+    81     │ - }
+         1 │ + import·{·auth·}·from·"@clerk/nextjs/server";
+         2 │ + import·Link·from·"next/link";
+         3 │ + import·{·Button·}·from·"../ui/button";
+         4 │ + import·{·SignInButton·}·from·"@clerk/nextjs";
+         5 │ + import·{·Mic2·}·from·"lucide-react";
+         6 │ +
+         7 │ + export·async·function·HeroSection()·{
+         8 │ + ··const·{·userId·}·=·await·auth();
+         9 │ + ··const·isSingedIn·=·!!userId;
+        10 │ + ··return·(
+        11 │ + ····<section
+        12 │ + ······className={"relative·overflow-hidden·mesh-background·min-h-screen"}
+        13 │ + ····>
+        14 │ + ······<div·className={"container·mx-auto·px-5·py-26·md:pb-26·lgmd:pt-25"}>
+        15 │ + ········<div·className={"max-w-5xl·mx-auto"}>
+        16 │ + ··········<div·className={"text-center·mb-20·animate-float"}>
+        17 │ + ············<div
+        18 │ + ··············className={
+        19 │ + ················"inline-flex·items-center·gap-3·px-5·py-2.5·rounded-full·glass-card·hover-glow·mb-8·animate-shimmer"
+        20 │ + ··············}
+        21 │ + ············>
+        22 │ + ··············<span
+        23 │ + ················className={
+        24 │ + ··················"text-sm·font-semibold·bg-gradient-to-r·from-emerald-600·to-emerald-500·bg-clip-text·text-transparent"
+        25 │ + ················}
+        26 │ + ··············>
+        27 │ + ················AI-Powered·Podcast·Transcription·&·Search
+        28 │ + ··············</span>
+        29 │ + ············</div>
+        30 │ +
+        31 │ + ············<h1
+        32 │ + ··············className={
+        33 │ + ················"text-6xl·md:text-7xl·lg:text-8xl·font-extrabold·text-white·leading-tight"
+        34 │ + ··············}
+        35 │ + ············>
+        36 │ + ··············<span·className={"gradient-emerald-text"}>Transform</span>·Your
+        37 │ + ··············<br·/>
+        38 │ + ··············Podcasts·Into·AI·Content·Machine
+        39 │ + ············</h1>
+        40 │ +
+        41 │ + ············<p
+        42 │ + ··············className={
+        43 │ + ················"text-xl·md:text-2xl·text-gray-800·mb-12·max-w-3xl·mx-auto·leading-relaxed"
+        44 │ + ··············}
+        45 │ + ············>
+        46 │ + ··············Upload·your·audio·and·get·AI·-·generated·transcripts,·summaries,
+        47 │ + ··············social·posts,·and·key·moments·-·all·in·minutes.
+        48 │ + ············</p>
+        49 │ + ··········</div>
+        50 │ +
+        51 │ + ··········{isSingedIn·?·(
+        52 │ + ············<div·className={"space-y-6"}>
+        53 │ + ··············<div·className={"glass-card-strong·rounded-2xl·p-9·hover-lift"}>
+        54 │ + ················{/*<PodcastUploader·/>*/}
+        55 │ + ··············</div>
+        56 │ + ··············<div·className={"text-center"}>
+        57 │ + ················<Link·href={"/dashboard/projects"}>
+        58 │ + ··················<Button
+        59 │ + ····················variant={"outline"}
+        60 │ + ····················size={"lg"}
+        61 │ + ····················className={"hover-glow"}
+        62 │ + ··················>
+        63 │ + ····················View·Projects
+        64 │ + ··················</Button>
+        65 │ + ················</Link>
+        66 │ + ··············</div>
+        67 │ + ············</div>
+        68 │ + ··········)·:·(
+        69 │ + ············<div
+  45 more lines truncated
+
+ at src\components\Home\Pricing-Section.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - interface·PricingSectionProps·{␍
+     2    │ - ····compact?:·boolean␍
+     3    │ - }␍
+     4    │ - ␍
+     5    │ - ␍
+     6    │ - ····export·default·function·PricingSection({·compact·}:·PricingSectionProps)·{␍
+     7    │ - ········return·(␍
+     8    │ - ············<section·className={'relative·py-26·md:py-34·overflow-hidden'}>␍
+     9    │ - ················<div·className={'max-w-7xl·mx-auto'}>␍
+    10    │ - ····················{/*·Header·*/}␍
+    11    │ - ····················<div·className={'text-center·mb-20'}>␍
+    12    │ - ························<h2·className={'text-5xl·md:text-6xl·font-bold·mb-7'}>␍
+    13    │ - ····························Simple,<span·className={'gradient-emerald-text'}>Transparent</span>Pricing␍
+    14    │ - ························</h2>␍
+    15    │ - ························<p·className={'text-xl·md:text-2xl·text-gray-800·max-w-3xl·mx-auto·leading-relaxed'}>␍
+    16    │ - ····························Choose·the·plan·that·fits·your·podcasting·needs.·No·hidden·fees,·no·surprises.␍
+    17    │ - ························</p>␍
+    18    │ - ····················</div>␍
+    19    │ - ␍
+    20    │ - ····················{/*·Pricing··*/}␍
+    21    │ - ····················<div·className={`flex·justify-center·w-full·${compact·?·'max-w-4xl'·:·'max-w-5xl'}`}>␍
+    22    │ - ························<div·className={compact·?·'max-w-4xl·w-full'·:·'max-w-5xl·w-full'}>␍
+    23    │ - ····························{/*·Pricing·cards·go·here·*/}␍
+    24    │ - ························</div>␍
+    25    │ - ····················</div>␍
+    26    │ - ················</div>␍
+    27    │ - ············</section>␍
+    28    │ - ········)␍
+    29    │ - ····}␍
+    30    │ - ␍
+        1 │ + interface·PricingSectionProps·{
+        2 │ + ··compact?:·boolean;
+        3 │ + }
+        4 │ +
+        5 │ + export·default·function·PricingSection({·compact·}:·PricingSectionProps)·{
+        6 │ + ··return·(
+        7 │ + ····<section·className={"relative·py-26·md:py-34·overflow-hidden"}>
+        8 │ + ······<div·className={"max-w-7xl·mx-auto"}>
+        9 │ + ········{/*·Header·*/}
+       10 │ + ········<div·className={"text-center·mb-20"}>
+       11 │ + ··········<h2·className={"text-5xl·md:text-6xl·font-bold·mb-7"}>
+       12 │ + ············Simple,<span·className={"gradient-emerald-text"}>Transparent</span>
+       13 │ + ············Pricing
+       14 │ + ··········</h2>
+       15 │ + ··········<p
+       16 │ + ············className={
+       17 │ + ··············"text-xl·md:text-2xl·text-gray-800·max-w-3xl·mx-auto·leading-relaxed"
+       18 │ + ············}
+       19 │ + ··········>
+       20 │ + ············Choose·the·plan·that·fits·your·podcasting·needs.·No·hidden·fees,·no
+       21 │ + ············surprises.
+       22 │ + ··········</p>
+       23 │ + ········</div>
+       24 │ +
+       25 │ + ········{/*·Pricing··*/}
+       26 │ + ········<div
+       27 │ + ··········className={`flex·justify-center·w-full·${compact·?·"max-w-4xl"·:·"max-w-5xl"}`}
+       28 │ + ········>
+       29 │ + ··········<div·className={compact·?·"max-w-4xl·w-full"·:·"max-w-5xl·w-full"}>
+       30 │ + ············{/*·Pricing·cards·go·here·*/}
+       31 │ + ··········</div>
+       32 │ + ········</div>
+       33 │ + ······</div>
+       34 │ + ····</section>
+       35 │ + ··);
+       36 │ + }
+    31 37 │
+
+ at src\lib\utils.ts:1:1 assist/source/organizeImports  FIXABLE  ━━━━━━━━━━━━━━━
+  × The imports and exports are not sorted.
+
+  > 1 │ import { clsx, type ClassValue } from "clsx"
+      │ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 │ import { twMerge } from "tailwind-merge"
+    3 │
+
+  i Safe fix: Organize Imports (Biome)
+
+    1   │ - import·{·clsx,·type·ClassValue·}·from·"clsx"
+      1 │ + import·{·type·ClassValue,·clsx·}·from·"clsx"
+    2 2 │   import { twMerge } from "tailwind-merge"
+    3 3 │
+
+ at src\lib\utils.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+    1   │ - import·{·clsx,·type·ClassValue·}·from·"clsx"
+    2   │ - import·{·twMerge·}·from·"tailwind-merge"
+      1 │ + import·{·clsx,·type·ClassValue·}·from·"clsx";
+      2 │ + import·{·twMerge·}·from·"tailwind-merge";
+    3 3 │
+    4 4 │   export function cn(...inputs: ClassValue[]) {
+    5   │ - ··return·twMerge(clsx(inputs))
+      5 │ + ··return·twMerge(clsx(inputs));
+    6 6 │   }
+    7 7 │
+
+ at src\middleware.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Formatter would have printed the following content:
+
+     1    │ - import·{·clerkMiddleware,·createRouteMatcher·}·from·'@clerk/nextjs/server';
+        1 │ + import·{·clerkMiddleware,·createRouteMatcher·}·from·"@clerk/nextjs/server";
+     2  2 │
+     3  3 │   // Protected routes with route matcher
+     4    │ - const·protectedRouters·=·createRouteMatcher(['/dashboard(.*)']);
+        4 │ + const·protectedRouters·=·createRouteMatcher(["/dashboard(.*)"]);
+     5  5 │
+     6  6 │   export default clerkMiddleware(async (auth, req) => {
+    ····· │
+    13 13 │     matcher: [
+    14 14 │       // Skip Next.js internals and all static files, unless found in search params
+    15    │ - ····'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+       15 │ + ····"/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    16 16 │       // Always run for API routes
+    17    │ - ····'/(api|trpc)(.*)',
+       17 │ + ····"/(api|trpc)(.*)",
+    18 18 │     ],
+    19 19 │   };
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 174.
+Checked 69 files in 199ms. No fixes applied.
+Found 150 errors.
+Found 44 warnings.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  × Some errors were emitted while running checks.

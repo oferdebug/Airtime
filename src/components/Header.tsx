@@ -1,13 +1,16 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+// biome-ignore assist/source/organizeImports: <explanation>
 import Link from "next/link";
 import Image from "next/image";
 import { Protect, SignInButton, useAuth, UserButton } from "@clerk/nextjs";
-import { Crown, Home, Mic, Zap } from "lucide-react";
+import { Crown, Home, Mic, Mic2, Zap } from "lucide-react";
+import { usePathname } from "next/navigation";
+
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import DashboardNav from "./Dashboard-Nav";
+import DashboardNav from "./DashboardNav";
+
 
 export function Header() {
   const { isSignedIn } = useAuth();
@@ -47,7 +50,7 @@ export function Header() {
                 <span className="text-xl font-bold text-gray-800 tracking-tight">
                   Airtime
                 </span>
-                <Mic
+                <Mic2
                   className={
                     isDashboard
                       ? "h-6 w-6 text-emerald-700 group-hover:rotate-12 transition-transform duration-300"
