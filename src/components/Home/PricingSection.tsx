@@ -19,7 +19,7 @@ export default function PricingSection({
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold mb-7 text-slate-950">
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-7 text-slate-950">
               Simple, <span className="gradient-brand-text">Transparent</span>{" "}
               Pricing
             </h2>

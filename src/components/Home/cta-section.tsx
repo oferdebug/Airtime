@@ -5,8 +5,9 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 
 export default async function CtaSection() {
-  const { userId } = await auth();
+  const { userId,isAuthenticated } = await auth();
   const isSignedIn = !!userId;
+  
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden gradient-brand">
@@ -27,7 +28,7 @@ export default async function CtaSection() {
               Ready to Supercharge Your Podcasts?
             </h2>
             <p className="text-xl md:text-2xl text-white mb-10 leading-relaxed drop-shadow-lg">
-              {isSignedIn
+              {isAuthenticated
                 ? "Continue your journey and upload your next masterpiece."
                 : "Sign up now and unlock the full potential of AI-powered podcasting!"}
             </p>
@@ -58,3 +59,4 @@ export default async function CtaSection() {
     </section>
   );
 }
+
