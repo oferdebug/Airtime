@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 export default async function CtaSection() {
   const { userId } = await auth();
   const isSignedIn = !!userId;
+  
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden gradient-brand">
@@ -32,15 +33,16 @@ export default async function CtaSection() {
                 : "Sign up now and unlock the full potential of AI-powered podcasting!"}
             </p>
             {isSignedIn ? (
-              <Link href="/dashboard/uploads">
-                <Button
-                  size="lg"
-                  className="bg-white text-brand-600 hover:bg-white/90 hover-glow text-lg px-10 py-7 rounded-xl shadow-2xl font-bold"
-                >
+              <Button
+                asChild
+                size="lg"
+                className="bg-white text-brand-600 hover:bg-white/90 hover-glow text-lg px-10 py-7 rounded-xl shadow-2xl font-bold"
+              >
+                <Link href="/dashboard/uploads">
                   Go to Dashboard
                   <Upload className="ml-2 h-7 w-7" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             ) : (
               <SignInButton mode="modal">
                 <Button
