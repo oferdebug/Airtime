@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils"
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, suppressHydrationWarning, ...props }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, ...props }, ref) => {
     return (
       <input
         type={type}
@@ -13,7 +14,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className,
         )}
         ref={ref}
-        suppressHydrationWarning={suppressHydrationWarning ?? true}
+        {...props}
+      />
+    );
+  }
+);
         {...props}
       />
     );

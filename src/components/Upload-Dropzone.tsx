@@ -24,11 +24,10 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MiB`;
 }
 
-const DROPZONE_ID='upload-dropzone';
-const DROPZONE_LABEL_ID='upload-dropzone-label';
-const DROPZONE_DESC_ID='upload-dropzone-desc';
-const DROPZONE_ERROR_ID='upload-dropzone-error';
-
+const DROPZONE_ID = "upload-dropzone";
+const DROPZONE_LABEL_ID = "upload-dropzone-label";
+const DROPZONE_DESC_ID = "upload-dropzone-desc";
+const DROPZONE_ERROR_ID = "upload-dropzone-error";
 interface UploadDropzoneProps {
     onFileSelect:(file:File)=>void;
     disabled?:boolean;

@@ -1,8 +1,20 @@
 import { inngest } from "../client";
 
-/** Typed payload for test/hello.world; enforces event.data.email in handler. */
+/** Raw payload shape; email may be absent or wrong type from external source. */
 interface HelloWorldPayload {
-  email: string;
+  email?: unknown;
+}
+
+/**
+ * Parses and validates email from the hello-world event payload.
+ * Returns trimmed non-empty string or null if absent/invalid.
+ */
+function parseHelloWorldEmail(data: unknown): string | null {
+  if (data === null || typeof data !== "object") return null;
+  const obj = data as HelloWorldPayload;
+  const raw = obj.email;
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+  return trimmed !== "" ? trimmed : null;
 }
 
 export const helloWorld = inngest.createFunction(
@@ -10,10 +22,7 @@ export const helloWorld = inngest.createFunction(
   { event: "test/hello.world" },
   async ({ event, step }) => {
     await step.sleep("wait-a-moment", "1s");
-    const data = event.data as HelloWorldPayload;
-    const raw = data.email;
-    const email =
-      typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;
+    const email = parseHelloWorldEmail(event.data);
     if (email === null) {
       return { message: "Hello! (No email provided.)" };
     }
