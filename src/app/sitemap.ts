@@ -4,76 +4,49 @@ import { getBlogPosts } from "@/lib/blog";
 // Stable dates for sitemap entries - update these when pages actually change
 const LAST_MODIFIED_DATES = {
   home: new Date("2025-01-27"),
-  features: new Date("2025-01-27"),
-  pricing: new Date("2025-01-27"),
-  about: new Date("2025-01-27"),
-  contact: new Date("2025-01-27"),
-  privacy: new Date("2025-01-27"),
-  terms: new Date("2025-01-27"),
+  blog: new Date() // Will be updated by getLatestPostDate
 } as const;
 
 // Helper to get the most recent blog post date
 async function getLatestPostDate(): Promise<Date> {
-  const posts = await getBlogPosts();
-  if (posts.length === 0) {
-    return new Date("2025-01-27"); // Fallback to default date
+  try {
+    const posts = await getBlogPosts();
+    if (posts.length === 0) {
+      return new Date("2025-01-27"); // Fallback to default date
+    }
+    
+    // Sort posts by date descending and take the most recent one
+    const latestPost = [...posts].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )[0];
+    
+    const latestDate = new Date(latestPost.date);
+    return isNaN(latestDate.getTime()) ? new Date("2025-01-27") : latestDate;
+  } catch (error) {
+    console.error('Error fetching latest post date:', error);
+    return new Date("2025-01-27");
   }
-  const dates = posts.map((post) => new Date(post.date));
-  return new Date(Math.max(...dates.map((date) => date.getTime())));
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://airtime.com";
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://airtime.com').replace(/\/+$/, '');
   const blogLastModified = await getLatestPostDate();
 
   return [
+    // Home page
     {
       url: baseUrl,
       lastModified: LAST_MODIFIED_DATES.home,
-      changeFrequency: "daily",
+      changeFrequency: 'daily' as const,
       priority: 1,
     },
-    {
-      url: `${baseUrl}/features`,
-      lastModified: LAST_MODIFIED_DATES.features,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: LAST_MODIFIED_DATES.pricing,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
+    // Blog index
     {
       url: `${baseUrl}/blog`,
       lastModified: blogLastModified,
-      changeFrequency: "daily",
+      changeFrequency: 'daily' as const,
       priority: 0.7,
     },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: LAST_MODIFIED_DATES.about,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: LAST_MODIFIED_DATES.contact,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: LAST_MODIFIED_DATES.privacy,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: LAST_MODIFIED_DATES.terms,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
+    // Add other valid routes here when they exist
   ];
 }

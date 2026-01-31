@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, type ReactNode } from "react";
+import React, { Component, type ReactNode, type ReactElement, type ErrorInfo } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
     
     // Send error to reporting service
@@ -45,17 +45,34 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        if (typeof this.props.fallback === "function") {
+        if (typeof this.props.fallback === 'function') {
           return this.props.fallback(this.state.error, this.handleReset);
         }
-        return this.props.fallback;
+        
+        if (React.isValidElement<{ onReset?: () => void; handleReset?: () => void }>(this.props.fallback)) {
+          const { onReset, handleReset } = this.props.fallback.props;
+          return React.cloneElement(this.props.fallback, { 
+            onReset: onReset ?? this.handleReset,
+            handleReset: handleReset ?? this.handleReset 
+          });
+        }
+
+        return (
+          <div className="relative">
+            {this.props.fallback}
+            <button
+              onClick={this.handleReset}
+              className="mt-4 px-4 py-2 text-sm text-brand-600 hover:text-brand-800 flex items-center gap-2 justify-center"
+              aria-label="Reset error state"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </button>
+          </div>
+        );
       }
 
-      return (
-        <ErrorFallbackUI
-          onReset={this.handleReset}
-        />
-      );
+      return <ErrorFallbackUI onReset={this.handleReset} />;
     }
 
     return this.props.children;

@@ -45,3 +45,6 @@ next-env.d.ts
 
 # debug/output files
 *.output.txt
+
+.vercel
+.env*.local
