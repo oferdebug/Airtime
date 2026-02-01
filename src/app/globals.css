@@ -71,6 +71,30 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Override Tailwind green/emerald with brand purple & pink — class names unchanged */
+  --color-green-50: rgb(var(--pink-50));
+  --color-green-100: rgb(var(--pink-100));
+  --color-green-200: rgb(var(--pink-200));
+  --color-green-300: rgb(var(--pink-300));
+  --color-green-400: rgb(var(--pink-400));
+  --color-green-500: rgb(var(--pink-500));
+  --color-green-600: rgb(var(--pink-600));
+  --color-green-700: rgb(var(--pink-700));
+  --color-green-800: rgb(var(--pink-800));
+  --color-green-900: rgb(var(--pink-900));
+  --color-green-950: rgb(var(--pink-950));
+  --color-emerald-50: rgb(var(--brand-50));
+  --color-emerald-100: rgb(var(--brand-100));
+  --color-emerald-200: rgb(var(--brand-200));
+  --color-emerald-300: rgb(var(--brand-300));
+  --color-emerald-400: rgb(var(--brand-400));
+  --color-emerald-500: rgb(var(--brand-500));
+  --color-emerald-600: rgb(var(--brand-600));
+  --color-emerald-700: rgb(var(--brand-700));
+  --color-emerald-800: rgb(var(--brand-800));
+  --color-emerald-900: rgb(var(--brand-900));
+  --color-emerald-950: rgb(var(--brand-950));
 }
 
 :root {

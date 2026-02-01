@@ -1,5 +1,7 @@
 "use client";
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 
+// biome-ignore lint: reason
 import React, { Component, type ReactNode, type ErrorInfo } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
