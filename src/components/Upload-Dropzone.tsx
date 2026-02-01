@@ -1,7 +1,5 @@
 "use client";
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
-
-// biome-ignore assist/source/organizeImports: <explanation>
+/** biome-ignore-all assist/source/organizeImports: preserve import grouping for dropzone component clarity */
 import { FileAudio, Upload } from "lucide-react";
 import { useCallback } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
@@ -90,11 +88,11 @@ export function UploadDropzone({
         })}
         className={cn(
           "relative rounded-2xl border-2 border-dashed p-8 text-center transition-all outline-none",
-          "focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
-          "border-emerald-300 bg-emerald-50/30 hover:border-emerald-500 hover:bg-emerald-50/50",
+          "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+          "border-brand-300 bg-brand-50/30 hover:border-brand-500 hover:bg-brand-50/50",
           isDragActive &&
             !isDragReject &&
-            "border-emerald-600 bg-emerald-100/80 scale-[1.01] shadow-lg",
+            "border-brand-600 bg-brand-100/80 scale-[1.01] shadow-lg",
           isDragReject && "border-red-600 bg-red-50/50",
           disabled && "cursor-not-allowed opacity-60",
           hasError && "border-red-600 bg-red-50/30",
@@ -112,10 +110,10 @@ export function UploadDropzone({
             isDragReject ? (
               <FileAudio className="h-12 w-12 text-red-500" aria-hidden />
             ) : (
-              <Upload className="h-12 w-12 text-emerald-500" aria-hidden />
+              <Upload className="h-12 w-12 text-brand-500" aria-hidden />
             )
           ) : (
-            <Upload className="h-12 w-12 text-emerald-500" aria-hidden />
+            <Upload className="h-12 w-12 text-brand-500" aria-hidden />
           )}
           <p
             id={DROPZONE_LABEL_ID}

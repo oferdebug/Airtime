@@ -24,6 +24,10 @@ A premium, minimalist podcast streaming and generation platform powered by cutti
 - **AI Integration**: OpenAI (Whisper & GPT-4o)
 - **Typography**: [Geist Sans & Mono](https://vercel.com/font)
 
+### Brand Colors & Design Tokens
+
+We use explicit brand tokens (`--color-brand-*`, `--color-accent-pink-*`) instead of overriding Tailwind’s semantic color tokens (`green`, `emerald`). This keeps `green`/`emerald` for real success/affirmative semantics (e.g. status indicators) and reserves brand purple/pink for brand-specific UI. Components should use `bg-brand-*`, `text-brand-*`, `bg-accent-pink-*` etc. for brand styling.
+
 ---
 
 ## 📁 Architecture
