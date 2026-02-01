@@ -5,13 +5,26 @@ import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
-/** Canonical reset prop for fallback. Legacy handleReset/onReset are forwarded with deprecation. */
-type FallbackProps = { resetErrorBoundary?: () => void };
+/** Canonical props for fallback component. Matches render-prop API: (error, reset). */
+type FallbackProps = {
+  error?: Error | null;
+  reset?: () => void;
+  /** @deprecated Prefer `reset` for consistency with render-prop API */
+  resetErrorBoundary?: () => void;
+};
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode | ((error: Error | null, reset: () => void) => ReactNode) | React.ComponentType<FallbackProps>;
-}
+type Props =
+  | { children: ReactNode; fallback?: ReactNode }
+  | {
+      children: ReactNode;
+      fallback: (error: Error | null, reset: () => void) => ReactNode;
+      fallbackType: "render";
+    }
+  | {
+      children: ReactNode;
+      fallback: React.ComponentType<FallbackProps>;
+      fallbackType: "component";
+    };
 
 interface State {
   hasError: boolean;
@@ -42,12 +55,23 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        if (typeof this.props.fallback === 'function') {
-          const fn = this.props.fallback as ((error: Error | null, reset: () => void) => ReactNode) | React.ComponentType<FallbackProps>;
-          if (fn.length >= 2) {
-            return (fn as (error: Error | null, reset: () => void) => ReactNode)(this.state.error, this.resetErrorBoundary);
+        if (typeof this.props.fallback === "function" && "fallbackType" in this.props) {
+          const { fallback, fallbackType } = this.props;
+          if (fallbackType === "render") {
+            return (fallback as (error: Error | null, reset: () => void) => ReactNode)(
+              this.state.error,
+              this.resetErrorBoundary
+            );
           }
-          return React.createElement(fn as React.ComponentType<FallbackProps>, { resetErrorBoundary: this.resetErrorBoundary });
+          if (fallbackType === "component") {
+            return React.createElement(fallback as React.ComponentType<FallbackProps>, {
+              error: this.state.error,
+              reset: this.resetErrorBoundary,
+              resetErrorBoundary: this.resetErrorBoundary,
+            });
+          }
+          console.error("[ErrorBoundary] Unknown fallbackType:", fallbackType);
+          throw new Error(`[ErrorBoundary] Unknown fallbackType: ${String(fallbackType)}`);
         }
         if (React.isValidElement(this.props.fallback)) {
           const props = this.props.fallback.props as Record<string, unknown>;
@@ -62,6 +86,12 @@ export class ErrorBoundary extends Component<Props, State> {
             onReset: effectiveReset,
             handleReset: effectiveReset,
           } as Record<string, unknown>);
+        }
+        if (typeof this.props.fallback === "function") {
+          if (process.env.NODE_ENV !== "production") {
+            console.error("[ErrorBoundary] fallback is a function but fallbackType is missing. Use fallbackType: 'render' or 'component'.");
+          }
+          return <ErrorFallbackUI resetErrorBoundary={this.resetErrorBoundary} />;
         }
         return (
           <div className="relative">

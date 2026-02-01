@@ -14,7 +14,10 @@ function parseHelloWorldEmail(data: unknown): string | null {
   const obj = data as HelloWorldPayload;
   const raw = obj.email;
   const trimmed = typeof raw === "string" ? raw.trim() : "";
-  return trimmed !== "" ? trimmed : null;
+  if (trimmed === "") return null;
+  // Basic email format check (adjust regex as needed)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(trimmed) ? trimmed : null;
 }
 
 export const helloWorld = inngest.createFunction(
