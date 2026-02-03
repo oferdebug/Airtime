@@ -2,6 +2,7 @@ import { SignInButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { Mic2 } from "lucide-react";
 import Link from "next/link";
+import PodcastUploader from "@/components/Podcast-Uploader";
 import { Button } from "../ui/button";
 
 export async function HeroSection() {
@@ -28,14 +29,14 @@ export async function HeroSection() {
               </span>
             </div>
 
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-extrabold leading-tight">
-                  <span className="gradient-brand-text">Transform</span>
-                  <span className="text-slate-950"> Your</span>
-                  <br />
-                  <span className="text-slate-950">Podcasts Into AI</span>
-                  <br />
-                  <span className="gradient-brand-text">Content Machine</span>
-              </h1>
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-extrabold leading-tight">
+              <span className="gradient-brand-text">Transform</span>
+              <span className="text-slate-950"> Your</span>
+              <br />
+              <span className="text-slate-950">Podcasts Into AI</span>
+              <br />
+              <span className="gradient-brand-text">Content Machine</span>
+            </h1>
 
             <p
               className={
@@ -50,7 +51,7 @@ export async function HeroSection() {
           {isSignedIn ? (
             <div className={"space-y-6"}>
               <div className={"glass-card-strong rounded-2xl p-9 hover-lift"}>
-                {/*<PodcastUploader />*/}
+                <PodcastUploader />
               </div>
               <div className={"text-center"}>
                 <Link href={"/dashboard/projects"}>

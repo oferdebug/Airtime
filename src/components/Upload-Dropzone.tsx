@@ -1,6 +1,12 @@
 "use client";
 /** biome-ignore-all assist/source/organizeImports: preserve import grouping for dropzone component clarity */
-import { FileAudio, Upload } from "lucide-react";
+import {
+  CheckCircle2Icon,
+  FileAudio,
+  Loader2,
+  Upload,
+  XCircleIcon,
+} from "lucide-react";
 import { useCallback } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { ACCEPT_AUDIO, MAX_FILE_SIZE } from "@/lib/constants";
@@ -106,15 +112,24 @@ export function UploadDropzone({
           aria-describedby={DROPZONE_DESC_ID}
         />
         <div className="flex flex-col items-center gap-3">
-          {isDragActive ? (
-            isDragReject ? (
-              <FileAudio className="h-12 w-12 text-red-500" aria-hidden />
-            ) : (
-              <Upload className="h-12 w-12 text-brand-500" aria-hidden />
-            )
-          ) : (
-            <Upload className="h-12 w-12 text-brand-500" aria-hidden />
+          {status === "uploading" && (
+            <Loader2 className={"h-8 w-8 animate-spin text-emerald-600"} />
           )}
+          {status === "processing" && (
+            <Loader2 className={"h-8 w-8 animate-spin text-emrald-700"} />
+          )}
+          {status === "completed" && (
+            <CheckCircle2Icon className={"h-8 w-8 text-emerald-700"} />
+          )}
+          {status === "error" && (
+            <XCircleIcon className={"h-8 w-8 text-red-700"} />
+          )}
+          {status === "idle" && <Upload className={"h-8 w-8 text-brand-500"} />}
+          {isDragActive && !isDragReject && (
+            <Upload className={"h-8 w-8 text-brand-500"} />
+          )}
+          {isDragReject && <XCircleIcon className={"h-8 w-8 text-red-700"} />}
+          {disabled && <XCircleIcon className={"h-8 w-8 text-stone-500"} />}
           <p
             id={DROPZONE_LABEL_ID}
             className="text-base font-medium text-stone-800"
