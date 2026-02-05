@@ -64,11 +64,18 @@ export default async function BlogPostPage({ params }: Props) {
           </p>
 
           <div className="prose prose-slate max-w-none">
-            {/* TODO: Add full post content (MDX, CMS body, or fetch by slug) */}
-            <p className="text-slate-600">
-              Full article content will go here. Connect a CMS or add MDX files
-              and render the body in this section.
-            </p>
+            {post.body ? (
+              /* biome-ignore lint/security/noDangerouslySetInnerHtml: blog body from trusted CMS/mock data */
+              <div
+                className="post-content"
+                dangerouslySetInnerHTML={{ __html: post.body }}
+              />
+            ) : (
+              <p className="text-slate-600">
+                Full article content will go here. Connect a CMS or add MDX
+                files and render the body in this section.
+              </p>
+            )}
           </div>
         </div>
       </article>

@@ -1,5 +1,7 @@
 "use server";
 
+import { auth } from "@clerk/nextjs/server";
+import { createProjectAction as createProject } from "../../../actions/projects";
 import { MAX_FILE_SIZE } from "@/lib/constants";
 
 /**
@@ -29,6 +31,10 @@ export async function validateUploadAction(input: {
   fileSize: number;
   duration?: number;
 }): Promise<{ success: true } | { success: false; error: string }> {
+  const { userId } = await auth();
+  if (!userId) {
+    return { success: false, error: "Not authenticated" };
+  }
   if (input.fileSize <= 0) {
     return { success: false, error: "Invalid file size" };
   }
@@ -45,17 +51,20 @@ export async function validateUploadAction(input: {
 
 /**
  * Creates the project in Convex and triggers the Inngest workflow.
- * Returns projectId for redirect to the project detail page.
+ * Returns consistent { success, projectId? } or { success, error? } for callers.
  */
-export async function createProjectAction(_input: {
+export async function createProjectAction(input: {
   fileUrl: string;
   fileName: string;
   fileSize: number;
   mimeType: string;
   fileDuration?: number;
-}): Promise<{ projectId: string }> {
-  // TODO: Create project in Convex (mutation) and trigger Inngest event.
-  // For now return a stable id so redirect works; replace with Convex + Inngest when ready.
-  const projectId = `project-${Date.now()}`;
-  return { projectId };
+}): Promise<
+  { success: true; projectId: string } | { success: false; error: string }
+> {
+  const result = await createProject(input);
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+  return { success: true, projectId: result.projectId };
 }

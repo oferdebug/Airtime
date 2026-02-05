@@ -10,6 +10,8 @@ export interface BlogPost {
   date: string;
   readTime: string;
   category: string;
+  /** HTML/MDX body content. Optional until CMS integration. */
+  body?: string;
 }
 
 const MOCK_POSTS: BlogPost[] = [
@@ -21,6 +23,7 @@ const MOCK_POSTS: BlogPost[] = [
     date: "2025-01-20",
     readTime: "5 min read",
     category: "Tutorial",
+    body: "<p>AI-powered transcription transforms your podcast episodes into searchable, accessible content. In this guide, we walk you through setting up your first transcription and best practices for accuracy.</p><p>Start by uploading your audio file and let our AI handle the rest.</p>",
   },
   {
     slug: "improve-podcast-seo",
@@ -30,6 +33,7 @@ const MOCK_POSTS: BlogPost[] = [
     date: "2025-01-15",
     readTime: "7 min read",
     category: "Marketing",
+    body: "<p>SEO for podcasts is different from traditional web SEO. Focus on show notes, transcripts, and metadata to improve discoverability.</p>",
   },
   {
     slug: "ai-content-creation-tips",
@@ -39,6 +43,7 @@ const MOCK_POSTS: BlogPost[] = [
     date: "2025-01-10",
     readTime: "6 min read",
     category: "Tips",
+    body: "<p>Use AI to repurpose your podcast content into social posts, newsletters, and blog articles.</p>",
   },
 ];
 

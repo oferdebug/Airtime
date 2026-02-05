@@ -8,11 +8,16 @@ import { mutation, query } from "./_generated/server";
 export const getProjectById = query({
   args: { id: v.id("projects") },
   handler: async (ctx, { id }) => {
-    return await ctx.db.get(id);
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+    if (!userId) return null;
+    const project = await ctx.db.get(id);
+    if (!project || project.userId !== userId) return null;
+    return project;
   },
 });
 
-export const createProjects = mutation({
+export const createProject = mutation({
   args: {
     userId: v.string(),
     inputUrl: v.string(),
@@ -37,7 +42,7 @@ export const createProjects = mutation({
   },
 });
 
-export const deleteProjects = mutation({
+export const deleteProject = mutation({
   args: { projectId: v.id("projects"), userId: v.string() },
   handler: async (ctx, { projectId, userId }) => {
     const project = await ctx.db.get(projectId);
@@ -56,7 +61,9 @@ export const updateProjectDisplayName = mutation({
   },
   handler: async (ctx, { projectId, userId, displayName }) => {
     const project = await ctx.db.get(projectId);
-    if (!project || project.userId !== userId) return;
+    if (!project || project.userId !== userId) {
+      throw new Error("Not authorized to update this project");
+    }
     await ctx.db.patch(projectId, { name: displayName });
   },
 });

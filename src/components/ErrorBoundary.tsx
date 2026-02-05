@@ -1,5 +1,5 @@
-/** biome-ignore-all assist/source/organizeImports: preserve import order required by ErrorBoundary initialization */
 "use client";
+/** biome-ignore-all assist/source/organizeImports: preserve import order required by ErrorBoundary initialization */
 import React, { Component, type ReactNode, type ErrorInfo } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -102,7 +102,7 @@ export class ErrorBoundary extends Component<Props, State> {
           } as Record<string, unknown>);
         }
         if (typeof this.props.fallback === "function") {
-          if (process.env.NODE_ENV !== "production") {
+          if (process.env.NODE_ENV === "development") {
             console.error(
               "[ErrorBoundary] fallback is a function but fallbackType is missing. Use fallbackType: 'render' or 'component'.",
             );
@@ -117,7 +117,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <button
               type="button"
               onClick={this.resetErrorBoundary}
-              className="mt-4 px-4 py-2 text-sm text-brand-600 hover:text-brand-800 flex items-center gap-2 justify-center"
+              className="mt-4 px-4 py-2 text-sm text-brand-600 hover:text-brand-800 flex items-center gap-2 justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
               aria-label="Reset error state"
             >
               <RefreshCw className="h-4 w-4" />

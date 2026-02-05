@@ -1,12 +1,15 @@
 import {
   BookMarked,
   FileText,
+  Headphones,
   type LucideIcon,
   MessageCircle,
   Mic2,
   Users,
   Zap,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface Feature {
   id: string;
@@ -61,7 +64,7 @@ export function FeaturesSection() {
     },
     {
       id: "premium-audio-player",
-      icon: Users,
+      icon: Headphones,
       title: "Premium Audio Player",
       description:
         "A custom-built, minimalist player with dynamic waveform visualization.",
@@ -89,15 +92,25 @@ export function FeaturesSection() {
             return (
               <div
                 key={feature.id}
-                className={"glass-card rounded-2xl hover-lift p-8 group"}
+                className={cn(
+                  "glass-card rounded-2xl hover-lift p-8 group",
+                  feature.premium && "ring-1 ring-brand-200/50",
+                )}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div
-                  className={
-                    "rounded-2xl gradient-brand p-4 w-fit mb-6 group-hover:animate-pulse-brand transition-all"
-                  }
-                >
-                  <Icon className={"h-8 w-8 text-white"} />
+                <div className="flex items-center gap-3 mb-6">
+                  <div
+                    className={
+                      "rounded-2xl gradient-brand p-4 w-fit group-hover:animate-pulse-brand transition-all"
+                    }
+                  >
+                    <Icon className={"h-8 w-8 text-white"} />
+                  </div>
+                  {feature.premium && (
+                    <Badge className="bg-brand-100 text-brand-700 border-0">
+                      Premium
+                    </Badge>
+                  )}
                 </div>
                 <h3
                   className={

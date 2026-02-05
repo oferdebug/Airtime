@@ -38,7 +38,7 @@ export default function DashboardNav() {
             "gap-4 transition-all duration-300 font-medium",
             isActive("/dashboard/uploads")
               ? "bg-brand-50/10 text-white hover:bg-brand-50/20 hover:scale-105 shadow-lg border border-brand-50/20"
-              : "text-white/80 hover:bg-brand-50/20 hover:scale-110",
+              : "text-white/80 hover:bg-brand-50/10 hover:scale-105",
           )}
         >
           <Upload className={"h-4 w-4"} />

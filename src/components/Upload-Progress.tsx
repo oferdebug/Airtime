@@ -22,7 +22,8 @@ export type UploadStatus =
   | "uploading"
   | "processing"
   | "completed"
-  | "error";
+  | "error"
+  | "canceled";
 
 export interface UploadProgressProps {
   fileName: string;
@@ -34,7 +35,7 @@ export interface UploadProgressProps {
 }
 
 const STATUS_LABEL: Record<
-  Exclude<UploadStatus, "completed" | "error">,
+  Exclude<UploadStatus, "completed" | "error" | "canceled">,
   string
 > = {
   idle: "Ready to upload",
@@ -143,6 +144,18 @@ export function UploadProgress({
           <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4">
             <p className="text-sm font-semibold text-emerald-700">
               Upload completed! Redirecting to project dashboard...
+            </p>
+          </div>
+        )}
+
+        {/* Canceled message */}
+        {status === "canceled" && (
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-semibold text-amber-800">
+              Upload canceled
+            </p>
+            <p className="mt-1 text-sm text-amber-700">
+              You can select a new file and try again.
             </p>
           </div>
         )}

@@ -3,6 +3,11 @@
  */
 
 /**
+ * Phase/workflow status: pending | running | completed | failed.
+ */
+export type PhaseStatus = "pending" | "running" | "completed" | "failed";
+
+/**
  * Upload lifecycle state for the podcast uploader.
  *
  * - idle: No file selected or upload in progress
@@ -11,12 +16,10 @@
  * - completed: Ready to view project (shows success message)
  * - error: Upload or processing failed (shows error message)
  */
-
-export type PhaseStatus = "Pending" | "Running" | "Completed" | "Failed";
-
 export type UploadStatus =
   | "idle"
   | "uploading"
   | "processing"
   | "completed"
-  | "error";
+  | "error"
+  | "canceled";

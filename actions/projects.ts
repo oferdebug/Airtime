@@ -1,16 +1,40 @@
 "use server";
 
-import { inngest } from "@/app/api/inngest/client";
-import { MAX_FILE_SIZE } from "@/lib/constants";
 import { auth } from "@clerk/nextjs/server";
 import { del } from "@vercel/blob";
 import { fetchMutation } from "convex/nextjs";
 import type { FunctionReference } from "convex/server";
+import { inngest } from "@/app/api/inngest/client";
+import { MAX_FILE_SIZE } from "@/lib/constants";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 
-// Convex codegen may not have run yet; cast so api.projects is valid at compile time.
-const projectsApi = (api as unknown as { projects: { createProjects: FunctionReference<"mutation">; deleteProjects: FunctionReference<"mutation">; updateProjectDisplayName: FunctionReference<"mutation"> } }).projects;
+type ProjectsApiShape = {
+  createProject: FunctionReference<"mutation">;
+  deleteProject: FunctionReference<"mutation">;
+  updateProjectDisplayName: FunctionReference<"mutation">;
+};
+
+function validateProjectsApi(
+  apiObj: unknown,
+): apiObj is { projects: ProjectsApiShape } {
+  if (!apiObj || typeof apiObj !== "object") return false;
+  const projects = (apiObj as Record<string, unknown>).projects;
+  if (!projects || typeof projects !== "object") return false;
+  const p = projects as Record<string, unknown>;
+  return (
+    p.createProject != null &&
+    p.deleteProject != null &&
+    p.updateProjectDisplayName != null
+  );
+}
+
+if (!validateProjectsApi(api)) {
+  throw new Error(
+    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, and updateProjectDisplayName",
+  );
+}
+const projectsApi = api.projects;
 
 type Auth = Awaited<ReturnType<typeof auth>>;
 
@@ -21,9 +45,17 @@ async function checkUploadLimits(
   _authObj: Auth,
   _userId: string,
   fileSize: number,
-): Promise<{ allowed: boolean; error?: string; metadata?: Record<string, unknown> }> {
+): Promise<{
+  allowed: boolean;
+  error?: string;
+  metadata?: Record<string, unknown>;
+}> {
   if (fileSize <= 0) {
-    return { allowed: false, error: "Invalid file size", metadata: { fileSize } };
+    return {
+      allowed: false,
+      error: "Invalid file size",
+      metadata: { fileSize },
+    };
   }
   if (fileSize > MAX_FILE_SIZE) {
     const limitMb = MAX_FILE_SIZE / (1024 * 1024);
@@ -105,21 +137,22 @@ interface CreateProjectInput {
  * @returns projectId for router.push
  * @throws Error when auth fails, limits exceeded, or required fields missing
  */
-export async function createProjectAction(input: CreateProjectInput): Promise<
-  | { success: true; projectId: string }
-  | { success: false; error: string }
+export async function createProjectAction(
+  input: CreateProjectInput,
+): Promise<
+  { success: true; projectId: string } | { success: false; error: string }
 > {
   try {
     const authObj = await auth();
     const { userId } = authObj;
     if (!userId) {
-      throw new Error("Unauthorized");
+      return { success: false, error: "Unauthorized" };
     }
 
     const { fileUrl, fileName, fileSize, mimeType, fileDuration } = input;
 
     if (!fileUrl || !fileName) {
-      throw new Error("Missing required fields");
+      return { success: false, error: "Missing required fields" };
     }
 
     let plan: "free" | "pro" | "ultra" = "free";
@@ -149,7 +182,7 @@ export async function createProjectAction(input: CreateProjectInput): Promise<
 
     const token = await authObj.getToken({ template: "convex" });
     const projectId = await fetchMutation(
-      projectsApi.createProjects,
+      projectsApi.createProject,
       {
         userId,
         inputUrl: fileUrl,
@@ -162,8 +195,8 @@ export async function createProjectAction(input: CreateProjectInput): Promise<
       { token: token ?? undefined },
     );
 
-    await inngest.send({
-      name: "podcast/uploaded",
+    const eventPayload = {
+      name: "podcast/uploaded" as const,
       data: {
         projectId,
         userId,
@@ -175,72 +208,142 @@ export async function createProjectAction(input: CreateProjectInput): Promise<
         fileFormat: fileExtension,
         mimeType,
       },
-    });
+    };
+
+    const maxAttempts = 3;
+    const baseDelayMs = 500;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        await inngest.send(eventPayload);
+        break;
+      } catch (err) {
+        lastError = err;
+        if (attempt < maxAttempts - 1) {
+          const delayMs = baseDelayMs * 2 ** attempt;
+          await new Promise((r) => setTimeout(r, delayMs));
+        } else {
+          console.error(
+            "[createProjectAction] inngest.send failed after retries",
+            {
+              projectId,
+              userId,
+              attempt: attempt + 1,
+              error: err,
+            },
+          );
+          return {
+            success: false,
+            error:
+              lastError instanceof Error
+                ? lastError.message
+                : "Failed to trigger processing. Please try again.",
+          };
+        }
+      }
+    }
 
     return { success: true, projectId };
   } catch (error) {
     console.error("Error Creating Project, Please Try Again Later:", error);
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
 export async function deleteProjectAction(
   projectId: Id<"projects">,
-): Promise<{ success: true }> {
-  try {
-    const authObj = await auth();
-    const { userId } = authObj;
-    if (!userId) {
-      throw new Error(
-        "Unauthorized, You Must Be Logged In To Delete A Project",
-      );
-    }
+): Promise<{ success: true } | { success: false; error: string }> {
+  const authObj = await auth();
+  const { userId } = authObj;
+  if (!userId) {
+    return {
+      success: false,
+      error: "Unauthorized, You Must Be Logged In To Delete A Project",
+    };
+  }
 
+  try {
     const token = await authObj.getToken({ template: "convex" });
     const result = await fetchMutation(
-      projectsApi.deleteProjects,
+      projectsApi.deleteProject,
       { projectId, userId },
       { token: token ?? undefined },
     );
 
     if (result?.inputUrl) {
-      try {
-        await del(result.inputUrl);
-      } catch (error) {
-        console.error("Error Deleting File From Vercel Blob:", error);
+      const maxAttempts = 3;
+      const backoffMs = 200;
+      let lastError: unknown;
+      let deleted = false;
+      for (let attempt = 0; attempt < maxAttempts && !deleted; attempt++) {
+        try {
+          await del(result.inputUrl);
+          deleted = true;
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxAttempts - 1) {
+            await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+          } else {
+            // Orphaned blob: project deleted but blob deletion failed — log for monitoring/cleanup
+            console.warn(
+              "[ORPHANED_BLOB] Vercel blob deletion failed after project delete",
+              {
+                projectId,
+                userId,
+                inputUrl: result.inputUrl,
+                error:
+                  lastError instanceof Error
+                    ? lastError.message
+                    : String(lastError),
+              },
+            );
+          }
+        }
       }
     }
-
     return { success: true };
   } catch (error) {
-    console.error("Error Deleting Project:", error);
-    throw error;
+    console.error("Error deleting project:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete project",
+    };
   }
 }
 
 export async function updateDisplayNameAction(
   projectId: Id<"projects">,
   displayName: string,
-): Promise<{ success: true }> {
+): Promise<{ success: true } | { success: false; error: string }> {
   try {
     const authObj = await auth();
     const { userId } = authObj;
     if (!userId) {
-      throw new Error(
-        "Unauthorized, You Must Be Logged In To Update A Project Display Name",
-      );
+      return {
+        success: false,
+        error:
+          "Unauthorized, You Must Be Logged In To Update A Project Display Name",
+      };
     }
 
     if (!displayName || displayName.trim().length === 0) {
-      throw new Error(
-        "Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue",
-      );
+      return {
+        success: false,
+        error:
+          "Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue",
+      };
     }
 
     if (displayName.length > 200) {
-      throw new Error(
-        "Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue",
-      );
+      return {
+        success: false,
+        error:
+          "Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue",
+      };
     }
 
     const token = await authObj.getToken({ template: "convex" });
@@ -257,6 +360,9 @@ export async function updateDisplayNameAction(
     return { success: true };
   } catch (error) {
     console.error("Error Updating Display Name:", error);
-    throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }

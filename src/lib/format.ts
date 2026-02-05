@@ -306,7 +306,8 @@ export function formatOrdinal(n: number): string {
   const s = String(n);
   const last = s.slice(-1);
   const lastTwo = s.slice(-2);
-  if (lastTwo >= "11" && lastTwo <= "13") return `${n}th`;
+  const lastTwoNum = parseInt(lastTwo, 10);
+  if (lastTwoNum >= 11 && lastTwoNum <= 13) return `${n}th`;
   if (last === "1") return `${n}st`;
   if (last === "2") return `${n}nd`;
   if (last === "3") return `${n}rd`;

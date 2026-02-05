@@ -28,7 +28,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { upload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   createProjectAction,
@@ -41,6 +41,21 @@ import { estimateDurationFromSize, getAudioDuration } from "@/lib/audio-utils";
 import type { UploadStatus } from "@/lib/types";
 
 const UPLOAD_PATH_PREFIX = "uploads";
+const MAX_FILENAME_LENGTH = 200;
+const SAFE_FILENAME_REGEX = /[^A-Za-z0-9._-]/g;
+
+function sanitizeFilename(name: string): string {
+  const withoutPath = name.replace(/[/\\]/g, "").replace(/\.\./g, "");
+  const withoutControl = Array.from(withoutPath)
+    .filter((c) => {
+      const code = c.codePointAt(0) ?? 0;
+      return code > 31 && code !== 127;
+    })
+    .join("");
+  const collapsed = withoutControl.replace(/\s+/g, " ").trim();
+  const safe = collapsed.replace(SAFE_FILENAME_REGEX, "_");
+  return safe.slice(0, MAX_FILENAME_LENGTH) || "audio";
+}
 
 export default function PodcastUploader() {
   const router = useRouter();
@@ -53,6 +68,7 @@ export default function PodcastUploader() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const uploadControllerRef = useRef<AbortController | null>(null);
 
   const isBusy = uploadStatus === "uploading" || uploadStatus === "processing";
 
@@ -100,7 +116,11 @@ export default function PodcastUploader() {
         throw new Error(validation.error ?? "Validation failed");
       }
 
-      const pathname = `${UPLOAD_PATH_PREFIX}/${Date.now()}-${selectedFile.name}`;
+      const sanitizedName = sanitizeFilename(selectedFile.name);
+      const pathname = `${UPLOAD_PATH_PREFIX}/${Date.now()}-${sanitizedName}`;
+      const controller = new AbortController();
+      uploadControllerRef.current = controller;
+
       const blob = await upload(pathname, selectedFile, {
         access: "public",
         handleUploadUrl: "/api/upload",
@@ -109,22 +129,47 @@ export default function PodcastUploader() {
         },
       });
 
+      if (controller.signal.aborted) {
+        uploadControllerRef.current = null;
+        setUploadStatus("canceled");
+        setUploadProgress(0);
+        setError(null);
+        return;
+      }
+      uploadControllerRef.current = null;
+
       setUploadStatus("processing");
       setUploadProgress(100);
 
-      const { projectId } = await createProjectAction({
+      const result = await createProjectAction({
         fileUrl: blob.url,
-        fileName: selectedFile.name,
+        fileName: sanitizedName,
         fileSize: selectedFile.size,
         mimeType: selectedFile.type,
         fileDuration,
       });
+
+      if ("success" in result && result.success === false) {
+        throw new Error(result.error);
+      }
+      const projectId = "projectId" in result ? result.projectId : undefined;
+      if (!projectId) {
+        throw new Error("Failed to create project");
+      }
 
       toast.success("Upload completed! Processing your podcast...");
       setUploadStatus("completed");
 
       router.push(`/dashboard/projects/${projectId}`);
     } catch (err) {
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      if (isAbort || uploadControllerRef.current?.signal.aborted) {
+        setUploadStatus("canceled");
+        setUploadProgress(0);
+        setError(null);
+        uploadControllerRef.current = null;
+        return;
+      }
       setUploadStatus("error");
       const message =
         err instanceof Error
@@ -132,7 +177,13 @@ export default function PodcastUploader() {
           : "Failed to upload file. Please try again.";
       setError(message);
       toast.error(message);
+    } finally {
+      uploadControllerRef.current = null;
     }
+  };
+
+  const handleAbort = () => {
+    uploadControllerRef.current?.abort();
   };
 
   const handleReset = () => {
@@ -160,13 +211,26 @@ export default function PodcastUploader() {
             error={error ?? undefined}
           />
 
-          {(uploadStatus === "idle" || uploadStatus === "error") && (
+          {(uploadStatus === "idle" ||
+            uploadStatus === "error" ||
+            uploadStatus === "canceled" ||
+            uploadStatus === "uploading" ||
+            uploadStatus === "processing") && (
             <div className="flex gap-3">
-              <Button onClick={handleUpload} className="flex-1">
-                {uploadStatus === "error" ? "Try Again" : "Start Upload"}
-              </Button>
-              <Button onClick={handleReset} variant="outline">
-                Cancel
+              {(uploadStatus === "idle" ||
+                uploadStatus === "error" ||
+                uploadStatus === "canceled") && (
+                <Button onClick={handleUpload} className="flex-1">
+                  {uploadStatus === "error" || uploadStatus === "canceled"
+                    ? "Try Again"
+                    : "Start Upload"}
+                </Button>
+              )}
+              <Button
+                onClick={isBusy ? handleAbort : handleReset}
+                variant="outline"
+              >
+                {isBusy ? "Cancel Upload" : "Cancel"}
               </Button>
             </div>
           )}

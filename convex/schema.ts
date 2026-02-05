@@ -1,7 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-// TODO: extend with inputUrl, status, file metadata – see docs/AIRTIME_ROADMAP.md Phase 1.1
+// TODO: add status field for upload/processing lifecycle – see docs/AIRTIME_ROADMAP.md Phase 1.1
 export default defineSchema({
   projects: defineTable({
     name: v.string(),
@@ -19,6 +19,7 @@ export default defineSchema({
   users: defineTable({
     name: v.string(),
     email: v.string(),
-    password: v.string(),
+    /** Secure hash only; use Clerk or bcrypt/Argon2 for auth. Do not store plaintext. */
+    passwordHash: v.optional(v.string()),
   }),
 });

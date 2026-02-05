@@ -1,10 +1,10 @@
 "use client";
 /** biome-ignore-all assist/source/organizeImports: preserve import grouping for dropzone component clarity */
-import { CheckCircle2Icon, Loader2, Upload, XCircleIcon } from "lucide-react";
+import { Upload, XCircleIcon } from "lucide-react";
 import { useCallback } from "react";
 import { type FileRejection, useDropzone } from "react-dropzone";
 import { ACCEPT_AUDIO, MAX_FILE_SIZE } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, formatFileSize } from "@/lib/utils";
 
 /**
  * Upload dropzone — drag-and-drop or click-to-browse with validation.
@@ -17,12 +17,6 @@ import { cn } from "@/lib/utils";
  * **Supported formats**: MP3, M4A, WAV, AAC, FLAC, OGG, Opus, WebM, 3GP, 3G2
  * (Multiple MIME variants per format for Chrome, Firefox, Safari consistency.)
  */
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KiB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)}MiB`;
-}
 
 const DROPZONE_ID = "upload-dropzone";
 const DROPZONE_LABEL_ID = "upload-dropzone-label";
@@ -106,24 +100,13 @@ export function UploadDropzone({
           aria-describedby={DROPZONE_DESC_ID}
         />
         <div className="flex flex-col items-center gap-3">
-          {status === "uploading" && (
-            <Loader2 className={"h-8 w-8 animate-spin text-emerald-600"} />
+          {isDragReject ? (
+            <XCircleIcon className="h-8 w-8 text-red-700" />
+          ) : disabled ? (
+            <XCircleIcon className="h-8 w-8 text-stone-500" />
+          ) : (
+            <Upload className="h-8 w-8 text-brand-500" />
           )}
-          {status === "processing" && (
-            <Loader2 className={"h-8 w-8 animate-spin text-emrald-700"} />
-          )}
-          {status === "completed" && (
-            <CheckCircle2Icon className={"h-8 w-8 text-emerald-700"} />
-          )}
-          {status === "error" && (
-            <XCircleIcon className={"h-8 w-8 text-red-700"} />
-          )}
-          {status === "idle" && <Upload className={"h-8 w-8 text-brand-500"} />}
-          {isDragActive && !isDragReject && (
-            <Upload className={"h-8 w-8 text-brand-500"} />
-          )}
-          {isDragReject && <XCircleIcon className={"h-8 w-8 text-red-700"} />}
-          {disabled && <XCircleIcon className={"h-8 w-8 text-stone-500"} />}
           <p
             id={DROPZONE_LABEL_ID}
             className="text-base font-medium text-stone-800"
