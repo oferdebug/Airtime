@@ -7,6 +7,19 @@ type Events = {
       email: string;
     };
   };
+  "podcast/uploaded": {
+    data: {
+      projectId: string;
+      userId: string;
+      plan: "free" | "pro" | "ultra";
+      fileUrl: string;
+      fileName: string;
+      fileSize: number;
+      fileDuration?: number;
+      fileFormat: string;
+      mimeType: string;
+    };
+  };
 };
 
 export const inngest = new Inngest({

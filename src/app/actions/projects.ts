@@ -3,6 +3,25 @@
 import { MAX_FILE_SIZE } from "@/lib/constants";
 
 /**
+ * Project Server Actions
+ *
+ * Next.js server actions for project creation and workflow triggering.
+ * Called from client components after file upload completes.
+ *
+ * Server Actions vs. API Routes:
+ * - Server actions are RSC (React Server Components) feature
+ * - Simpler than API routes (no route definition, just async functions)
+ * - Automatic form integration, progressive enhancement
+ * - Type-safe: Client gets full TypeScript types
+ *
+ * Security & Feature Gating:
+ * - Runs on server (access to server-only APIs)
+ * - Validates auth via Clerk
+ * - Validates plan limits (defense-in-depth with upload route)
+ * - Can't be bypassed by client
+ */
+
+/**
  * Pre-validates upload against plan limits before starting the upload.
  * Returns success/error so the UI can show a clear message instead of opaque Blob errors.
  */
