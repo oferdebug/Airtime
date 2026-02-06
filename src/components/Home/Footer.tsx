@@ -27,7 +27,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative border-t border-brand-200/50 bg-linear-to-b from-white via-brand-50/30 to-white">
+    <footer className="relative border-t border-brand-200/50 bg-gradient-to-b from-white via-brand-50/30 to-white">
       {/* Subtle mesh background */}
       <div className="absolute inset-0 mesh-background-subtle opacity-50" />
 

@@ -146,7 +146,7 @@ function ErrorFallbackUI({
   const userMessage = "An unexpected error occurred. Please try again.";
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-b from-white to-brand-50/30">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-white to-brand-50/30">
       <div
         className="max-w-md w-full glass-card rounded-2xl p-8 text-center"
         role="alert"
