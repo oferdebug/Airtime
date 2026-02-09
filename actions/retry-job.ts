@@ -18,7 +18,6 @@ import { inngest } from "@/app/api/inngest/client";
 
 export type RetryableJob =
   | "keyMoments"
-  | "summary"
   | "socialPosts"
   | "titles"
   | "hashtags"
@@ -56,12 +55,10 @@ export type RetryableJob =
 
   /** Infer Original Plan from the Job Type That Was Generated */
   let originalPlan: "free" | "pro" | "ultra" = "free";
-  // Map retryable jobs to the minimum plan that could have generated them.
-  if (job === "youtubeTimestamps") {
+  // Map retryable jobs to the minimum plan that could have generated them (aligned with generate-missing-features plan features).
+  if (job === "youtubeTimestamps" || job === "keyMoments") {
     originalPlan = "ultra";
   } else if (
-    job === "keyMoments" ||
-    job === "summary" ||
     job === "socialPosts" ||
     job === "titles" ||
     job === "hashtags"
