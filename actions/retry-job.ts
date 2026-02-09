@@ -18,7 +18,6 @@ import { inngest } from "@/app/api/inngest/client";
 
 export type RetryableJob =
   | "keyMoments"
-  | "summary"
   | "socialPosts"
   | "titles"
   | "hashtags"
@@ -54,12 +53,17 @@ export type RetryableJob =
     throw new Error("Project not found or access denied");
   }
 
-  /** Infer Original Plan From What Features Were Available When Job Was Generated*/
-  let originalPlan:'free'|'pro'|'ultra'='free';
-  if(project.features.includes('keyMoments')) {
-    originalPlan='pro';
-  } else if(project.features.includes('ultra')) {
-    originalPlan='ultra';
+  /** Infer Original Plan from the Job Type That Was Generated */
+  let originalPlan: "free" | "pro" | "ultra" = "free";
+  // Map retryable jobs to the minimum plan that could have generated them (aligned with generate-missing-features plan features).
+  if (job === "youtubeTimestamps" || job === "keyMoments") {
+    originalPlan = "ultra";
+  } else if (
+    job === "socialPosts" ||
+    job === "titles" ||
+    job === "hashtags"
+  ) {
+    originalPlan = "pro";
   }
   // Trigger Inngest event to retry the specific job
   // Pass both original and current plans to detect upgrades

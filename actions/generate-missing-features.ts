@@ -1,13 +1,48 @@
 "use server";
 
-import { inngest } from "@/inngest/client";
+import { inngest } from "@/app/api/inngest/client";
 import { auth } from "@clerk/nextjs/server";
 import type { Id } from "@/convex/_generated/dataModel";
-// Removed getUserPlan - using Clerk's has() directly per docs
-import { convex } from "@/lib/convex-client";
+import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import { PLAN_FEATURES, FEATURE_TO_JOB_MAP } from "@/lib/tier-config";
 import type { RetryableJob } from "./retry-job";
+
+// Local configuration for plan features and their corresponding job keys.
+type PlanName = "free" | "pro" | "ultra";
+
+type FeatureName =
+  | "summary"
+  | "transcription"
+  | "socialPosts"
+  | "titles"
+  | "hashtags"
+  | "keyMoments"
+  | "youtubeTimestamps";
+
+const FREE_FEATURES: FeatureName[] = ["summary"];
+const PRO_FEATURES: FeatureName[] = [...FREE_FEATURES, "socialPosts", "titles", "hashtags"];
+const ULTRA_FEATURES: FeatureName[] = [
+  ...PRO_FEATURES,
+  "keyMoments",
+  "youtubeTimestamps",
+  "transcription",
+];
+
+const PLAN_FEATURES: Record<PlanName, FeatureName[]> = {
+  free: FREE_FEATURES,
+  pro: PRO_FEATURES,
+  ultra: ULTRA_FEATURES,
+};
+
+const FEATURE_TO_JOB_MAP: Record<FeatureName, string | undefined> = {
+  summary: undefined, // summary is always present / not a retryable job
+  transcription: undefined, // transcription is not treated as a feature job here
+  socialPosts: "socialPosts",
+  titles: "titles",
+  hashtags: "hashtags",
+  keyMoments: "keyMoments",
+  youtubeTimestamps: "youtubeTimestamps",
+};
 
 /**
  * Server Action: Generate All Missing Features After Upgrade
@@ -47,7 +82,12 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
     currentPlan = "pro";
   }
 
-  /** Check if the project exists& Generated */
+  /** Check if the project exists & generated */
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!convexUrl) {
+    throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
+  }
+  const convex = new ConvexHttpClient(convexUrl);
   const project = await convex.query(api.projects.getProject, { projectId });
 
   if (!project) {
