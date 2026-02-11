@@ -3,5 +3,6 @@
     "typescript.inlayHints.parameterTypes.enabled": true,
     "typescript.inlayHints.variableTypes.enabled": true,
     "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
-    "typescript.inlayHints.propertyDeclarationTypes.enabled": true
+    "typescript.inlayHints.propertyDeclarationTypes.enabled": true,
+    "biome.lsp.bin": "${workspaceFolder}/node_modules/.bin/biome.CMD"
 }

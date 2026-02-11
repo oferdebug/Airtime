@@ -1,7 +1,12 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { createProjectAction as createProject } from "../../../actions/projects";
+import { del } from "@vercel/blob";
+import { fetchMutation } from "convex/nextjs";
+import type { FunctionReference } from "convex/server";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { inngest } from "@/app/api/inngest/client";
 import { MAX_FILE_SIZE } from "@/lib/constants";
 
 /**
@@ -23,6 +28,68 @@ import { MAX_FILE_SIZE } from "@/lib/constants";
  * - Can't be bypassed by client
  */
 
+// Narrow the generated api type at runtime so we can safely access api.projects
+type ProjectsApiShape = {
+  createProject: FunctionReference<"mutation">;
+  deleteProject: FunctionReference<"mutation">;
+  updateProjectDisplayName: FunctionReference<"mutation">;
+};
+
+function validateProjectsApi(
+  apiObj: unknown,
+): apiObj is { projects: ProjectsApiShape } {
+  if (!apiObj || typeof apiObj !== "object") return false;
+  const projects = (apiObj as Record<string, unknown>).projects;
+  if (!projects || typeof projects !== "object") return false;
+  const p = projects as Record<string, unknown>;
+  return (
+    p.createProject != null &&
+    p.deleteProject != null &&
+    p.updateProjectDisplayName != null
+  );
+}
+
+if (!validateProjectsApi(api)) {
+  throw new Error(
+    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, and updateProjectDisplayName",
+  );
+}
+const projectsApi = api.projects;
+
+/**
+ * Internal: plan/limits validation shared by actions.
+ */
+async function checkUploadLimits(
+  _authObj: Awaited<ReturnType<typeof auth>>,
+  _userId: string,
+  fileSize: number,
+  _duration?: number,
+): Promise<{
+  allowed: boolean;
+  error?: string;
+  message?: string;
+  metadata?: Record<string, unknown>;
+}> {
+  if (fileSize <= 0) {
+    return {
+      allowed: false,
+      error: "Invalid file size",
+      message: "Invalid file size",
+      metadata: { fileSize },
+    };
+  }
+  if (fileSize > MAX_FILE_SIZE) {
+    const limitMb = MAX_FILE_SIZE / (1024 * 1024);
+    return {
+      allowed: false,
+      error: `File exceeds ${limitMb}MB plan limit. Upgrade your plan to upload larger files or more projects.`,
+      message: `File exceeds ${limitMb}MB plan limit. Upgrade your plan to upload larger files or more projects.`,
+      metadata: { fileSize, limit: MAX_FILE_SIZE },
+    };
+  }
+  return { allowed: true };
+}
+
 /**
  * Pre-validates upload against plan limits before starting the upload.
  * Returns success/error so the UI can show a clear message instead of opaque Blob errors.
@@ -31,40 +98,297 @@ export async function validateUploadAction(input: {
   fileSize: number;
   duration?: number;
 }): Promise<{ success: true } | { success: false; error: string }> {
-  const { userId } = await auth();
+  const authObj = await auth();
+  const { userId } = authObj;
   if (!userId) {
     return { success: false, error: "Not authenticated" };
   }
-  if (input.fileSize <= 0) {
-    return { success: false, error: "Invalid file size" };
-  }
-  if (input.fileSize > MAX_FILE_SIZE) {
-    const limitMb = MAX_FILE_SIZE / (1024 * 1024);
+
+  const validation = await checkUploadLimits(
+    authObj,
+    userId,
+    input.fileSize,
+    input.duration,
+  );
+  if (!validation.allowed) {
+    console.log("[VALIDATE] Failed:", {
+      userId,
+      message: validation.message,
+      metadata: validation.metadata,
+    });
     return {
       success: false,
-      error: `File exceeds ${limitMb}MB plan limit. Upgrade your plan to upload larger files or more projects.`,
+      error: validation.message ?? "Upload not allowed",
     };
   }
-  // TODO: Check user's plan and project count (e.g. Convex) and return error if over limit.
+
+  console.log("[VALIDATE] Passed:", { userId, fileSize: input.fileSize });
   return { success: true };
 }
 
+interface CreateProjectInput {
+  fileUrl: string; // Vercel Blob URL
+  fileName: string; // Original filename
+  fileSize: number; // Bytes
+  mimeType: string; // MIME type
+  fileDuration?: number; // Seconds (optional)
+}
+
 /**
- * Creates the project in Convex and triggers the Inngest workflow.
- * Returns consistent { success, projectId? } or { success, error? } for callers.
+ * Create project and trigger Inngest workflow
+ *
+ * Atomic Operation (both or neither):
+ * 1. Validate user's plan and limits
+ * 2. Create project record in Convex with user's plan
+ * 3. Send event to Inngest to start processing
+ *
+ * Flow:
+ * 1. Client uploads file to Vercel Blob (validated in upload route)
+ * 2. Client calls this server action with file metadata
+ * 3. This action validates limits again (defense-in-depth)
+ * 4. This action creates Convex project (status: "uploaded")
+ * 5. This action triggers Inngest workflow with plan info
+ * 6. Inngest processes podcast asynchronously based on plan
+ * 7. Client redirects to project detail page
+ *
+ * Error Handling:
+ * - Throws on auth failure (caught by client)
+ * - Throws on missing fields (caught by client)
+ * - Throws on plan limit exceeded (caught by client)
+ * - Throws on Convex/Inngest errors (caught by client)
+ * - Client shows error toast and allows retry
+ *
+ * @param input - File metadata from Vercel Blob upload
+ * @returns Project ID for navigation
+ * @throws Error if authentication fails, limits exceeded, or required fields missing
  */
-export async function createProjectAction(input: {
-  fileUrl: string;
-  fileName: string;
-  fileSize: number;
-  mimeType: string;
-  fileDuration?: number;
-}): Promise<
+export async function createProjectAction(
+  input: CreateProjectInput,
+): Promise<
   { success: true; projectId: string } | { success: false; error: string }
 > {
-  const result = await createProject(input);
-  if (!result.success) {
-    return { success: false, error: result.error };
+  try {
+    const authObj = await auth();
+    const { userId } = authObj;
+    if (!userId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { fileUrl, fileName, fileSize, mimeType, fileDuration } = input;
+    if (!fileUrl || !fileName) {
+      return { success: false, error: "Missing required fields" };
+    }
+
+    // Determine user's plan via Clerk (optional downstream use)
+    let plan: "free" | "pro" | "ultra" = "free";
+    const { has } = authObj;
+    if (has?.({ plan: "ultra" })) plan = "ultra";
+    else if (has?.({ plan: "pro" })) plan = "pro";
+
+    const validation = await checkUploadLimits(
+      authObj,
+      userId,
+      fileSize ?? 0,
+      fileDuration,
+    );
+    if (!validation.allowed) {
+      return {
+        success: false,
+        error: validation.message ?? "Upload not allowed for your plan",
+      };
+    }
+
+    const fileExtension = fileName.split(".").pop() ?? "unknown";
+
+    const token = await authObj.getToken({ template: "convex" });
+    const projectId = await fetchMutation(
+      projectsApi.createProject,
+      {
+        userId,
+        inputUrl: fileUrl,
+        fileName,
+        fileSize: fileSize ?? 0,
+        fileDuration,
+        fileFormat: fileExtension,
+        mimeType,
+      },
+      { token: token ?? undefined },
+    );
+
+    // Inngest event with retry/backoff
+    const eventPayload = {
+      name: "podcast/uploaded" as const,
+      data: {
+        projectId,
+        userId,
+        plan,
+        fileUrl,
+        fileName,
+        fileSize: fileSize ?? 0,
+        fileDuration,
+        fileFormat: fileExtension,
+        mimeType,
+      },
+    };
+
+    const maxAttempts = 3;
+    const baseDelayMs = 500;
+    let lastError: unknown;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        await inngest.send(eventPayload);
+        break;
+      } catch (err) {
+        lastError = err;
+        if (attempt < maxAttempts - 1) {
+          const delayMs = baseDelayMs * 2 ** attempt;
+          await new Promise((r) => setTimeout(r, delayMs));
+        } else {
+          console.error(
+            "[createProjectAction] inngest.send failed after retries",
+            {
+              projectId,
+              userId,
+              attempt: attempt + 1,
+              error: err,
+            },
+          );
+          return {
+            success: false,
+            error:
+              lastError instanceof Error
+                ? lastError.message
+                : "Failed to trigger processing. Please try again.",
+          };
+        }
+      }
+    }
+
+    return { success: true, projectId };
+  } catch (error) {
+    console.error("Error Creating Project, Please Try Again Later:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
-  return { success: true, projectId: result.projectId };
+}
+
+/**
+ * Delete project and associated Blob storage
+ */
+export async function deleteProjectAction(
+  projectId: Id<"projects">,
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const authObj = await auth();
+    const { userId } = authObj;
+    if (!userId) {
+      return {
+        success: false,
+        error: "Unauthorized, You Must Be Logged In To Delete A Project",
+      };
+    }
+
+    const token = await authObj.getToken({ template: "convex" });
+    const result = await fetchMutation(
+      projectsApi.deleteProject,
+      { projectId, userId },
+      { token: token ?? undefined },
+    );
+
+    if (result?.inputUrl) {
+      const maxAttempts = 3;
+      const backoffMs = 200;
+      let lastError: unknown;
+      let deleted = false;
+      for (let attempt = 0; attempt < maxAttempts && !deleted; attempt++) {
+        try {
+          await del(result.inputUrl);
+          deleted = true;
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxAttempts - 1) {
+            await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+          } else {
+            console.warn(
+              "[ORPHANED_BLOB] Vercel blob deletion failed after project delete",
+              {
+                projectId,
+                userId,
+                inputUrl: result.inputUrl,
+                error:
+                  lastError instanceof Error
+                    ? lastError.message
+                    : String(lastError),
+              },
+            );
+          }
+        }
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete project",
+    };
+  }
+}
+
+/**
+ * Update project display name
+ */
+export async function updateDisplayNameAction(
+  projectId: Id<"projects">,
+  displayName: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const authObj = await auth();
+    const { userId } = authObj;
+    if (!userId) {
+      return {
+        success: false,
+        error:
+          "Unauthorized, You Must Be Logged In To Update A Project Display Name",
+      };
+    }
+
+    if (!displayName || displayName.trim().length === 0) {
+      return {
+        success: false,
+        error:
+          "Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue",
+      };
+    }
+    if (displayName.length > 200) {
+      return {
+        success: false,
+        error:
+          "Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue",
+      };
+    }
+
+    const token = await authObj.getToken({ template: "convex" });
+    await fetchMutation(
+      projectsApi.updateProjectDisplayName,
+      {
+        projectId,
+        userId,
+        displayName: displayName.trim(),
+      },
+      { token: token ?? undefined },
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error Updating Display Name:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
