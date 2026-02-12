@@ -126,6 +126,18 @@ export async function createProjectAction(
       return { success: false, error: "Missing required fields" };
     }
 
+    if (
+      fileSize == null ||
+      typeof fileSize !== "number" ||
+      Number.isNaN(fileSize) ||
+      fileSize <= 0
+    ) {
+      return {
+        success: false,
+        error: "Invalid file size. Please provide a valid positive file size.",
+      };
+    }
+
     let plan: "free" | "pro" | "ultra" = "free";
     const { has } = authObj;
     if (has?.({ plan: "ultra" })) {
@@ -137,7 +149,7 @@ export async function createProjectAction(
     const validation = await checkUploadLimits(
       authObj,
       userId,
-      fileSize ?? 0,
+      fileSize,
       fileDuration,
     );
 
@@ -162,7 +174,7 @@ export async function createProjectAction(
         userId,
         inputUrl: fileUrl,
         fileName,
-        fileSize: fileSize ?? 0,
+        fileSize,
         fileDuration,
         fileFormat: fileExtension,
         mimeType,
@@ -178,7 +190,7 @@ export async function createProjectAction(
         plan,
         fileUrl,
         fileName,
-        fileSize: fileSize ?? 0,
+        fileSize,
         fileDuration,
         fileFormat: fileExtension,
         mimeType,

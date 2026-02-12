@@ -39,13 +39,57 @@ export const getProject = query({
 
 /**
  * Idempotent helper: ensure userProjectCounts exists for userId and increment.
- * Uses query-then-patch-or-insert. If multiple counters exist (from prior race), patches the first.
+ * Uses registry doc read+patch to trigger OCC retries so concurrent creators cannot insert duplicates.
  */
 async function ensureAndIncrementCounter(
   ctx: MutationCtx,
   userId: string,
   delta: { total: number; active: number },
 ) {
+  const registries = await ctx.db
+    .query("userProjectCountsRegistry")
+    .withIndex("by_type", (q) => q.eq("type", "singleton"))
+    .collect();
+
+  const initializedSet = new Set(
+    registries.flatMap((r) => r.initializedUserIds),
+  );
+  const primary = registries.sort(
+    (a, b) => a._creationTime - b._creationTime,
+  )[0];
+
+  if (initializedSet.has(userId)) {
+    const counter = await ctx.db
+      .query("userProjectCounts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (counter) {
+      await ctx.db.patch(counter._id, {
+        totalCount: counter.totalCount + delta.total,
+        activeCount: counter.activeCount + delta.active,
+      });
+    }
+    return;
+  }
+
+  const projects = await ctx.db
+    .query("projects")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const activeCount = projects.filter((p) => !p.deletedAt).length;
+
+  if (primary) {
+    await ctx.db.insert("userProjectCounts", {
+      userId,
+      totalCount: projects.length,
+      activeCount,
+    });
+    await ctx.db.patch(primary._id, {
+      initializedUserIds: [...primary.initializedUserIds, userId],
+    });
+    return;
+  }
+
   const existingCounter = await ctx.db
     .query("userProjectCounts")
     .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -55,31 +99,45 @@ async function ensureAndIncrementCounter(
       totalCount: existingCounter.totalCount + delta.total,
       activeCount: existingCounter.activeCount + delta.active,
     });
-    return;
-  }
-  const allCounters = await ctx.db
-    .query("userProjectCounts")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  if (allCounters.length > 0) {
-    const c = allCounters[0];
-    await ctx.db.patch(c._id, {
-      totalCount: c.totalCount + delta.total,
-      activeCount: c.activeCount + delta.active,
+    await ctx.db.insert("userProjectCountsRegistry", {
+      type: "singleton",
+      initializedUserIds: [userId],
     });
     return;
   }
-  const projects = await ctx.db
-    .query("projects")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  const activeCount = projects.filter((p) => !p.deletedAt).length;
+
+  await ctx.db.insert("userProjectCountsRegistry", {
+    type: "singleton",
+    initializedUserIds: [userId],
+  });
   await ctx.db.insert("userProjectCounts", {
     userId,
     totalCount: projects.length,
     activeCount,
   });
 }
+
+/**
+ * One-time seed: create registry and populate from existing userProjectCounts.
+ * Run: npx convex run projects:seedUserProjectCountsRegistry
+ */
+export const seedUserProjectCountsRegistry = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query("userProjectCountsRegistry")
+      .withIndex("by_type", (q) => q.eq("type", "singleton"))
+      .first();
+    if (existing) return { seeded: false, message: "Registry already exists" };
+    const counters = await ctx.db.query("userProjectCounts").collect();
+    const userIds = [...new Set(counters.map((c) => c.userId))];
+    await ctx.db.insert("userProjectCountsRegistry", {
+      type: "singleton",
+      initializedUserIds: userIds,
+    });
+    return { seeded: true, userIds };
+  },
+});
 
 /**
  * Creates a new project record after file upload.
@@ -112,7 +170,7 @@ export const createProject = mutation({
       inputUrl: args.inputUrl,
       fileName: args.fileName,
       displayName: args.fileName,
-      fileSize: args.fileSize ?? 0,
+      fileSize: args.fileSize,
       fileDuration: args.fileDuration ?? 0,
       fileFormat: args.fileFormat,
       mimeType: args.mimeType,
@@ -465,21 +523,48 @@ export const getUserProjectCount = query({
     if (counter) {
       return args.includeDeleted ? counter.totalCount : counter.activeCount;
     }
-    // Fallback for users without counter (pre-deploy projects): one-time collect
-    if (args.includeDeleted) {
-      const all = await ctx.db
-        .query("projects")
-        .withIndex("by_user", (q) => q.eq("userId", args.userId))
-        .collect();
-      return all.length;
+    // No counter: either new user (0 projects) or pre-deploy user needing backfill.
+    // Return 0 to avoid expensive collect; run backfillProjectCounters to initialize.
+    return 0;
+  },
+});
+
+/**
+ * One-time backfill: scans projects once, computes per-user counts, writes userProjectCounts.
+ * Run from Convex dashboard for users who had projects before the counter existed.
+ * After running, getUserProjectCount will read from the counter instead of doing expensive collects.
+ */
+export const backfillProjectCounters = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const projects = await ctx.db.query("projects").collect();
+    const countsByUser = new Map<string, { total: number; active: number }>();
+    for (const p of projects) {
+      const uid = p.userId;
+      const curr = countsByUser.get(uid) ?? { total: 0, active: 0 };
+      curr.total += 1;
+      if (!p.deletedAt) curr.active += 1;
+      countsByUser.set(uid, curr);
     }
-    const active = await ctx.db
-      .query("projects")
-      .withIndex("by_user_and_deleted_at", (q) =>
-        q.eq("userId", args.userId).eq("deletedAt", undefined),
-      )
-      .collect();
-    return active.length;
+    for (const [userId, counts] of countsByUser) {
+      const existing = await ctx.db
+        .query("userProjectCounts")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .first();
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          totalCount: counts.total,
+          activeCount: counts.active,
+        });
+      } else {
+        await ctx.db.insert("userProjectCounts", {
+          userId,
+          totalCount: counts.total,
+          activeCount: counts.active,
+        });
+      }
+    }
+    return { usersBackfilled: countsByUser.size };
   },
 });
 

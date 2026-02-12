@@ -79,10 +79,12 @@ export async function checkUploadLimits(
   // Check project count limit (skip for ultra - unlimited)
   if (limits.maxProjects !== null) {
     const includeDeleted = plan === "free";
-    const projectCount = await fetchQuery(api.projects.getUserProjectCount, {
-      userId,
-      includeDeleted,
-    });
+    const token = await authObj.getToken({ template: "convex" });
+    const projectCount = await fetchQuery(
+      api.projects.getUserProjectCount,
+      { userId, includeDeleted },
+      { token: token ?? undefined },
+    );
 
     if (projectCount >= limits.maxProjects) {
       return {
