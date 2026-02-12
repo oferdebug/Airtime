@@ -12,6 +12,10 @@
  * - Reduces connection overhead
  * - Maintains consistent configuration
  *
+ * Lazy Initialization:
+ * - Client is created on first use to avoid throwing at import time during build
+ * - Environment check happens when getConvex() is first called
+ *
  * Why HTTP Client vs. React Client?
  * - React client (useQuery/useMutation) is for frontend only
  * - HTTP client works in Node.js (server actions, API routes, Inngest)
@@ -29,21 +33,22 @@
 
 import { ConvexHttpClient } from "convex/browser";
 
-/**
- * Singleton Convex HTTP client instance
- *
- * Initialized with deployment URL from environment.
- * Used across server actions, API routes, and Inngest functions.
- *
- * Usage Example:
- * ```ts
- * import { convex } from '@/lib/convex-client';
- * import { api } from '@/convex/_generated/api';
- *
- * // In server action or Inngest function:
- * await convex.mutation(api.projects.createProject, { ... });
- * const project = await convex.query(api.projects.getProject, { projectId });
- * ```
- */
+let _client: ConvexHttpClient | null = null;
 
-export const convex=new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL||'');
+/**
+ * Get or create the Convex HTTP client instance (memoized).
+ * Validates NEXT_PUBLIC_CONVEX_URL on first call.
+ *
+ * @throws Error if NEXT_PUBLIC_CONVEX_URL is missing or empty
+ */
+export function getConvex(): ConvexHttpClient {
+  if (_client) return _client;
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url || url.trim() === "") {
+    throw new Error(
+      "NEXT_PUBLIC_CONVEX_URL is required. Set it in your environment.",
+    );
+  }
+  _client = new ConvexHttpClient(url);
+  return _client;
+}

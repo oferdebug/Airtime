@@ -1,10 +1,10 @@
 "use server";
 
-import { inngest } from "@/app/api/inngest/client";
 import { auth } from "@clerk/nextjs/server";
-import type { Id } from "@/convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+import { inngest } from "@/app/api/inngest/client";
 import type { RetryableJob } from "./retry-job";
 
 // Local configuration for plan features and their corresponding job keys.
@@ -20,7 +20,12 @@ type FeatureName =
   | "youtubeTimestamps";
 
 const FREE_FEATURES: FeatureName[] = ["summary"];
-const PRO_FEATURES: FeatureName[] = [...FREE_FEATURES, "socialPosts", "titles", "hashtags"];
+const PRO_FEATURES: FeatureName[] = [
+  ...FREE_FEATURES,
+  "socialPosts",
+  "titles",
+  "hashtags",
+];
 const ULTRA_FEATURES: FeatureName[] = [
   ...PRO_FEATURES,
   "keyMoments",
@@ -102,9 +107,9 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
 
   // Infer what plan was used during processing based on generated features
   let originalPlan: "free" | "pro" | "ultra" = "free";
-  if (project.keyMoments || project.youtubeTimestamps) {
+  if (project.keyMoments || project.youtubeTimeStamps) {
     originalPlan = "ultra";
-  } else if (project.socialPosts || project.titles || project.hashtags) {
+  } else if (project.socialPosts || project.title) {
     originalPlan = "pro";
   }
 

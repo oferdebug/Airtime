@@ -10,11 +10,7 @@
 import type { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
-import type {
-  FeatureName,
-  PlanLimits,
-  PlanName,
-} from "./tier-config";
+import type { FeatureName, PlanName } from "./tier-config";
 import { PLAN_FEATURES, PLAN_LIMITS } from "./tier-config";
 
 export type AuthObject = Awaited<ReturnType<typeof auth>>;
@@ -55,7 +51,7 @@ export async function checkUploadLimits(
     plan = "pro";
   }
 
-  const limits: PlanLimits = PLAN_LIMITS[plan];
+  const limits = PLAN_LIMITS[plan];
 
   // Check file size limit
   if (fileSize > limits.maxFileSize) {
@@ -82,13 +78,10 @@ export async function checkUploadLimits(
   // Check project count limit (skip for ultra - unlimited)
   if (limits.maxProjects !== null) {
     const includeDeleted = plan === "free";
-    const projectCount = await fetchQuery(
-      api.projects.getUserProjectCount,
-      {
-        userId,
-        includeDeleted,
-      },
-    );
+    const projectCount = await fetchQuery(api.projects.getUserProjectCount, {
+      userId,
+      includeDeleted,
+    });
 
     if (projectCount >= limits.maxProjects) {
       return {
@@ -138,10 +131,7 @@ export function getPlanFeatures(plan: PlanName): FeatureName[] {
  * @param feature - Feature to check
  * @returns True if plan includes feature
  */
-export function planHasFeature(
-  plan: PlanName,
-  feature: FeatureName,
-): boolean {
+export function planHasFeature(plan: PlanName, feature: FeatureName): boolean {
   return PLAN_FEATURES[plan].includes(feature);
 }
 

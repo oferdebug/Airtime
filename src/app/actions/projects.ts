@@ -1,13 +1,13 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { del } from "@vercel/blob";
 import { fetchMutation } from "convex/nextjs";
 import type { FunctionReference } from "convex/server";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
 import { inngest } from "@/app/api/inngest/client";
-import { MAX_FILE_SIZE } from "@/lib/constants";
+import { checkUploadLimits } from "@/lib/tier-utils";
 
 /**
  * Project Server Actions
@@ -33,6 +33,7 @@ type ProjectsApiShape = {
   createProject: FunctionReference<"mutation">;
   deleteProject: FunctionReference<"mutation">;
   updateProjectDisplayName: FunctionReference<"mutation">;
+  recordOrphanedBlob: FunctionReference<"mutation">;
 };
 
 function validateProjectsApi(
@@ -45,50 +46,17 @@ function validateProjectsApi(
   return (
     p.createProject != null &&
     p.deleteProject != null &&
-    p.updateProjectDisplayName != null
+    p.updateProjectDisplayName != null &&
+    p.recordOrphanedBlob != null
   );
 }
 
 if (!validateProjectsApi(api)) {
   throw new Error(
-    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, and updateProjectDisplayName",
+    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob",
   );
 }
 const projectsApi = api.projects;
-
-/**
- * Internal: plan/limits validation shared by actions.
- */
-async function checkUploadLimits(
-  _authObj: Awaited<ReturnType<typeof auth>>,
-  _userId: string,
-  fileSize: number,
-  _duration?: number,
-): Promise<{
-  allowed: boolean;
-  error?: string;
-  message?: string;
-  metadata?: Record<string, unknown>;
-}> {
-  if (fileSize <= 0) {
-    return {
-      allowed: false,
-      error: "Invalid file size",
-      message: "Invalid file size",
-      metadata: { fileSize },
-    };
-  }
-  if (fileSize > MAX_FILE_SIZE) {
-    const limitMb = MAX_FILE_SIZE / (1024 * 1024);
-    return {
-      allowed: false,
-      error: `File exceeds ${limitMb}MB plan limit. Upgrade your plan to upload larger files or more projects.`,
-      message: `File exceeds ${limitMb}MB plan limit. Upgrade your plan to upload larger files or more projects.`,
-      metadata: { fileSize, limit: MAX_FILE_SIZE },
-    };
-  }
-  return { allowed: true };
-}
 
 /**
  * Pre-validates upload against plan limits before starting the upload.
@@ -104,17 +72,30 @@ export async function validateUploadAction(input: {
     return { success: false, error: "Not authenticated" };
   }
 
+  const fileSize = input.fileSize;
+  if (
+    fileSize == null ||
+    typeof fileSize !== "number" ||
+    Number.isNaN(fileSize) ||
+    fileSize <= 0
+  ) {
+    const msg = "Invalid file size. Please provide a valid positive file size.";
+    console.log("[VALIDATE] Failed:", { userId, reason: "invalid_fileSize" });
+    return { success: false, error: msg };
+  }
+
   const validation = await checkUploadLimits(
     authObj,
     userId,
-    input.fileSize,
+    fileSize,
     input.duration,
   );
   if (!validation.allowed) {
     console.log("[VALIDATE] Failed:", {
       userId,
       message: validation.message,
-      metadata: validation.metadata,
+      reason: validation.reason,
+      limit: validation.limit,
     });
     return {
       success: false,
@@ -122,7 +103,7 @@ export async function validateUploadAction(input: {
     };
   }
 
-  console.log("[VALIDATE] Passed:", { userId, fileSize: input.fileSize });
+  console.log("[VALIDATE] Passed:", { userId, fileSize });
   return { success: true };
 }
 
@@ -179,6 +160,19 @@ export async function createProjectAction(
       return { success: false, error: "Missing required fields" };
     }
 
+    // Validate fileSize before calling checkUploadLimits (CreateProjectInput requires it)
+    if (
+      fileSize == null ||
+      typeof fileSize !== "number" ||
+      Number.isNaN(fileSize) ||
+      fileSize <= 0
+    ) {
+      return {
+        success: false,
+        error: "Invalid file size. Please provide a valid positive file size.",
+      };
+    }
+
     // Determine user's plan via Clerk (optional downstream use)
     let plan: "free" | "pro" | "ultra" = "free";
     const { has } = authObj;
@@ -188,7 +182,7 @@ export async function createProjectAction(
     const validation = await checkUploadLimits(
       authObj,
       userId,
-      fileSize ?? 0,
+      fileSize,
       fileDuration,
     );
     if (!validation.allowed) {
@@ -207,7 +201,7 @@ export async function createProjectAction(
         userId,
         inputUrl: fileUrl,
         fileName,
-        fileSize: fileSize ?? 0,
+        fileSize,
         fileDuration,
         fileFormat: fileExtension,
         mimeType,
@@ -224,7 +218,7 @@ export async function createProjectAction(
         plan,
         fileUrl,
         fileName,
-        fileSize: fileSize ?? 0,
+        fileSize,
         fileDuration,
         fileFormat: fileExtension,
         mimeType,
@@ -253,6 +247,25 @@ export async function createProjectAction(
               error: err,
             },
           );
+          // Remove orphaned project since Inngest workflow will not run
+          try {
+            await fetchMutation(
+              projectsApi.deleteProject,
+              { projectId, userId },
+              { token: token ?? undefined },
+            );
+            console.log("[createProjectAction] Removed orphaned project:", {
+              projectId,
+              userId,
+            });
+          } catch (deleteErr) {
+            console.error(
+              "[createProjectAction] Failed to remove orphaned project:",
+              { projectId, userId, error: deleteErr },
+            );
+          }
+          // TODO: Implement scheduled cleanup job for stale "uploading" projects
+          // TODO: Expose UI retry endpoint that calls inngest.send again using projectId
           return {
             success: false,
             error:
@@ -277,9 +290,19 @@ export async function createProjectAction(
 /**
  * Delete project and associated Blob storage
  */
+export type DeleteProjectResult =
+  | { success: true }
+  | {
+      success: false;
+      error: string;
+      partial?: boolean;
+      orphanedBlob?: boolean;
+      orphanedUrl?: string;
+    };
+
 export async function deleteProjectAction(
   projectId: Id<"projects">,
-): Promise<{ success: true } | { success: false; error: string }> {
+): Promise<DeleteProjectResult> {
   try {
     const authObj = await auth();
     const { userId } = authObj;
@@ -309,20 +332,46 @@ export async function deleteProjectAction(
         } catch (error) {
           lastError = error;
           if (attempt < maxAttempts - 1) {
-            await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+            await new Promise((r) => setTimeout(r, backoffMs * 2 ** attempt));
           } else {
+            const errorMsg =
+              lastError instanceof Error
+                ? lastError.message
+                : String(lastError);
             console.warn(
               "[ORPHANED_BLOB] Vercel blob deletion failed after project delete",
               {
                 projectId,
                 userId,
                 inputUrl: result.inputUrl,
-                error:
-                  lastError instanceof Error
-                    ? lastError.message
-                    : String(lastError),
+                error: errorMsg,
               },
             );
+            // Persist failure for scheduled cleanup
+            try {
+              await fetchMutation(
+                projectsApi.recordOrphanedBlob,
+                {
+                  projectId,
+                  userId,
+                  orphanedBlobUrl: result.inputUrl,
+                  error: errorMsg,
+                },
+                { token: token ?? undefined },
+              );
+            } catch (recordErr) {
+              console.error(
+                "[ORPHANED_BLOB] Failed to record orphaned blob:",
+                recordErr,
+              );
+            }
+            return {
+              success: false,
+              error: `Project deleted but blob cleanup failed. ${errorMsg}`,
+              partial: true,
+              orphanedBlob: true,
+              orphanedUrl: result.inputUrl,
+            };
           }
         }
       }
@@ -357,14 +406,15 @@ export async function updateDisplayNameAction(
       };
     }
 
-    if (!displayName || displayName.trim().length === 0) {
+    const trimmedDisplayName = displayName.trim();
+    if (!trimmedDisplayName) {
       return {
         success: false,
         error:
           "Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue",
       };
     }
-    if (displayName.length > 200) {
+    if (trimmedDisplayName.length > 200) {
       return {
         success: false,
         error:
@@ -378,7 +428,7 @@ export async function updateDisplayNameAction(
       {
         projectId,
         userId,
-        displayName: displayName.trim(),
+        displayName: trimmedDisplayName,
       },
       { token: token ?? undefined },
     );

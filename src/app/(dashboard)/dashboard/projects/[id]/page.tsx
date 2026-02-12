@@ -1,5 +1,7 @@
 "use client";
 
+import { api } from "@convex/_generated/api";
+import type { Doc, Id } from "@convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
 import {
@@ -24,10 +26,8 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatDuration, formatFileSize } from "@/lib/utils";
-import { api } from "../../../../../../convex/_generated/api";
-import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-// Cast until Convex codegen runs (npx convex dev) and api.projects is in _generated/api.d.ts
+// TODO: remove cast after running npx convex dev - api.projects.getProjectById should be in _generated/api.d.ts
 const getProjectById = (
   api as {
     projects: {
@@ -48,6 +48,37 @@ type StepStatus =
   | "running"
   | "completed"
   | "failed";
+
+function mapToStepStatus(value: unknown): StepStatus {
+  const valid: StepStatus[] = [
+    "pending",
+    "uploading",
+    "processing",
+    "running",
+    "completed",
+    "failed",
+  ];
+  return typeof value === "string" && valid.includes(value as StepStatus)
+    ? (value as StepStatus)
+    : "pending";
+}
+
+function computeOverallProgress(
+  status: string,
+  transcription: StepStatus,
+  contentGen: StepStatus,
+): number {
+  if (status === "completed") return 100;
+  if (status === "failed") return 0;
+  if (transcription === "completed") {
+    if (contentGen === "completed") return 100;
+    if (contentGen === "running" || contentGen === "processing") return 75;
+    return 50;
+  }
+  if (transcription === "processing" || transcription === "uploading")
+    return 25;
+  return 0;
+}
 
 function StepIndicator({
   status,
@@ -147,8 +178,11 @@ export default function ProjectDetailsPage() {
   const params = useParams();
   const rawId = params?.id;
   const projectId = (() => {
-    if (rawId == null || rawId === "") return null;
-    return (Array.isArray(rawId) ? rawId[0] : rawId) as Id<"projects">;
+    const str = rawId == null ? "" : Array.isArray(rawId) ? rawId[0] : rawId;
+    if (!str || typeof str !== "string" || str.trim() === "") return null;
+    // Convex IDs are typically alphanumeric base64-like strings; basic format check
+    if (!/^[a-zA-Z0-9_-]{10,}$/.test(str)) return null;
+    return str as Id<"projects">;
   })();
   const project = useQuery(
     getProjectById,
@@ -198,30 +232,20 @@ export default function ProjectDetailsPage() {
     );
   }
 
-  const status = project.status ?? "uploading";
-  const jobStatus = project.jobStatus ?? {};
-  const transcription =
-    (jobStatus.transcription as StepStatus | undefined) ?? "pending";
-  const contentGen =
-    (jobStatus.contentGeneration as StepStatus | undefined) ?? "pending";
+  const proj = project as Doc<"projects">;
+  const status = proj.status ?? "uploading";
+  const jobStatus = proj.jobStatus ?? {};
+  const transcription = mapToStepStatus(jobStatus.transcription);
+  const contentGen = mapToStepStatus(jobStatus.contentGeneration);
 
-  const fileSizeNum = Number(project.fileSize);
-  const fileDurationNum = Number(project.fileDuration);
+  const fileSizeNum = Number(proj.fileSize);
+  const fileDurationNum = Number(proj.fileDuration);
 
-  const overallProgress =
-    status === "completed"
-      ? 100
-      : status === "failed"
-        ? 0
-        : transcription === "completed"
-          ? contentGen === "completed"
-            ? 100
-            : contentGen === "running" || contentGen === "processing"
-              ? 75
-              : 50
-          : transcription === "processing" || transcription === "uploading"
-            ? 25
-            : 0;
+  const overallProgress = computeOverallProgress(
+    status,
+    transcription,
+    contentGen,
+  );
 
   return (
     <div className="min-h-screen p-6 md:p-8">
@@ -239,17 +263,17 @@ export default function ProjectDetailsPage() {
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <CardTitle className="text-xl truncate">
-                {project.displayName ?? project.fileName}
+                {proj.displayName ?? proj.fileName}
               </CardTitle>
               <CardDescription className="mt-1">
-                {project.fileFormat?.toUpperCase() ?? "Audio"} •{" "}
+                {proj.fileFormat?.toUpperCase() ?? "Audio"} •{" "}
                 {Number.isFinite(fileSizeNum)
                   ? formatFileSize(fileSizeNum)
-                  : project.fileSize}{" "}
+                  : proj.fileSize}{" "}
                 •{" "}
                 {Number.isFinite(fileDurationNum)
                   ? formatDuration(fileDurationNum)
-                  : (project.fileDuration ?? "—")}
+                  : (proj.fileDuration ?? "—")}
               </CardDescription>
             </div>
             <StatusBadge status={status} />
@@ -292,26 +316,24 @@ export default function ProjectDetailsPage() {
         </Card>
 
         {/* Error display */}
-        {project.error && (
+        {proj.error && (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertCircle className="h-5 w-5" /> Processing error
               </CardTitle>
               <CardDescription>
-                {project.error.step && `Step: ${project.error.step}`}
+                {proj.error.step && `Step: ${proj.error.step}`}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-destructive">
-                {project.error.message}
-              </p>
+              <p className="text-sm text-destructive">{proj.error.message}</p>
             </CardContent>
           </Card>
         )}
 
         {/* Audio player */}
-        {project.inputUrl && (
+        {proj.inputUrl && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -323,15 +345,12 @@ export default function ProjectDetailsPage() {
               <audio
                 controls
                 className="w-full"
-                src={project.inputUrl}
+                src={proj.inputUrl}
                 preload="metadata"
+                aria-label="Podcast audio"
               >
-                <track
-                  kind="captions"
-                  src=""
-                  srclang="en"
-                  label="No captions"
-                />
+                {/* TODO: Wire track src to transcript/captions when available (e.g. VTT from transcript segments) */}
+                <track kind="captions" src="" />
                 Your browser does not support the audio element.
               </audio>
             </CardContent>
@@ -339,7 +358,7 @@ export default function ProjectDetailsPage() {
         )}
 
         {/* Preview content when available */}
-        {(project.summary || project.transcript) && (
+        {(proj.summary || proj.transcript) && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -351,34 +370,33 @@ export default function ProjectDetailsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {project.summary?.tldr && (
+              {proj.summary?.tldr && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">
                     TL;DR
                   </p>
-                  <p className="text-foreground">{project.summary.tldr}</p>
+                  <p className="text-foreground">{proj.summary.tldr}</p>
                 </div>
               )}
-              {project.summary?.bullets &&
-                project.summary.bullets.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Key points
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-foreground">
-                      {project.summary.bullets.map((b) => (
-                        <li key={b}>{b}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              {project.transcript?.text && (
+              {proj.summary?.bullets && proj.summary.bullets.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    Key points
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-foreground">
+                    {proj.summary.bullets.map((b: string, i: number) => (
+                      <li key={`${i}-${b}`}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {proj.transcript?.text && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">
                     Transcript
                   </p>
                   <p className="text-foreground whitespace-pre-wrap line-clamp-6">
-                    {project.transcript.text}
+                    {proj.transcript.text}
                   </p>
                 </div>
               )}

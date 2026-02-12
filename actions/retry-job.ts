@@ -3,10 +3,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
+import { inngest } from "@/app/api/inngest/client";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { inngest } from "@/app/api/inngest/client";
-
 
 /**
  * Server action: retry a failed or locked AI generation step.
@@ -23,33 +22,33 @@ export type RetryableJob =
   | "hashtags"
   | "youtubeTimestamps";
 
+export async function retryJob(projectId: Id<"projects">, job: RetryableJob) {
+  const authObj = await auth();
+  const { userId, has } = authObj;
 
-  export async function retryJob(projectId:Id<'projects'>,job:RetryableJob) {
-    const authObj = await auth();
-    const { userId, has } = authObj;
+  if (!userId) {
+    throw new Error("Unauthorized, You Must Be Logged In To Retry A Job");
+  }
 
-    if (!userId) {
-      throw new Error("Unauthorized, You Must Be Logged In To Retry A Job");
-    }
+  /** Check if the user has a valid plan */
+  let currentPlan: "free" | "pro" | "ultra" = "free";
+  if (has?.({ plan: "ultra" })) {
+    currentPlan = "ultra";
+  } else if (has?.({ plan: "pro" })) {
+    currentPlan = "pro";
+  }
 
-    /** Check if the user has a valid plan */
-    let currentPlan: "free" | "pro" | "ultra" = "free";
-    if (has?.({ plan: "ultra" })) {
-      currentPlan = "ultra";
-    } else if (has?.({ plan: "pro" })) {
-      currentPlan = "pro";
-    }
-
-    /** Check if the project exists */
+  /** Check if the project exists */
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
   if (!convexUrl) throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
   const convex = new ConvexHttpClient(convexUrl);
   const project = await convex.query(
-    (api as { projects: { getProject: FunctionReference<"query", "public"> } }).projects.getProject,
+    (api as { projects: { getProject: FunctionReference<"query", "public"> } })
+      .projects.getProject,
     { projectId },
   );
-  
-  if(!project) {
+
+  if (!project) {
     throw new Error("Project not found or access denied");
   }
 
@@ -58,11 +57,7 @@ export type RetryableJob =
   // Map retryable jobs to the minimum plan that could have generated them (aligned with generate-missing-features plan features).
   if (job === "youtubeTimestamps" || job === "keyMoments") {
     originalPlan = "ultra";
-  } else if (
-    job === "socialPosts" ||
-    job === "titles" ||
-    job === "hashtags"
-  ) {
+  } else if (job === "socialPosts" || job === "titles" || job === "hashtags") {
     originalPlan = "pro";
   }
   // Trigger Inngest event to retry the specific job

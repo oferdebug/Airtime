@@ -109,6 +109,7 @@ export const FEATURE_TO_JOB_MAP = {
   [FEATURES.KEY_MOMENTS]: "keyMoments",
   [FEATURES.YOUTUBE_TIMESTAMPS]: "youtubeTimestamps",
   [FEATURES.SUMMARY]: "summary",
+  [FEATURES.SPEAKER_DIARIZATION]: "speakerDiarization",
 } as const;
 
 export type JobName =

@@ -5,9 +5,9 @@ import { del } from "@vercel/blob";
 import { fetchMutation } from "convex/nextjs";
 import type { FunctionReference } from "convex/server";
 import { inngest } from "@/app/api/inngest/client";
+import { checkUploadLimits } from "@/lib/tier-utils";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { checkUploadLimits } from "@/lib/tier-utils";
 
 type ProjectsApiShape = {
   createProject: FunctionReference<"mutation">;

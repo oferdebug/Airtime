@@ -43,6 +43,7 @@ next-env.d.ts
 
 # IDE
 .idea/
+.history/
 
 # debug/output files
 *.output.txt

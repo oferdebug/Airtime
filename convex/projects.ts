@@ -56,8 +56,8 @@ export const createProject = mutation({
       inputUrl: args.inputUrl,
       fileName: args.fileName,
       displayName: args.fileName,
-      fileSize: String(args.fileSize ?? 0),
-      fileDuration: args.fileDuration != null ? String(args.fileDuration) : "0",
+      fileSize: args.fileSize ?? 0,
+      fileDuration: args.fileDuration ?? 0,
       fileFormat: args.fileFormat,
       mimeType: args.mimeType,
       status: "uploading",
@@ -79,6 +79,7 @@ export const updateProjectStatus = mutation({
   args: {
     projectId: v.id("projects"),
     status: v.union(
+      v.literal("pending"),
       v.literal("uploading"),
       v.literal("processing"),
       v.literal("completed"),
@@ -86,6 +87,13 @@ export const updateProjectStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+    if (!userId || project.userId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const updates: {
       status: typeof args.status;
       updatedAt: number;
@@ -152,6 +160,13 @@ export const saveTranscript = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+    if (!userId || project.userId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     await ctx.db.patch(args.projectId, {
       transcript: args.transcript,
       updatedAt: Date.now(),
@@ -168,6 +183,7 @@ export const updateJobStatus = mutation({
     projectId: v.id("projects"),
     transcription: v.optional(
       v.union(
+        v.literal("pending"),
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("completed"),
@@ -186,6 +202,11 @@ export const updateJobStatus = mutation({
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    const callerId = identity?.subject;
+    if (!callerId || project.userId !== callerId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const updates = {
       jobStatus: {
         ...project.jobStatus,
@@ -231,7 +252,7 @@ export const saveGeneratedContent = mutation({
       v.object({
         twitter: v.string(),
         linkedin: v.string(),
-        Instagram: v.string(),
+        instagram: v.string(),
         tiktok: v.string(),
         youtube: v.string(),
         facebook: v.string(),
@@ -256,6 +277,13 @@ export const saveGeneratedContent = mutation({
   },
   handler: async (ctx, args) => {
     const { projectId, ...content } = args;
+    const project = await ctx.db.get(projectId);
+    if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    const callerId = identity?.subject;
+    if (!callerId || project.userId !== callerId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     await ctx.db.patch(projectId, {
       ...content,
       updatedAt: Date.now(),
@@ -280,6 +308,13 @@ export const recordError = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    const callerId = identity?.subject;
+    if (!callerId || project.userId !== callerId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     await ctx.db.patch(args.projectId, {
       status: "failed",
       error: {
@@ -310,6 +345,13 @@ export const saveJobErrors = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+    const identity = await ctx.auth.getUserIdentity();
+    const callerId = identity?.subject;
+    if (!callerId || project.userId !== callerId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     await ctx.db.patch(args.projectId, {
       jobErrors: args.jobErrors,
       updatedAt: Date.now(),
@@ -332,11 +374,17 @@ export const listUserProjects = query({
     ),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+    if (!userId || userId !== args.userId) {
+      throw new Error("Unauthorized: You can only list your own projects");
+    }
     const numItems = args.paginationOpts?.numItems ?? 20;
     const query = ctx.db
       .query("projects")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .filter((q) => q.eq(q.field("deletedAt"), undefined))
+      .withIndex("by_user_and_deleted_at", (q) =>
+        q.eq("userId", args.userId).eq("deletedAt", undefined),
+      )
       .order("desc");
     return await query.paginate({
       numItems,
@@ -355,12 +403,61 @@ export const getUserProjectCount = query({
     includeDeleted: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const projects = await ctx.db
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+    if (!userId || userId !== args.userId) {
+      throw new Error("Unauthorized: You can only get your own project count");
+    }
+    if (args.includeDeleted) {
+      const all = await ctx.db
+        .query("projects")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .collect();
+      return all.length;
+    }
+    const active = await ctx.db
       .query("projects")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user_and_deleted_at", (q) =>
+        q.eq("userId", args.userId).eq("deletedAt", undefined),
+      )
       .collect();
-    if (args.includeDeleted) return projects.length;
-    return projects.filter((p) => !p.deletedAt).length;
+    return active.length;
+  },
+});
+
+/**
+ * Records an orphaned blob when Vercel Blob deletion fails after project soft-delete.
+ * Used for scheduled cleanup jobs to retry blob deletion.
+ */
+export const recordOrphanedBlob = mutation({
+  args: {
+    projectId: v.id("projects"),
+    userId: v.string(),
+    orphanedBlobUrl: v.string(),
+    error: v.string(),
+  },
+  handler: async (ctx, { projectId, userId, orphanedBlobUrl, error }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId || authUserId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
+    const project = await ctx.db.get(projectId);
+    if (!project) throw new Error("Project not found");
+    if (project.userId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
+    await ctx.db.patch(projectId, {
+      orphanedBlob: true,
+      orphanedBlobUrl,
+      updatedAt: Date.now(),
+    });
+    console.warn("[ORPHANED_BLOB] Recorded for cleanup:", {
+      projectId,
+      userId,
+      orphanedBlobUrl,
+      error,
+    });
   },
 });
 
@@ -373,9 +470,14 @@ export const deleteProject = mutation({
     userId: v.string(),
   },
   handler: async (ctx, { projectId, userId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId || authUserId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error("Project not found");
-    if (project.userId !== userId) {
+    if (project.userId !== authUserId) {
       throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(projectId, {
@@ -420,6 +522,12 @@ export const updateProjectDescription = mutation({
     if (!project || project.userId !== userId) {
       throw new Error("Not authorized to update this project");
     }
+    console.warn(
+      "[DEPRECATED] updateProjectDescription is deprecated (schema has no description field). projectId:",
+      projectId,
+      "userId:",
+      userId,
+    );
     // Schema has no description field; no-op
   },
 });
@@ -431,8 +539,13 @@ export const updateProjectInputUrl = mutation({
     inputUrl: v.string(),
   },
   handler: async (ctx, { projectId, userId, inputUrl }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId || authUserId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const project = await ctx.db.get(projectId);
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== authUserId) {
       throw new Error("Not authorized to update this project");
     }
     await ctx.db.patch(projectId, { inputUrl, updatedAt: Date.now() });
@@ -446,8 +559,13 @@ export const updateProjectFileName = mutation({
     fileName: v.string(),
   },
   handler: async (ctx, { projectId, userId, fileName }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId || authUserId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const project = await ctx.db.get(projectId);
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== authUserId) {
       throw new Error("Not authorized to update this project");
     }
     await ctx.db.patch(projectId, { fileName, updatedAt: Date.now() });
@@ -458,11 +576,16 @@ export const updateProjectFileSize = mutation({
   args: {
     projectId: v.id("projects"),
     userId: v.string(),
-    fileSize: v.string(),
+    fileSize: v.number(),
   },
   handler: async (ctx, { projectId, userId, fileSize }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId || authUserId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const project = await ctx.db.get(projectId);
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== authUserId) {
       throw new Error("Not authorized to update this project");
     }
     await ctx.db.patch(projectId, { fileSize, updatedAt: Date.now() });
@@ -473,11 +596,16 @@ export const updateProjectFileDuration = mutation({
   args: {
     projectId: v.id("projects"),
     userId: v.string(),
-    fileDuration: v.string(),
+    fileDuration: v.number(),
   },
   handler: async (ctx, { projectId, userId, fileDuration }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId || authUserId !== userId) {
+      throw new Error("Unauthorized: You don't own this project");
+    }
     const project = await ctx.db.get(projectId);
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== authUserId) {
       throw new Error("Not authorized to update this project");
     }
     await ctx.db.patch(projectId, { fileDuration, updatedAt: Date.now() });
