@@ -68,6 +68,17 @@ async function ensureAndIncrementCounter(
         totalCount: counter.totalCount + delta.total,
         activeCount: counter.activeCount + delta.active,
       });
+    } else {
+      // Registry says initialized but counter is missing: rebuild from source of truth.
+      const projects = await ctx.db
+        .query("projects")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+      await ctx.db.insert("userProjectCounts", {
+        userId,
+        totalCount: projects.length,
+        activeCount: projects.filter((p) => !p.deletedAt).length,
+      });
     }
     return;
   }
@@ -171,7 +182,7 @@ export const createProject = mutation({
       fileName: args.fileName,
       displayName: args.fileName,
       fileSize: args.fileSize,
-      fileDuration: args.fileDuration ?? 0,
+      fileDuration: args.fileDuration,
       fileFormat: args.fileFormat,
       mimeType: args.mimeType,
       status: "uploading",
