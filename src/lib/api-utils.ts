@@ -39,7 +39,10 @@ export function apiResponse<T>(data: T, status: number = 200): NextResponse<T> {
  * @returns NextResponse with error body
  */
 
-export function apiError(message: string, status = 500): NextResponse {
+export function apiError(
+  message: string,
+  status = 500,
+): NextResponse<{ error: string }> {
   return NextResponse.json({ error: message }, { status });
 }
 

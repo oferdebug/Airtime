@@ -80,10 +80,15 @@ export async function checkUploadLimits(
   if (limits.maxProjects !== null) {
     const includeDeleted = plan === "free";
     const token = await authObj.getToken({ template: "convex" });
+    if (!token) {
+      throw new Error(
+        `Missing auth token for getUserProjectCount (userId=${userId}, template=convex)`,
+      );
+    }
     const projectCount = await fetchQuery(
       api.projects.getUserProjectCount,
       { userId, includeDeleted },
-      { token: token ?? undefined },
+      { token },
     );
 
     if (projectCount >= limits.maxProjects) {

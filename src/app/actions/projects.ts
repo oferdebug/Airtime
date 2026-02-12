@@ -80,12 +80,7 @@ if (!validateProjectsApi(api)) {
   const errorMessage =
     "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob";
   const details = getProjectsApiValidationDetails(api);
-
-  if (process.env.NODE_ENV === "production") {
-    console.warn(`${errorMessage}. Validation details: ${details}`);
-  } else {
-    throw new Error(`${errorMessage}. Validation details: ${details}`);
-  }
+  throw new Error(`${errorMessage}. Validation details: ${details}`);
 }
 const projectsApi = api.projects;
 

@@ -57,12 +57,9 @@ function computeOverallProgress(
 ): number {
   if (status === "completed") return 100;
   let progress = 0;
-  if (transcription === "completed") {
-    progress = 50;
-  } else if (transcription === "processing" || transcription === "uploading") {
+  if (transcription === "processing" || transcription === "uploading") {
     progress = 25;
-  }
-  if (transcription === "completed") {
+  } else if (transcription === "completed") {
     if (contentGen === "completed") return 100;
     if (
       contentGen === "running" ||
@@ -70,6 +67,8 @@ function computeOverallProgress(
       contentGen === "uploading"
     ) {
       progress = 75;
+    } else {
+      progress = 50;
     }
   }
   return progress;
