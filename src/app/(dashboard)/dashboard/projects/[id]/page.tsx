@@ -385,7 +385,7 @@ export default function ProjectDetailsPage() {
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-foreground">
                     {proj.summary.bullets.map((b: string, idx: number) => (
-                      <li key={`${idx}-${b.slice(0, 20)}`}>{b}</li>
+                      <li key={idx}>{b}</li>
                     ))}
                   </ul>
                 </div>

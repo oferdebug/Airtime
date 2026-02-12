@@ -47,14 +47,16 @@ export function apiError(message: string, status = 500): NextResponse {
  * Authentication wrapper for API routes
  *
  * Validates Clerk authentication and returns userId if authenticated.
- * Throws NextResponse with 401 if not authenticated (caught by route handler).
+ * Returns a discriminated union so handlers can return the response directly.
  *
  */
 
-export async function withAuth(): Promise<{ userId: string } | null> {
+export async function withAuth(): Promise<
+  { ok: true; userId: string } | { ok: false; response: NextResponse }
+> {
   const { userId } = await auth();
   if (!userId) {
-    throw apiError("Unauthorized", 401);
+    return { ok: false, response: apiError("Unauthorized", 401) };
   }
-  return { userId };
+  return { ok: true, userId };
 }

@@ -51,11 +51,40 @@ function validateProjectsApi(
   );
 }
 
-if (process.env.NODE_ENV !== "production") {
-  if (!validateProjectsApi(api)) {
-    throw new Error(
-      "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob",
-    );
+function getProjectsApiValidationDetails(apiObj: unknown): string {
+  if (!apiObj || typeof apiObj !== "object") {
+    return "api is not an object";
+  }
+
+  const projects = (apiObj as Record<string, unknown>).projects;
+  if (!projects || typeof projects !== "object") {
+    return "api.projects is missing or not an object";
+  }
+
+  const p = projects as Record<string, unknown>;
+  const missingMethods = [
+    p.createProject == null ? "createProject" : null,
+    p.deleteProject == null ? "deleteProject" : null,
+    p.updateProjectDisplayName == null ? "updateProjectDisplayName" : null,
+    p.recordOrphanedBlob == null ? "recordOrphanedBlob" : null,
+  ].filter((name): name is string => name !== null);
+
+  if (missingMethods.length === 0) {
+    return "validateProjectsApi(api) returned false unexpectedly";
+  }
+
+  return `api.projects is missing: ${missingMethods.join(", ")}`;
+}
+
+if (!validateProjectsApi(api)) {
+  const errorMessage =
+    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob";
+  const details = getProjectsApiValidationDetails(api);
+
+  if (process.env.NODE_ENV === "production") {
+    console.warn(`${errorMessage}. Validation details: ${details}`);
+  } else {
+    throw new Error(`${errorMessage}. Validation details: ${details}`);
   }
 }
 const projectsApi = api.projects;

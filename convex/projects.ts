@@ -553,15 +553,32 @@ export const getUserProjectCount = query({
 export const backfillProjectCounters = mutation({
   args: {},
   handler: async (ctx) => {
-    const projects = await ctx.db.query("projects").collect();
     const countsByUser = new Map<string, { total: number; active: number }>();
-    for (const p of projects) {
-      const uid = p.userId;
-      const curr = countsByUser.get(uid) ?? { total: 0, active: 0 };
-      curr.total += 1;
-      if (!p.deletedAt) curr.active += 1;
-      countsByUser.set(uid, curr);
+
+    const batchSize = 200;
+    let cursor: string | null = null;
+
+    while (true) {
+      const batchResult = await ctx.db
+        .query("projects")
+        .order("asc")
+        .paginate({ numItems: batchSize, cursor });
+      const batch = batchResult.page;
+
+      if (batch.length === 0) break;
+
+      for (const p of batch) {
+        const uid = p.userId;
+        const curr = countsByUser.get(uid) ?? { total: 0, active: 0 };
+        curr.total += 1;
+        if (!p.deletedAt) curr.active += 1;
+        countsByUser.set(uid, curr);
+      }
+
+      cursor = batchResult.continueCursor;
+      if (batch.length < batchSize || batchResult.isDone) break;
     }
+
     for (const [userId, counts] of countsByUser) {
       const existing = await ctx.db
         .query("userProjectCounts")
