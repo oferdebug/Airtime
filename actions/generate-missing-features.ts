@@ -49,6 +49,15 @@ const FEATURE_TO_JOB_MAP: Record<FeatureName, string | undefined> = {
   youtubeTimestamps: "youtubeTimestamps",
 };
 
+/** Maps job names to project property names for hasData checks (project schema uses title, youtubeTimeStamps). */
+const JOB_TO_PROJECT_KEY: Record<string, string> = {
+  socialPosts: "socialPosts",
+  titles: "title",
+  hashtags: "hashtags",
+  keyMoments: "keyMoments",
+  youtubeTimestamps: "youtubeTimeStamps",
+};
+
 /**
  * Server Action: Generate All Missing Features After Upgrade
  *
@@ -123,8 +132,9 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
       FEATURE_TO_JOB_MAP[feature as keyof typeof FEATURE_TO_JOB_MAP];
     if (!jobName) continue; // Skip transcription and summary (always present)
 
-    // Check if this data exists in the project
-    const hasData = Boolean(project[jobName as keyof typeof project]);
+    // Check if this data exists in the project (use project property names: title, youtubeTimeStamps)
+    const projectKey = JOB_TO_PROJECT_KEY[jobName] ?? jobName;
+    const hasData = Boolean(project[projectKey as keyof typeof project]);
 
     if (!hasData) {
       missingJobs.push(jobName as RetryableJob);

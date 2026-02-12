@@ -342,6 +342,7 @@ export default function ProjectDetailsPage() {
               <CardDescription>Listen to your uploaded file</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* biome-ignore lint/a11y/useMediaCaption: track rendered conditionally when captionsUrl exists to avoid empty-track browser warnings */}
               <audio
                 controls
                 className="w-full"
@@ -349,8 +350,14 @@ export default function ProjectDetailsPage() {
                 preload="metadata"
                 aria-label="Podcast audio"
               >
-                {/* TODO: Wire track src to transcript/captions when available (e.g. VTT from transcript segments) */}
-                <track kind="captions" src="" />
+                {proj.captionsUrl && (
+                  <track
+                    kind="captions"
+                    src={proj.captionsUrl}
+                    srcLang="en"
+                    label="English"
+                  />
+                )}
                 Your browser does not support the audio element.
               </audio>
             </CardContent>

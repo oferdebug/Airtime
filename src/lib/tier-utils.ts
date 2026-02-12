@@ -13,7 +13,9 @@ import { api } from "../../convex/_generated/api";
 import type { FeatureName, PlanName } from "./tier-config";
 import { PLAN_FEATURES, PLAN_LIMITS } from "./tier-config";
 
-export type AuthObject = Awaited<ReturnType<typeof auth>>;
+export type AuthObject = Awaited<ReturnType<typeof auth>> & {
+  has?: (opts: { feature: FeatureName }) => boolean;
+};
 
 export interface UploadValidationResult {
   allowed: boolean;
@@ -110,8 +112,7 @@ export function checkFeatureAccess(
   authObj: AuthObject,
   feature: FeatureName,
 ): boolean {
-  const { has } = authObj;
-  return has ? has({ feature }) : false;
+  return Boolean(authObj.has?.({ feature }));
 }
 
 /**

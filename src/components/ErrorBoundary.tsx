@@ -1,7 +1,6 @@
 "use client";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-/** biome-ignore-all assist/source/organizeImports: preserve import order required by ErrorBoundary initialization */
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "./ui/button";
 

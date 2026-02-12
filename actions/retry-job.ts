@@ -1,8 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { ConvexHttpClient } from "convex/browser";
-import type { FunctionReference } from "convex/server";
+import { fetchQuery } from "convex/nextjs";
 import { inngest } from "@/app/api/inngest/client";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
@@ -39,13 +38,11 @@ export async function retryJob(projectId: Id<"projects">, job: RetryableJob) {
   }
 
   /** Check if the project exists */
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!convexUrl) throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
-  const convex = new ConvexHttpClient(convexUrl);
-  const project = await convex.query(
-    (api as { projects: { getProject: FunctionReference<"query", "public"> } })
-      .projects.getProject,
+  const token = await authObj.getToken({ template: "convex" });
+  const project = await fetchQuery(
+    api.projects.getProject,
     { projectId },
+    { token: token ?? undefined },
   );
 
   if (!project) {

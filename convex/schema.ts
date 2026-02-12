@@ -39,6 +39,7 @@ export default defineSchema({
 
     //NOTE - Input Field Metadata-Vercel Blob
     inputUrl: v.string(), //Vercel Blob URL
+    captionsUrl: v.optional(v.string()), //VTT/captions URL for audio player
     fileName: v.string(), //Original Filename Displayed
     displayName: v.string(), //User Provided Display Name
     fileSize: v.number(), //Original File Size in bytes
@@ -160,7 +161,7 @@ export default defineSchema({
       v.array(
         v.object({
           time: v.string(), //Human-Readable Time
-          timeStamp: v.number(), //Seconds For Programtic Use
+          timestamp: v.number(), //Seconds For Programmatic Use
           text: v.string(), //What Was Said In That Moment
           description: v.string(), //Why This Moment Is Important
         }),
@@ -204,7 +205,7 @@ export default defineSchema({
     youtubeTimeStamps: v.optional(
       v.array(
         v.object({
-          timeStamp: v.string(), //Human-Readable Time Format
+          timestamp: v.string(), //Human-Readable Time Format
           description: v.string(), // What Was Said In That Moment&Title
         }),
       ),
@@ -224,4 +225,11 @@ export default defineSchema({
     .index("by_created_at", ["createdAt"]) //List All Project For Created At
     .index("by_updated_at", ["updatedAt"]) //List All Project For Updated At
     .index("by_completed_at", ["completedAt"]), //List All Project For Completed At
+
+  // Maintained counter for efficient project count (avoids .collect() on projects table)
+  userProjectCounts: defineTable({
+    userId: v.string(),
+    totalCount: v.number(),
+    activeCount: v.number(),
+  }).index("by_user", ["userId"]),
 });
