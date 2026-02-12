@@ -3,7 +3,6 @@
 import { api } from "@convex/_generated/api";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 import { useQuery } from "convex/react";
-import type { FunctionReference } from "convex/server";
 import {
   AlertCircle,
   ArrowLeft,
@@ -27,19 +26,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { formatDuration, formatFileSize } from "@/lib/utils";
 
-// TODO: remove cast after running npx convex dev - api.projects.getProjectById should be in _generated/api.d.ts
-const getProjectById = (
-  api as {
-    projects: {
-      getProjectById: FunctionReference<
-        "query",
-        "public",
-        { id: Id<"projects"> },
-        unknown
-      >;
-    };
-  }
-).projects.getProjectById;
+const getProjectById = api.projects.getProjectById;
 
 type StepStatus =
   | "pending"
@@ -69,15 +56,23 @@ function computeOverallProgress(
   contentGen: StepStatus,
 ): number {
   if (status === "completed") return 100;
-  if (status === "failed") return 0;
+  let progress = 0;
+  if (transcription === "completed") {
+    progress = 50;
+  } else if (transcription === "processing" || transcription === "uploading") {
+    progress = 25;
+  }
   if (transcription === "completed") {
     if (contentGen === "completed") return 100;
-    if (contentGen === "running" || contentGen === "processing") return 75;
-    return 50;
+    if (
+      contentGen === "running" ||
+      contentGen === "processing" ||
+      contentGen === "uploading"
+    ) {
+      progress = 75;
+    }
   }
-  if (transcription === "processing" || transcription === "uploading")
-    return 25;
-  return 0;
+  return progress;
 }
 
 function StepIndicator({
@@ -389,8 +384,8 @@ export default function ProjectDetailsPage() {
                     Key points
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-foreground">
-                    {proj.summary.bullets.map((b: string) => (
-                      <li key={b}>{b}</li>
+                    {proj.summary.bullets.map((b: string, idx: number) => (
+                      <li key={`${idx}-${b.slice(0, 20)}`}>{b}</li>
                     ))}
                   </ul>
                 </div>

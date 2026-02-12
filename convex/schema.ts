@@ -201,8 +201,11 @@ export default defineSchema({
       }),
     ),
 
+    //Ai Generated Hashtag Suggestions
+    hashtags: v.optional(v.array(v.string())),
+
     //Platform Chapter Timestamps
-    youtubeTimestamps: v.optional(
+    youtubeTiestamps: v.optional(
       v.array(
         v.object({
           timestamp: v.string(), //Human-Readable Time Format

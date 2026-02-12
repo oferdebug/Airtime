@@ -51,10 +51,12 @@ function validateProjectsApi(
   );
 }
 
-if (!validateProjectsApi(api)) {
-  throw new Error(
-    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob",
-  );
+if (process.env.NODE_ENV !== "production") {
+  if (!validateProjectsApi(api)) {
+    throw new Error(
+      "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob",
+    );
+  }
 }
 const projectsApi = api.projects;
 
@@ -247,6 +249,18 @@ export async function createProjectAction(
               error: err,
             },
           );
+          try {
+            await del(fileUrl);
+            console.log("[createProjectAction] Removed uploaded blob:", {
+              userId,
+              fileUrl,
+            });
+          } catch (blobDeleteErr) {
+            console.error(
+              "[createProjectAction] Failed to remove uploaded blob:",
+              { userId, fileUrl, error: blobDeleteErr },
+            );
+          }
           // Remove orphaned project since Inngest workflow will not run
           try {
             await fetchMutation(

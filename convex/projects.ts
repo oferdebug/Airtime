@@ -76,8 +76,8 @@ async function ensureAndIncrementCounter(
         .collect();
       await ctx.db.insert("userProjectCounts", {
         userId,
-        totalCount: projects.length,
-        activeCount: projects.filter((p) => !p.deletedAt).length,
+        totalCount: projects.length + delta.total,
+        activeCount: projects.filter((p) => !p.deletedAt).length + delta.active,
       });
     }
     return;
@@ -92,8 +92,8 @@ async function ensureAndIncrementCounter(
   if (primary) {
     await ctx.db.insert("userProjectCounts", {
       userId,
-      totalCount: projects.length,
-      activeCount,
+      totalCount: projects.length + delta.total,
+      activeCount: activeCount + delta.active,
     });
     await ctx.db.patch(primary._id, {
       initializedUserIds: [...primary.initializedUserIds, userId],
@@ -123,8 +123,8 @@ async function ensureAndIncrementCounter(
   });
   await ctx.db.insert("userProjectCounts", {
     userId,
-    totalCount: projects.length,
-    activeCount,
+    totalCount: projects.length + delta.total,
+    activeCount: activeCount + delta.active,
   });
 }
 
@@ -169,10 +169,14 @@ export const createProject = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId) {
-      throw new Error("Unauthorized: You must be signed in to create a project");
+      throw new Error(
+        "Unauthorized: You must be signed in to create a project",
+      );
     }
     if (authUserId !== args.userId) {
-      throw new Error("Unauthorized: You cannot create projects for another user");
+      throw new Error(
+        "Unauthorized: You cannot create projects for another user",
+      );
     }
 
     const now = Date.now();
@@ -384,6 +388,7 @@ export const saveGeneratedContent = mutation({
         tiktok: v.string(),
         youtube: v.string(),
         facebook: v.string(),
+        hashtag: v.string(),
       }),
     ),
     title: v.optional(
@@ -598,7 +603,7 @@ export const recordOrphanedBlob = mutation({
     }
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error("Project not found");
-    if (project.userId !== userId) {
+    if (project.userId !== authUserId) {
       throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(projectId, {
@@ -616,8 +621,8 @@ export const recordOrphanedBlob = mutation({
 });
 
 /**
- * Soft-deletes a project. Returns inputUrl for Blob cleanup.
- * Skips if already deleted; only decrements counter when performing the deletion.
+ * Soft-deletes a project and decrements the active project counter.
+ * Returns inputUrl for blob cleanup by caller.
  */
 export const deleteProject = mutation({
   args: {

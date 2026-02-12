@@ -3,8 +3,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { ConvexHttpClient } from "convex/browser";
 import { inngest } from "@/app/api/inngest/client";
+import { getConvex } from "@/lib/convex-client";
 import type { RetryableJob } from "./retry-job";
 
 // Local configuration for plan features and their corresponding job keys.
@@ -97,11 +97,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
   }
 
   /** Check if the project exists & generated */
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!convexUrl) {
-    throw new Error("NEXT_PUBLIC_CONVEX_URL is required");
-  }
-  const convex = new ConvexHttpClient(convexUrl);
+  const convex = getConvex();
   const project = await convex.query(api.projects.getProject, { projectId });
 
   if (!project) {

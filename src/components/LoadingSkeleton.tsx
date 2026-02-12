@@ -8,15 +8,17 @@ export function PageSkeleton() {
           <Skeleton className="h-16 w-full max-w-96 mx-auto" />
           <Skeleton className="h-6 w-full max-w-64 mx-auto" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="space-y-4">
-              <Skeleton className="h-48 w-full rounded-2xl" />
-              <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
-          ))}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          {Array.from({ length: 6 }, (_, skeletonId) => skeletonId + 1).map(
+            (skeletonId) => (
+              <div key={`page-skeleton-${skeletonId}`} className="space-y-4">
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            ),
+          )}
         </div>
       </div>
     </div>
