@@ -7,6 +7,7 @@
 
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import type { MutationCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
 export const getProjectById = query({
@@ -37,8 +38,53 @@ export const getProject = query({
 });
 
 /**
+ * Idempotent helper: ensure userProjectCounts exists for userId and increment.
+ * Uses query-then-patch-or-insert. If multiple counters exist (from prior race), patches the first.
+ */
+async function ensureAndIncrementCounter(
+  ctx: MutationCtx,
+  userId: string,
+  delta: { total: number; active: number },
+) {
+  const existingCounter = await ctx.db
+    .query("userProjectCounts")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .first();
+  if (existingCounter) {
+    await ctx.db.patch(existingCounter._id, {
+      totalCount: existingCounter.totalCount + delta.total,
+      activeCount: existingCounter.activeCount + delta.active,
+    });
+    return;
+  }
+  const allCounters = await ctx.db
+    .query("userProjectCounts")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  if (allCounters.length > 0) {
+    const c = allCounters[0];
+    await ctx.db.patch(c._id, {
+      totalCount: c.totalCount + delta.total,
+      activeCount: c.activeCount + delta.active,
+    });
+    return;
+  }
+  const projects = await ctx.db
+    .query("projects")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const activeCount = projects.filter((p) => !p.deletedAt).length;
+  await ctx.db.insert("userProjectCounts", {
+    userId,
+    totalCount: projects.length,
+    activeCount,
+  });
+}
+
+/**
  * Creates a new project record after file upload.
  * Called by server action after Vercel Blob upload succeeds.
+ * Requires authenticated user; userId must match caller.
  */
 export const createProject = mutation({
   args: {
@@ -51,9 +97,18 @@ export const createProject = mutation({
     mimeType: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId) {
+      throw new Error("Unauthorized: You must be signed in to create a project");
+    }
+    if (authUserId !== args.userId) {
+      throw new Error("Unauthorized: You cannot create projects for another user");
+    }
+
     const now = Date.now();
     const projectId = await ctx.db.insert("projects", {
-      userId: args.userId,
+      userId: authUserId,
       inputUrl: args.inputUrl,
       fileName: args.fileName,
       displayName: args.fileName,
@@ -70,28 +125,7 @@ export const createProject = mutation({
       updatedAt: now,
     });
 
-    // Update user project count (or bootstrap from existing if counter missing)
-    const existingCounter = await ctx.db
-      .query("userProjectCounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .first();
-    if (existingCounter) {
-      await ctx.db.patch(existingCounter._id, {
-        totalCount: existingCounter.totalCount + 1,
-        activeCount: existingCounter.activeCount + 1,
-      });
-    } else {
-      const existingProjects = await ctx.db
-        .query("projects")
-        .withIndex("by_user", (q) => q.eq("userId", args.userId))
-        .collect();
-      const activeCount = existingProjects.filter((p) => !p.deletedAt).length;
-      await ctx.db.insert("userProjectCounts", {
-        userId: args.userId,
-        totalCount: existingProjects.length + 1,
-        activeCount: activeCount + 1,
-      });
-    }
+    await ensureAndIncrementCounter(ctx, authUserId, { total: 1, active: 1 });
     return projectId;
   },
 });
@@ -291,7 +325,7 @@ export const saveGeneratedContent = mutation({
         seoKeywords: v.array(v.string()),
       }),
     ),
-    youtubeTimeStamps: v.optional(
+    youtubeTimestamps: v.optional(
       v.array(
         v.object({
           timestamp: v.string(),
@@ -487,6 +521,7 @@ export const recordOrphanedBlob = mutation({
 
 /**
  * Soft-deletes a project. Returns inputUrl for Blob cleanup.
+ * Skips if already deleted; only decrements counter when performing the deletion.
  */
 export const deleteProject = mutation({
   args: {
@@ -503,6 +538,9 @@ export const deleteProject = mutation({
     if (!project) throw new Error("Project not found");
     if (project.userId !== authUserId) {
       throw new Error("Unauthorized: You don't own this project");
+    }
+    if (project.deletedAt) {
+      return { inputUrl: project.inputUrl };
     }
     await ctx.db.patch(projectId, {
       deletedAt: Date.now(),
@@ -555,16 +593,19 @@ export const updateProjectDescription = mutation({
     userId: v.string(),
     description: v.string(),
   },
-  handler: async (ctx, { projectId, userId }) => {
+  handler: async (ctx, { projectId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const authUserId = identity?.subject;
+    if (!authUserId) {
+      throw new Error("Unauthorized: You must be signed in");
+    }
     const project = await ctx.db.get(projectId);
-    if (!project || project.userId !== userId) {
+    if (!project || project.userId !== authUserId) {
       throw new Error("Not authorized to update this project");
     }
     console.warn(
       "[DEPRECATED] updateProjectDescription is deprecated (schema has no description field). projectId:",
       projectId,
-      "userId:",
-      userId,
     );
     // Schema has no description field; no-op
   },

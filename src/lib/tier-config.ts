@@ -101,6 +101,9 @@ export const PLAN_PRICES: Record<PlanName, string> = {
 /**
  * Mapping from feature names to job names for retry/regeneration
  * Used to consolidate logic across actions and Inngest functions
+ *
+ * Note: FEATURES.SUMMARY maps to "summary" but summary is intentionally non-retryable
+ * (always present in generated content); see actions/generate-missing-features.ts.
  */
 export const FEATURE_TO_JOB_MAP = {
   [FEATURES.SOCIAL_POSTS]: "socialPosts",

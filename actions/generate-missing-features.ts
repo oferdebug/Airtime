@@ -49,13 +49,13 @@ const FEATURE_TO_JOB_MAP: Record<FeatureName, string | undefined> = {
   youtubeTimestamps: "youtubeTimestamps",
 };
 
-/** Maps job names to project property names for hasData checks (project schema uses title, youtubeTimeStamps). */
+/** Maps job names to project property names for hasData checks (project schema uses title, youtubeTimestamps). */
 const JOB_TO_PROJECT_KEY: Record<string, string> = {
   socialPosts: "socialPosts",
   titles: "title",
   hashtags: "hashtags",
   keyMoments: "keyMoments",
-  youtubeTimestamps: "youtubeTimeStamps",
+  youtubeTimestamps: "youtubeTimestamps",
 };
 
 /**
@@ -116,7 +116,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
 
   // Infer what plan was used during processing based on generated features
   let originalPlan: "free" | "pro" | "ultra" = "free";
-  if (project.keyMoments || project.youtubeTimeStamps) {
+  if (project.keyMoments || project.youtubeTimestamps) {
     originalPlan = "ultra";
   } else if (project.socialPosts || project.title) {
     originalPlan = "pro";
@@ -132,7 +132,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
       FEATURE_TO_JOB_MAP[feature as keyof typeof FEATURE_TO_JOB_MAP];
     if (!jobName) continue; // Skip transcription and summary (always present)
 
-    // Check if this data exists in the project (use project property names: title, youtubeTimeStamps)
+    // Check if this data exists in the project (use project property names: title, youtubeTimestamps)
     const projectKey = JOB_TO_PROJECT_KEY[jobName] ?? jobName;
     const hasData = Boolean(project[projectKey as keyof typeof project]);
 

@@ -202,7 +202,7 @@ export default defineSchema({
     ),
 
     //Platform Chapter Timestamps
-    youtubeTimeStamps: v.optional(
+    youtubeTimestamps: v.optional(
       v.array(
         v.object({
           timestamp: v.string(), //Human-Readable Time Format
@@ -211,7 +211,7 @@ export default defineSchema({
       ),
     ),
 
-    //Timestamps Metdata
+    //Timestamps Metadata
     createdAt: v.number(), //When The Project Was Created
     updatedAt: v.number(), //When The Project Was Updated
     completedAt: v.optional(v.number()), //When The Project Was Completed
@@ -227,6 +227,8 @@ export default defineSchema({
     .index("by_completed_at", ["completedAt"]), //List All Project For Completed At
 
   // Maintained counter for efficient project count (avoids .collect() on projects table)
+  // Note: Convex does not support unique indexes; ensureAndIncrementCounter uses idempotent
+  // query-then-patch-or-insert to avoid duplicate counters under concurrent createProject.
   userProjectCounts: defineTable({
     userId: v.string(),
     totalCount: v.number(),

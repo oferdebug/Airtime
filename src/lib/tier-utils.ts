@@ -13,9 +13,8 @@ import { api } from "../../convex/_generated/api";
 import type { FeatureName, PlanName } from "./tier-config";
 import { PLAN_FEATURES, PLAN_LIMITS } from "./tier-config";
 
-export type AuthObject = Awaited<ReturnType<typeof auth>> & {
-  has?: (opts: { feature: FeatureName }) => boolean;
-};
+/** Clerk auth object; has() supports both feature and plan checks (e.g. has({ plan: "pro" })). */
+export type AuthObject = Awaited<ReturnType<typeof auth>>;
 
 export interface UploadValidationResult {
   allowed: boolean;

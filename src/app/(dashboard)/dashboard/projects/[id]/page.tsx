@@ -179,11 +179,9 @@ export default function ProjectDetailsPage() {
   const rawId = params?.id;
   const projectId = (() => {
     const str = rawId == null ? "" : Array.isArray(rawId) ? rawId[0] : rawId;
-    if (!str || typeof str !== "string" || str.trim() === "") return null;
-    // Convex IDs are typically alphanumeric base64-like strings; basic format check
-    if (!/^[a-zA-Z0-9_-]{10,}$/.test(str)) return null;
-    return str as Id<"projects">;
-  })();
+    const trimmed = typeof str === "string" ? str.trim() : "";
+    return trimmed || null;
+  })() as Id<"projects"> | null;
   const project = useQuery(
     getProjectById,
     projectId ? { id: projectId } : "skip",
@@ -391,8 +389,8 @@ export default function ProjectDetailsPage() {
                     Key points
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-foreground">
-                    {proj.summary.bullets.map((b: string, i: number) => (
-                      <li key={`${i}-${b}`}>{b}</li>
+                    {proj.summary.bullets.map((b: string) => (
+                      <li key={b}>{b}</li>
                     ))}
                   </ul>
                 </div>
