@@ -1,10 +1,10 @@
 "use server";
 
-import { inngest } from "@/app/api/inngest/client";
 import { auth } from "@clerk/nextjs/server";
-import type { Id } from "@/convex/_generated/dataModel";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+import { inngest } from "@/app/api/inngest/client";
 import type { RetryableJob } from "./retry-job";
 
 // Local configuration for plan features and their corresponding job keys.
@@ -20,7 +20,12 @@ type FeatureName =
   | "youtubeTimestamps";
 
 const FREE_FEATURES: FeatureName[] = ["summary"];
-const PRO_FEATURES: FeatureName[] = [...FREE_FEATURES, "socialPosts", "titles", "hashtags"];
+const PRO_FEATURES: FeatureName[] = [
+  ...FREE_FEATURES,
+  "socialPosts",
+  "titles",
+  "hashtags",
+];
 const ULTRA_FEATURES: FeatureName[] = [
   ...PRO_FEATURES,
   "keyMoments",
@@ -39,6 +44,15 @@ const FEATURE_TO_JOB_MAP: Record<FeatureName, string | undefined> = {
   transcription: undefined, // transcription is not treated as a feature job here
   socialPosts: "socialPosts",
   titles: "titles",
+  hashtags: "hashtags",
+  keyMoments: "keyMoments",
+  youtubeTimestamps: "youtubeTimestamps",
+};
+
+/** Maps job names to project property names for hasData checks (project schema uses title, youtubeTimestamps). */
+const JOB_TO_PROJECT_KEY: Record<string, string> = {
+  socialPosts: "socialPosts",
+  titles: "title",
   hashtags: "hashtags",
   keyMoments: "keyMoments",
   youtubeTimestamps: "youtubeTimestamps",
@@ -104,7 +118,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
   let originalPlan: "free" | "pro" | "ultra" = "free";
   if (project.keyMoments || project.youtubeTimestamps) {
     originalPlan = "ultra";
-  } else if (project.socialPosts || project.titles || project.hashtags) {
+  } else if (project.socialPosts || project.title) {
     originalPlan = "pro";
   }
 
@@ -118,8 +132,9 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
       FEATURE_TO_JOB_MAP[feature as keyof typeof FEATURE_TO_JOB_MAP];
     if (!jobName) continue; // Skip transcription and summary (always present)
 
-    // Check if this data exists in the project
-    const hasData = Boolean(project[jobName as keyof typeof project]);
+    // Check if this data exists in the project (use project property names: title, youtubeTimestamps)
+    const projectKey = JOB_TO_PROJECT_KEY[jobName] ?? jobName;
+    const hasData = Boolean(project[projectKey as keyof typeof project]);
 
     if (!hasData) {
       missingJobs.push(jobName as RetryableJob);
