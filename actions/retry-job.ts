@@ -37,7 +37,7 @@ export async function retryJob(projectId: Id<"projects">, job: RetryableJob) {
     currentPlan = "pro";
   }
 
-  /** Check if the project exists */
+  /** Check if the project exists and the caller owns it */
   const token = await authObj.getToken({ template: "convex" });
   const project = await fetchQuery(
     api.projects.getProject,
@@ -47,6 +47,10 @@ export async function retryJob(projectId: Id<"projects">, job: RetryableJob) {
 
   if (!project) {
     throw new Error("Project not found or access denied");
+  }
+
+  if (project.userId !== userId) {
+    throw new Error("Only the project owner can retry jobs");
   }
 
   /** Infer Original Plan from the Job Type That Was Generated */

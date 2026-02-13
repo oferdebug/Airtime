@@ -65,11 +65,9 @@ export default async function BlogPostPage({ params }: Props) {
 
           <div className="prose prose-slate max-w-none">
             {post.body ? (
-              /* biome-ignore lint/security/noDangerouslySetInnerHtml: blog body from trusted CMS/mock data */
-              <div
-                className="post-content"
-                dangerouslySetInnerHTML={{ __html: post.body }}
-              />
+              <div className="post-content whitespace-pre-wrap">
+                {post.body}
+              </div>
             ) : (
               <p className="text-slate-600">
                 Full article content will go here. Connect a CMS or add MDX

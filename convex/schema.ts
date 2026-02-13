@@ -201,8 +201,11 @@ export default defineSchema({
       }),
     ),
 
+    //Ai Generated Hashtag Suggestions
+    hashtags: v.optional(v.array(v.string())),
+
     //Platform Chapter Timestamps
-    youtubeTimestamps: v.optional(
+    youtubeTiestamps: v.optional(
       v.array(
         v.object({
           timestamp: v.string(), //Human-Readable Time Format
@@ -227,11 +230,17 @@ export default defineSchema({
     .index("by_completed_at", ["completedAt"]), //List All Project For Completed At
 
   // Maintained counter for efficient project count (avoids .collect() on projects table)
-  // Note: Convex does not support unique indexes; ensureAndIncrementCounter uses idempotent
-  // query-then-patch-or-insert to avoid duplicate counters under concurrent createProject.
+  // ensureAndIncrementCounter uses a registry doc to trigger OCC retries and prevent duplicate inserts.
   userProjectCounts: defineTable({
     userId: v.string(),
     totalCount: v.number(),
     activeCount: v.number(),
   }).index("by_user", ["userId"]),
+
+  // Singleton registry of initialized userIds. Read+patch triggers OCC so concurrent creators retry.
+  // Seed via: npx convex run projects:seedUserProjectCountsRegistry
+  userProjectCountsRegistry: defineTable({
+    type: v.literal("singleton"),
+    initializedUserIds: v.array(v.string()),
+  }).index("by_type", ["type"]),
 });

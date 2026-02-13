@@ -8,7 +8,8 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import type { MutationCtx } from "./_generated/server";
-import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 
 export const getProjectById = query({
   args: { id: v.id("projects") },
@@ -39,13 +40,89 @@ export const getProject = query({
 
 /**
  * Idempotent helper: ensure userProjectCounts exists for userId and increment.
- * Uses query-then-patch-or-insert. If multiple counters exist (from prior race), patches the first.
+ * Uses registry doc read+patch to trigger OCC retries so concurrent creators cannot insert duplicates.
  */
 async function ensureAndIncrementCounter(
   ctx: MutationCtx,
   userId: string,
   delta: { total: number; active: number },
 ) {
+  const countUserProjects = async () => {
+    let totalCount = 0;
+    let activeCount = 0;
+    let cursor: string | null = null;
+
+    while (true) {
+      const page = await ctx.db
+        .query("projects")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .paginate({ numItems: 100, cursor });
+
+      totalCount += page.page.length;
+      activeCount += page.page.filter((project) => !project.deletedAt).length;
+
+      if (page.isDone) {
+        break;
+      }
+      cursor = page.continueCursor;
+    }
+
+    return { totalCount, activeCount };
+  };
+
+  const registries = await ctx.db
+    .query("userProjectCountsRegistry")
+    .withIndex("by_type", (q) => q.eq("type", "singleton"))
+    .collect();
+
+  if (registries.length > 1) {
+    console.warn("[REGISTRY_ANOMALY] Multiple registry documents found", {
+      count: registries.length,
+    });
+  }
+
+  const initializedSet = new Set(
+    registries.flatMap((r) => r.initializedUserIds),
+  );
+  const primary = registries.sort(
+    (a, b) => a._creationTime - b._creationTime,
+  )[0];
+  if (initializedSet.has(userId)) {
+    const counter = await ctx.db
+      .query("userProjectCounts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (counter) {
+      await ctx.db.patch(counter._id, {
+        totalCount: counter.totalCount + delta.total,
+        activeCount: counter.activeCount + delta.active,
+      });
+    } else {
+      // Registry says initialized but counter is missing: rebuild from source of truth.
+      const projectCounts = await countUserProjects();
+      await ctx.db.insert("userProjectCounts", {
+        userId,
+        totalCount: projectCounts.totalCount + delta.total,
+        activeCount: projectCounts.activeCount + delta.active,
+      });
+    }
+    return;
+  }
+
+  const projectCounts = await countUserProjects();
+
+  if (primary) {
+    await ctx.db.insert("userProjectCounts", {
+      userId,
+      totalCount: projectCounts.totalCount + delta.total,
+      activeCount: projectCounts.activeCount + delta.active,
+    });
+    await ctx.db.patch(primary._id, {
+      initializedUserIds: [...primary.initializedUserIds, userId],
+    });
+    return;
+  }
+
   const existingCounter = await ctx.db
     .query("userProjectCounts")
     .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -55,31 +132,45 @@ async function ensureAndIncrementCounter(
       totalCount: existingCounter.totalCount + delta.total,
       activeCount: existingCounter.activeCount + delta.active,
     });
-    return;
-  }
-  const allCounters = await ctx.db
-    .query("userProjectCounts")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  if (allCounters.length > 0) {
-    const c = allCounters[0];
-    await ctx.db.patch(c._id, {
-      totalCount: c.totalCount + delta.total,
-      activeCount: c.activeCount + delta.active,
+    await ctx.db.insert("userProjectCountsRegistry", {
+      type: "singleton",
+      initializedUserIds: [userId],
     });
     return;
   }
-  const projects = await ctx.db
-    .query("projects")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  const activeCount = projects.filter((p) => !p.deletedAt).length;
+
+  await ctx.db.insert("userProjectCountsRegistry", {
+    type: "singleton",
+    initializedUserIds: [userId],
+  });
   await ctx.db.insert("userProjectCounts", {
     userId,
-    totalCount: projects.length,
-    activeCount,
+    totalCount: projectCounts.totalCount + delta.total,
+    activeCount: projectCounts.activeCount + delta.active,
   });
 }
+
+/**
+ * One-time seed: create registry and populate from existing userProjectCounts.
+ * Run: npx convex run projects:seedUserProjectCountsRegistry
+ */
+export const seedUserProjectCountsRegistry = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query("userProjectCountsRegistry")
+      .withIndex("by_type", (q) => q.eq("type", "singleton"))
+      .first();
+    if (existing) return { seeded: false, message: "Registry already exists" };
+    const counters = await ctx.db.query("userProjectCounts").collect();
+    const userIds = [...new Set(counters.map((c) => c.userId))];
+    await ctx.db.insert("userProjectCountsRegistry", {
+      type: "singleton",
+      initializedUserIds: userIds,
+    });
+    return { seeded: true, userIds };
+  },
+});
 
 /**
  * Creates a new project record after file upload.
@@ -100,10 +191,14 @@ export const createProject = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId) {
-      throw new Error("Unauthorized: You must be signed in to create a project");
+      throw new Error(
+        "Unauthorized: You must be signed in to create a project",
+      );
     }
     if (authUserId !== args.userId) {
-      throw new Error("Unauthorized: You cannot create projects for another user");
+      throw new Error(
+        "Unauthorized: You cannot create projects for another user",
+      );
     }
 
     const now = Date.now();
@@ -112,8 +207,8 @@ export const createProject = mutation({
       inputUrl: args.inputUrl,
       fileName: args.fileName,
       displayName: args.fileName,
-      fileSize: args.fileSize ?? 0,
-      fileDuration: args.fileDuration ?? 0,
+      fileSize: args.fileSize,
+      fileDuration: args.fileDuration,
       fileFormat: args.fileFormat,
       mimeType: args.mimeType,
       status: "uploading",
@@ -317,6 +412,7 @@ export const saveGeneratedContent = mutation({
         facebook: v.string(),
       }),
     ),
+    hashtags: v.optional(v.array(v.string())),
     title: v.optional(
       v.object({
         youtubeShort: v.array(v.string()),
@@ -465,21 +561,147 @@ export const getUserProjectCount = query({
     if (counter) {
       return args.includeDeleted ? counter.totalCount : counter.activeCount;
     }
-    // Fallback for users without counter (pre-deploy projects): one-time collect
-    if (args.includeDeleted) {
-      const all = await ctx.db
-        .query("projects")
-        .withIndex("by_user", (q) => q.eq("userId", args.userId))
-        .collect();
-      return all.length;
-    }
-    const active = await ctx.db
+    // No counter: either new user (0 projects) or pre-deploy user needing backfill.
+    // Return 0 to avoid expensive collect; run backfillProjectCounters to initialize.
+    console.warn("[MISSING_PROJECT_COUNTER] missing project counter, backfill needed", {
+      userId: args.userId,
+      includeDeleted: args.includeDeleted,
+      query: "getUserProjectCount",
+      remediation: "run backfillProjectCounters",
+    });
+    return 0;
+  },
+});
+
+/**
+ * Internal helper query for backfill orchestration.
+ * Reads a bounded project page so each transaction stays small.
+ */
+export const getProjectBackfillPage = internalQuery({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    numItems: v.number(),
+  },
+  handler: async (ctx, { cursor, numItems }) => {
+    const result = await ctx.db
       .query("projects")
-      .withIndex("by_user_and_deleted_at", (q) =>
-        q.eq("userId", args.userId).eq("deletedAt", undefined),
-      )
-      .collect();
-    return active.length;
+      .order("asc")
+      .paginate({ numItems, cursor });
+
+    return {
+      page: result.page.map((project) => ({
+        userId: project.userId,
+        deletedAt: project.deletedAt,
+      })),
+      continueCursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
+/**
+ * Batch upsert helper for backfill writes.
+ * Called from backfillProjectCounters action in bounded user chunks.
+ */
+export const upsertUserProjectCounts = internalMutation({
+  args: {
+    counts: v.array(
+      v.object({
+        userId: v.string(),
+        total: v.number(),
+        active: v.number(),
+      }),
+    ),
+  },
+  handler: async (ctx, { counts }) => {
+    for (const { userId, total, active } of counts) {
+      const existing = await ctx.db
+        .query("userProjectCounts")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .first();
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          totalCount: total,
+          activeCount: active,
+        });
+      } else {
+        await ctx.db.insert("userProjectCounts", {
+          userId,
+          totalCount: total,
+          activeCount: active,
+        });
+      }
+    }
+    return { usersUpserted: counts.length };
+  },
+});
+
+/**
+ * One-time backfill: scans projects and computes per-user counts, then upserts in chunks.
+ * Run from Convex dashboard for users who had projects before the counter existed.
+ * Uses action orchestration so reads/writes are split across multiple transactions.
+ */
+export const backfillProjectCounters = action({
+  args: {},
+  handler: async (ctx) => {
+    const countsByUser = new Map<string, { total: number; active: number }>();
+
+    const projectPageSize = 200;
+    const userChunkSize = 500;
+    let cursor: string | null = null;
+    let processedProjects = 0;
+
+    while (true) {
+      const pageResult: {
+        page: Array<{ userId: string; deletedAt?: number }>;
+        continueCursor: string;
+        isDone: boolean;
+      } = await ctx.runQuery(internal.projects.getProjectBackfillPage, {
+        cursor,
+        numItems: projectPageSize,
+      });
+      const batch = pageResult.page;
+
+      if (batch.length === 0) break;
+
+      for (const p of batch) {
+        const uid = p.userId;
+        const curr = countsByUser.get(uid) ?? { total: 0, active: 0 };
+        curr.total += 1;
+        if (!p.deletedAt) curr.active += 1;
+        countsByUser.set(uid, curr);
+      }
+
+      processedProjects += batch.length;
+      cursor = pageResult.continueCursor;
+      if (batch.length < projectPageSize || pageResult.isDone) break;
+    }
+
+    const userCounts = Array.from(countsByUser.entries()).map(
+      ([userId, counts]) => ({
+        userId,
+        total: counts.total,
+        active: counts.active,
+      }),
+    );
+
+    let chunksProcessed = 0;
+    for (let i = 0; i < userCounts.length; i += userChunkSize) {
+      const chunk = userCounts.slice(i, i + userChunkSize);
+      if (chunk.length === 0) continue;
+
+      await ctx.runMutation(internal.projects.upsertUserProjectCounts, {
+        counts: chunk,
+      });
+      chunksProcessed += 1;
+    }
+
+    return {
+      usersBackfilled: countsByUser.size,
+      processedProjects,
+      chunksProcessed,
+      userChunkSize,
+    };
   },
 });
 
@@ -502,7 +724,7 @@ export const recordOrphanedBlob = mutation({
     }
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error("Project not found");
-    if (project.userId !== userId) {
+    if (project.userId !== authUserId) {
       throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(projectId, {
@@ -520,8 +742,8 @@ export const recordOrphanedBlob = mutation({
 });
 
 /**
- * Soft-deletes a project. Returns inputUrl for Blob cleanup.
- * Skips if already deleted; only decrements counter when performing the deletion.
+ * Soft-deletes a project and decrements the active project counter.
+ * Returns inputUrl for blob cleanup by caller.
  */
 export const deleteProject = mutation({
   args: {

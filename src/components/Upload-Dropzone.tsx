@@ -1,5 +1,4 @@
 "use client";
-/** biome-ignore-all assist/source/organizeImports: preserve import grouping for dropzone component clarity */
 import { Upload, XCircleIcon } from "lucide-react";
 import { useCallback } from "react";
 import { type FileRejection, useDropzone } from "react-dropzone";
