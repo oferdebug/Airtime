@@ -151,5 +151,8 @@ export function planHasFeature(plan: PlanName, feature: FeatureName): boolean {
 export function getMinimumPlanForFeature(feature: FeatureName): PlanName {
   if (PLAN_FEATURES.free.includes(feature)) return "free";
   if (PLAN_FEATURES.pro.includes(feature)) return "pro";
+  if (PLAN_FEATURES.ultra.includes(feature)) return "ultra";
   return "ultra";
 }
+
+
