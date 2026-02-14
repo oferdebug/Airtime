@@ -6,7 +6,6 @@
  * Phase/workflow status: pending | running | completed | failed.
  */
 export type PhaseStatus = "pending" | "running" | "completed" | "failed";
-
 /**
  * Upload lifecycle state for the podcast uploader.
  *
