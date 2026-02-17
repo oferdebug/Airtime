@@ -90,11 +90,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/dashboard/projects"
+      signUpFallbackRedirectUrl="/dashboard/projects"
+    >
+      <html lang="en" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function () {
+                  try {
+                    var stored = localStorage.getItem("airtime-theme");
+                    var theme = stored === "light" ? "light" : "dark";
+                    if (theme === "dark") {
+                      document.documentElement.classList.add("dark");
+                    } else {
+                      document.documentElement.classList.remove("dark");
+                    }
+                  } catch (e) {
+                    // localStorage access can fail in restricted environments; ignore to avoid blocking initial paint.
+                  }
+                })();
+              `,
+            }}
+          />
           <ConvexClientProvider>
             <main className="min-h-screen">{children}</main>
             <Toaster position="top-right" richColors />

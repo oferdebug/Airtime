@@ -1,21 +1,15 @@
-import { Header } from "@radix-ui/react-accordion";
-import React from "react"
+import type { ReactNode } from "react";
 
-export function DashboardLayout({
-    children,
-}:{
-    children:React.ReactNode;
+export default function ProjectsLayout({
+  children,
+}: {
+  children: ReactNode;
 }) {
-    return (
-        <div className={'min-h-screen'}>
-            <Header />
-
-
-            <main className={'pt-6 xl:pt-12'}>
-                {children}
-            </main>
-        </div>
-    );
+  return (
+    <div className="min-h-screen">
+      <main className="pt-6 xl:pt-12">{children}</main>
+    </div>
+  );
 }
   
 

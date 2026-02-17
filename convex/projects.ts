@@ -7,7 +7,6 @@
 
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import { paginationOptsValidator } from "convex/server";
 import { internal } from "./_generated/api";
 import {
   action,
@@ -46,7 +45,7 @@ export const getProject = query({
 
 /**
  * Idempotent helper: ensure userProjectCounts exists for userId and increment.
- * Uses registry doc read+patch to trigger OCC retries so concurrent creators cannot insert duplicates.
+ * Registry is tracked per user to avoid a singleton write hotspot.
  */
 async function ensureAndIncrementCounter(
   ctx: MutationCtx,
@@ -76,105 +75,74 @@ async function ensureAndIncrementCounter(
     return { totalCount, activeCount };
   };
 
-  const registries = await ctx.db
+  const registry = await ctx.db
     .query("userProjectCountsRegistry")
-    .withIndex("by_type", (q) => q.eq("type", "singleton"))
-    .collect();
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .first();
 
-  if (registries.length > 1) {
-    console.warn("[REGISTRY_ANOMALY] Multiple registry documents found", {
-      count: registries.length,
+  const counter = await ctx.db
+    .query("userProjectCounts")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .first();
+
+  if (registry && counter) {
+    await ctx.db.patch(counter._id, {
+      totalCount: counter.totalCount + delta.total,
+      activeCount: counter.activeCount + delta.active,
     });
-  }
-
-  const initializedSet = new Set(
-    registries.flatMap((r) => r.initializedUserIds),
-  );
-  const primary = registries.sort(
-    (a, b) => a._creationTime - b._creationTime,
-  )[0];
-  if (initializedSet.has(userId)) {
-    const counter = await ctx.db
-      .query("userProjectCounts")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-    if (counter) {
-      await ctx.db.patch(counter._id, {
-        totalCount: counter.totalCount + delta.total,
-        activeCount: counter.activeCount + delta.active,
-      });
-    } else {
-      // Registry says initialized but counter is missing: rebuild from source of truth.
-      const projectCounts = await countUserProjects();
-      await ctx.db.insert("userProjectCounts", {
-        userId,
-        totalCount: projectCounts.totalCount + delta.total,
-        activeCount: projectCounts.activeCount + delta.active,
-      });
-    }
     return;
   }
 
   const projectCounts = await countUserProjects();
+  const totalCount = projectCounts.totalCount + delta.total;
+  const activeCount = projectCounts.activeCount + delta.active;
 
-  if (primary) {
+  if (counter) {
+    await ctx.db.patch(counter._id, { totalCount, activeCount });
+  } else {
     await ctx.db.insert("userProjectCounts", {
       userId,
-      totalCount: projectCounts.totalCount + delta.total,
-      activeCount: projectCounts.activeCount + delta.active,
+      totalCount,
+      activeCount,
     });
-    await ctx.db.patch(primary._id, {
-      initializedUserIds: [...primary.initializedUserIds, userId],
-    });
-    return;
   }
 
-  const existingCounter = await ctx.db
-    .query("userProjectCounts")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .first();
-  if (existingCounter) {
-    await ctx.db.patch(existingCounter._id, {
-      totalCount: existingCounter.totalCount + delta.total,
-      activeCount: existingCounter.activeCount + delta.active,
-    });
+  if (!registry) {
     await ctx.db.insert("userProjectCountsRegistry", {
-      type: "singleton",
-      initializedUserIds: [userId],
+      userId,
+      initializedAt: Date.now(),
     });
-    return;
   }
-
-  await ctx.db.insert("userProjectCountsRegistry", {
-    type: "singleton",
-    initializedUserIds: [userId],
-  });
-  await ctx.db.insert("userProjectCounts", {
-    userId,
-    totalCount: projectCounts.totalCount + delta.total,
-    activeCount: projectCounts.activeCount + delta.active,
-  });
 }
 
 /**
- * One-time seed: create registry and populate from existing userProjectCounts.
+ * One-time seed: create per-user registry docs from existing counters.
  * Run: npx convex run projects:seedUserProjectCountsRegistry
  */
 export const seedUserProjectCountsRegistry = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db
-      .query("userProjectCountsRegistry")
-      .withIndex("by_type", (q) => q.eq("type", "singleton"))
-      .first();
-    if (existing) return { seeded: false, message: "Registry already exists" };
     const counters = await ctx.db.query("userProjectCounts").collect();
-    const userIds = [...new Set(counters.map((c) => c.userId))];
-    await ctx.db.insert("userProjectCountsRegistry", {
-      type: "singleton",
-      initializedUserIds: userIds,
-    });
-    return { seeded: true, userIds };
+    let seededUsers = 0;
+
+    for (const counter of counters) {
+      const existing = await ctx.db
+        .query("userProjectCountsRegistry")
+        .withIndex("by_user", (q) => q.eq("userId", counter.userId))
+        .first();
+      if (existing) continue;
+
+      await ctx.db.insert("userProjectCountsRegistry", {
+        userId: counter.userId,
+        initializedAt: Date.now(),
+      });
+      seededUsers += 1;
+    }
+
+    return {
+      seededUsers,
+      totalUsers: counters.length,
+    };
   },
 });
 
@@ -527,7 +495,13 @@ export const saveJobErrors = mutation({
 export const listUserProjects = query({
   args: {
     userId: v.string(),
-    paginationOpts: paginationOptsValidator,
+    paginationOpts: v.object({
+      // usePaginatedQuery sends null for the first request cursor
+      cursor: v.union(v.string(), v.null()),
+      // Convex client may include pagination id metadata
+      id: v.optional(v.number()),
+      numItems: v.number(),
+    }),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

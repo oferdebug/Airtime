@@ -10,8 +10,8 @@
 import type { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
+import { FEATURES, PLAN_FEATURES, PLAN_LIMITS } from "./tier-config";
 import type { FeatureName, PlanName } from "./tier-config";
-import { PLAN_FEATURES, PLAN_LIMITS } from "./tier-config";
 
 /** Clerk auth object; has() supports both feature and plan checks (e.g. has({ plan: "pro" })). */
 export type AuthObject = Awaited<ReturnType<typeof auth>>;
@@ -149,10 +149,22 @@ export function planHasFeature(plan: PlanName, feature: FeatureName): boolean {
  * @returns Minimum plan name that includes this feature
  */
 export function getMinimumPlanForFeature(feature: FeatureName): PlanName {
-  if (PLAN_FEATURES.free.includes(feature)) return "free";
-  if (PLAN_FEATURES.pro.includes(feature)) return "pro";
-  if (PLAN_FEATURES.ultra.includes(feature)) return "ultra";
-  return "ultra";
+  switch (feature) {
+    case FEATURES.SUMMARY:
+      return "free";
+    case FEATURES.SOCIAL_POSTS:
+    case FEATURES.TITLES:
+    case FEATURES.HASHTAGS:
+      return "pro";
+    case FEATURES.YOUTUBE_TIMESTAMPS:
+    case FEATURES.KEY_MOMENTS:
+    case FEATURES.SPEAKER_DIARIZATION:
+      return "ultra";
+    default: {
+      const unhandledFeature: never = feature;
+      throw new Error(`Unhandled feature in getMinimumPlanForFeature: ${unhandledFeature}`);
+    }
+  }
 }
 
 

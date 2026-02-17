@@ -2,7 +2,35 @@
 
 import { api } from "@convex/_generated/api";
 import { usePaginatedQuery } from "convex/react";
+import { ChevronRight, Clock3, FileAudio2 } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+function formatDate(timestamp?: number) {
+  if (!timestamp) {
+    return "Unknown date";
+  }
+  return new Date(timestamp).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDuration(duration?: number | string) {
+  if (duration === undefined || duration === null) {
+    return "N/A";
+  }
+  const seconds =
+    typeof duration === "string" ? Number.parseFloat(duration) : duration;
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return "N/A";
+  }
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
 
 export function ProjectsList({ userId }: { userId: string }) {
   const {
@@ -34,14 +62,40 @@ export function ProjectsList({ userId }: { userId: string }) {
           <li key={project._id}>
             <Link
               href={`/dashboard/projects/${project._id}`}
-              className="block rounded-lg border border-stone-200 bg-card p-4 transition-colors hover:bg-stone-50"
+              className={cn(
+                "group block rounded-2xl border border-border bg-card/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg",
+                "dark:bg-card/40",
+              )}
             >
-              <h2 className="font-semibold text-foreground">
-                {project.displayName ?? project.fileName ?? "Untitled"}
-              </h2>
-              <p className="mt-1 text-sm text-stone-500">
-                View project details
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="mt-0.5 h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <FileAudio2 className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-semibold text-foreground truncate">
+                      {project.displayName ?? project.fileName ?? "Untitled"}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {project.fileName}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                <Badge variant="outline" className="capitalize">
+                  {project.status}
+                </Badge>
+                <span className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-muted-foreground">
+                  <Clock3 className="h-3 w-3" />
+                  {formatDuration(project.fileDuration)}
+                </span>
+                <span className="text-muted-foreground">
+                  {formatDate(project.createdAt)}
+                </span>
+              </div>
             </Link>
           </li>
         ))}
@@ -51,7 +105,7 @@ export function ProjectsList({ userId }: { userId: string }) {
           <button
             type="button"
             onClick={() => loadMore(20)}
-            className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-stone-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Load more
           </button>

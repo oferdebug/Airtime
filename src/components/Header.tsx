@@ -3,13 +3,14 @@
 // biome-ignore assist/source/organizeImports: Custom organization preferred for imports
 import Link from "next/link";
 import Image from "next/image";
-import { Protect, SignInButton, useAuth, UserButton } from "@clerk/nextjs";
+import { Protect, useAuth, UserButton } from "@clerk/nextjs";
 import { Crown, Home, Mic2, Zap } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import DashboardNav from "./DashboardNav";
+import ThemeToggle from "./ThemeToggle";
 
 export function Header() {
   const { isSignedIn } = useAuth();
@@ -44,9 +45,13 @@ export function Header() {
                   alt="Airtime"
                   width={40}
                   height={40}
-                  className="h-10 w-10 flex-shrink-0"
+                  className="h-10 w-10 shrink-0"
                 />
-                <span className="text-xl font-bold text-slate-950 tracking-tight">
+                <span
+                  className={`text-xl font-bold tracking-tight ${
+                    isDashboard ? "text-black dark:text-white" : "text-black"
+                  }`}
+                >
                   Airtime
                 </span>
                 <Mic2
@@ -68,6 +73,7 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4 lg:gap-3">
+            <ThemeToggle />
             {isSignedIn ? (
               <>
                 {/* Show Upgrade to Pro If The User Is In The Free Plan */}
@@ -159,7 +165,7 @@ export function Header() {
                 </div>
               </>
             ) : (
-              <SignInButton mode="modal">
+              <Link href="/sign-in">
                 <Button
                   className={
                     isDashboard
@@ -169,7 +175,7 @@ export function Header() {
                 >
                   Sign In
                 </Button>
-              </SignInButton>
+              </Link>
             )}
           </div>
         </div>

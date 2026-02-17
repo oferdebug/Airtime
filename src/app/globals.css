@@ -150,6 +150,26 @@
   );
 }
 
+.dark {
+  --background: oklch(0.12 0.01 280);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.16 0.01 280);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.16 0.01 280);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.65 0.2 300);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.22 0.01 280);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.22 0.01 280);
+  --muted-foreground: oklch(0.75 0 0);
+  --accent: oklch(0.24 0.02 300);
+  --accent-foreground: oklch(0.98 0 0);
+  --border: oklch(0.28 0.01 280);
+  --input: oklch(0.28 0.01 280);
+  --ring: oklch(0.7 0.1 300);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -231,6 +251,43 @@ div[role="alertdialog"] {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(22px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+/* Dark mode overrides for redesigned marketing/dashboard visuals */
+.dark .glass-card {
+  background: rgba(16, 16, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
+}
+
+.dark .glass-card-strong {
+  background: rgba(18, 18, 20, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
+}
+
+.dark .glass-nav {
+  background: rgba(10, 10, 12, 0.86);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dark .mesh-background {
+  background-color: rgb(8, 8, 10);
+  background-image:
+    radial-gradient(at 40% 20%, rgba(88, 28, 135, 0.35) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(157, 23, 77, 0.3) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(109, 40, 217, 0.25) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(190, 24, 93, 0.2) 0px, transparent 50%);
+}
+
+/* TODO(redesign): remove this temporary legacy export override after replacing
+   text-slate-* classes with explicit dark: variants in marketing components. */
+.dark .mesh-background .text-slate-950,
+.dark .mesh-background .text-slate-900,
+.dark .mesh-background .text-slate-800,
+.dark .mesh-background .text-slate-700,
+.dark .mesh-background .text-slate-600 {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Gradient Utilities */

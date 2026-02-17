@@ -1,4 +1,3 @@
-import { SignInButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { Mic2 } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +21,7 @@ export async function HeroSection() {
             >
               <span
                 className={
-                  "text-sm font-semibold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent"
+                  "text-sm font-semibold bg-linear-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent"
                 }
               >
                 AI-Powered Podcast Transcription & Search
@@ -71,7 +70,7 @@ export async function HeroSection() {
                 "flex flex-col sm:flex-row items-center justify-center gap-6"
               }
             >
-              <SignInButton mode={"modal"}>
+              <Link href="/sign-up">
                 <Button
                   size={"lg"}
                   className={
@@ -81,7 +80,7 @@ export async function HeroSection() {
                   Get Started Today
                   <Mic2 className={"ml-2 h-7 w-7"} />
                 </Button>
-              </SignInButton>
+              </Link>
               <Link href={"/dashboard/projects"}>
                 <Button
                   variant={"outline"}

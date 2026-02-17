@@ -24,10 +24,23 @@
 
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-
 export default defineSchema({
+  userPreferences: defineTable({
+    userId: v.string(),
+    onboardingCompleted: v.boolean(),
+    categories: v.array(v.string()),
+  }).index("by_user", ["userId"]),
+  userProjectCounts: defineTable({
+    userId: v.string(),
+    totalCount: v.number(),
+    activeCount: v.number(),
+  }).index("by_user", ["userId"]),
+  userProjectCountsRegistry: defineTable({
+    userId: v.string(),
+    initializedAt: v.number(),
+  }).index("by_user", ["userId"]),
   projects: defineTable({
-    //NOTE - User Ownership
+    //NOTE - User Ownership And Metadata
     userId: v.string(),
 
     //NOTE - Soft Delete Timestamp
@@ -79,7 +92,19 @@ export default defineSchema({
       }),
     ),
 
-    //NOTE - Error Tracking System
+    //NOTE - Pre-Job Error Tracking
+    jobErrors: v.optional(
+      v.object({
+        keyMoments: v.optional(v.string()),
+        summary: v.optional(v.string()),
+        socialPosts: v.optional(v.string()),
+        titles: v.optional(v.string()),
+        hashtags: v.optional(v.string()),
+        youtubeTimestamps: v.optional(v.string()),
+      }),
+    ),
+
+    // Last processing error for this project
     error: v.optional(
       v.object({
         message: v.string(),
@@ -91,18 +116,6 @@ export default defineSchema({
             stack: v.optional(v.string()),
           }),
         ),
-      }),
-    ),
-
-    //NOTE - Pre-Job Error Tracking
-    jobErrors: v.optional(
-      v.object({
-        keyMoments: v.optional(v.string()),
-        summary: v.optional(v.string()),
-        socialPosts: v.optional(v.string()),
-        titles: v.optional(v.string()),
-        hashtags: v.optional(v.string()),
-        youtubeTimestamps: v.optional(v.string()),
       }),
     ),
 
@@ -229,18 +242,4 @@ export default defineSchema({
     .index("by_updated_at", ["updatedAt"]) //List All Project For Updated At
     .index("by_completed_at", ["completedAt"]), //List All Project For Completed At
 
-  // Maintained counter for efficient project count (avoids .collect() on projects table)
-  // ensureAndIncrementCounter uses a registry doc to trigger OCC retries and prevent duplicate inserts.
-  userProjectCounts: defineTable({
-    userId: v.string(),
-    totalCount: v.number(),
-    activeCount: v.number(),
-  }).index("by_user", ["userId"]),
-
-  // Singleton registry of initialized userIds. Read+patch triggers OCC so concurrent creators retry.
-  // Seed via: npx convex run projects:seedUserProjectCountsRegistry
-  userProjectCountsRegistry: defineTable({
-    type: v.literal("singleton"),
-    initializedUserIds: v.array(v.string()),
-  }).index("by_type", ["type"]),
 });

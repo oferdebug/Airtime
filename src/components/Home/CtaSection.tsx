@@ -1,4 +1,3 @@
-import { SignInButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { Mic2, Upload } from "lucide-react";
 import Link from "next/link";
@@ -43,15 +42,16 @@ export default async function CtaSection() {
                 </Link>
               </Button>
             ) : (
-              <SignInButton mode="modal">
-                <Button
-                  size="lg"
-                  className="bg-white text-brand-600 hover:bg-white/90 hover-glow text-lg px-10 py-7 rounded-xl shadow-2xl font-bold"
-                >
+              <Button
+                asChild
+                size="lg"
+                className="bg-white text-brand-600 hover:bg-white/90 hover-glow text-lg px-10 py-7 rounded-xl shadow-2xl font-bold"
+              >
+                <Link href="/sign-up">
                   Get Started Today
                   <Mic2 className="ml-2 h-7 w-7" />
-                </Button>
-              </SignInButton>
+                </Link>
+              </Button>
             )}
           </div>
         </div>
