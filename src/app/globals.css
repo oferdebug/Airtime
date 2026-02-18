@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --font-geist-sans: "Geist Sans", sans-serif;
@@ -280,8 +281,7 @@ div[role="alertdialog"] {
     radial-gradient(at 80% 50%, rgba(190, 24, 93, 0.2) 0px, transparent 50%);
 }
 
-/* TODO(redesign): remove this temporary legacy export override after replacing
-   text-slate-* classes with explicit dark: variants in marketing components. */
+/* TODO(redesign): remove after marketing sections fully migrate to explicit dark: variants. */
 .dark .mesh-background .text-slate-950,
 .dark .mesh-background .text-slate-900,
 .dark .mesh-background .text-slate-800,

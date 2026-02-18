@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
-import { type HandleUploadBody, handleUpload } from "@vercel/blob/client";
-import { ALLOWED_AUDIO_TYPES, MAX_FILE_SIZE } from "@/lib/constants";
-import { apiError, apiResponse } from "@/lib/api-utils";
+import { auth } from '@clerk/nextjs/server';
+import { type HandleUploadBody, handleUpload } from '@vercel/blob/client';
+import { apiError, apiResponse } from '@/lib/api-utils';
+import { ALLOWED_AUDIO_TYPES, MAX_FILE_SIZE } from '@/lib/constants';
 
 /**
  * Vercel Blob client upload handler.
@@ -10,14 +10,14 @@ import { apiError, apiResponse } from "@/lib/api-utils";
 export async function POST(request: Request): Promise<Response> {
   const { userId } = await auth();
   if (!userId) {
-    return apiError("Unauthorized", 401);
+    return apiError('Unauthorized', 401);
   }
 
   let body: HandleUploadBody;
   try {
     body = (await request.json()) as HandleUploadBody;
   } catch {
-    return apiError("Invalid request body", 400);
+    return apiError('Invalid request body', 400);
   }
 
   try {
@@ -33,11 +33,11 @@ export async function POST(request: Request): Promise<Response> {
 
     return apiResponse(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Upload failed";
+    const message = error instanceof Error ? error.message : 'Upload failed';
     const err = error as Error & { status?: number; statusCode?: number };
     const status = err.status ?? err.statusCode;
     const isClientError =
-      typeof status === "number" && status >= 400 && status < 500;
+      typeof status === 'number' && status >= 400 && status < 500;
     return apiError(message, isClientError ? status : 500);
   }
 }

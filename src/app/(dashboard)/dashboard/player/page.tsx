@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { type ChangeEvent, useMemo, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Pause, Play, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { type ChangeEvent, useMemo, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const DEFAULT_DURATION_SECONDS = 58 * 60 + 12;
 
@@ -13,9 +13,9 @@ function formatTimestamp(seconds: number) {
   const hours = Math.floor(safeSeconds / 3600);
   const minutes = Math.floor((safeSeconds % 3600) / 60);
   const remainingSeconds = safeSeconds % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes
+  return `${hours.toString().padStart(2, '0')}:${minutes
     .toString()
-    .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+    .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 export default function PlayerPage() {
@@ -63,7 +63,9 @@ export default function PlayerPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <CardTitle>The Future of AI in Podcasting</CardTitle>
-            <Badge variant="outline">{formatTimestamp(duration).slice(3)}</Badge>
+            <Badge variant="outline">
+              {formatTimestamp(duration).slice(3)}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -94,11 +96,15 @@ export default function PlayerPage() {
             </Button>
             <Button
               size="icon"
-              aria-label={isPlaying ? "Pause" : "Play"}
-              title={isPlaying ? "Pause" : "Play"}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+              title={isPlaying ? 'Pause' : 'Play'}
               onClick={togglePlayPause}
             >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
             </Button>
             <Button
               variant="outline"
@@ -130,4 +136,3 @@ export default function PlayerPage() {
     </div>
   );
 }
-

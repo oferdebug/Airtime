@@ -5,7 +5,7 @@
 /**
  * Phase/workflow status: pending | running | completed | failed.
  */
-export type PhaseStatus = "pending" | "running" | "completed" | "failed";
+export type PhaseStatus = 'pending' | 'running' | 'completed' | 'failed';
 /**
  * Upload lifecycle state for the podcast uploader.
  *
@@ -16,9 +16,9 @@ export type PhaseStatus = "pending" | "running" | "completed" | "failed";
  * - error: Upload or processing failed (shows error message)
  */
 export type UploadStatus =
-  | "idle"
-  | "uploading"
-  | "processing"
-  | "completed"
-  | "error"
-  | "canceled";
+  | 'idle'
+  | 'uploading'
+  | 'processing'
+  | 'completed'
+  | 'error'
+  | 'canceled';

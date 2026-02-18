@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const categories = [
-  "Technology",
-  "Marketing",
-  "Business",
-  "Education",
-  "Health",
-  "Comedy",
-  "News",
-  "Science",
+  'Technology',
+  'Marketing',
+  'Business',
+  'Education',
+  'Health',
+  'Comedy',
+  'News',
+  'Science',
 ];
 
 export default function OnboardingStepOnePage() {
@@ -25,11 +25,13 @@ export default function OnboardingStepOnePage() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("airtime-onboarding-categories");
+      const stored = localStorage.getItem('airtime-onboarding-categories');
       if (!stored) return;
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        setSelectedCategories(parsed.filter((item): item is string => typeof item === "string"));
+        setSelectedCategories(
+          parsed.filter((item): item is string => typeof item === 'string'),
+        );
       }
     } catch {
       // Ignore malformed localStorage values; user can re-select categories.
@@ -37,7 +39,10 @@ export default function OnboardingStepOnePage() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("airtime-onboarding-categories", JSON.stringify(selectedCategories));
+    localStorage.setItem(
+      'airtime-onboarding-categories',
+      JSON.stringify(selectedCategories),
+    );
   }, [selectedCategories]);
 
   const toggleCategory = (category: string) => {
@@ -49,8 +54,11 @@ export default function OnboardingStepOnePage() {
   };
 
   const handleContinue = () => {
-    localStorage.setItem("airtime-onboarding-categories", JSON.stringify(selectedCategories));
-    router.push("/onboarding/step-2");
+    localStorage.setItem(
+      'airtime-onboarding-categories',
+      JSON.stringify(selectedCategories),
+    );
+    router.push('/onboarding/step-2');
   };
 
   return (
@@ -83,8 +91,8 @@ export default function OnboardingStepOnePage() {
                   onClick={() => toggleCategory(category)}
                   className={`rounded-xl border px-3 py-2 text-sm transition-colors flex items-center justify-center gap-2 ${
                     isSelected
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-card/70 hover:border-primary hover:text-primary hover:bg-primary/5"
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border bg-card/70 hover:border-primary hover:text-primary hover:bg-primary/5'
                   }`}
                 >
                   <Sparkles className="h-3.5 w-3.5 opacity-80" />
@@ -105,4 +113,3 @@ export default function OnboardingStepOnePage() {
     </main>
   );
 }
-

@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { api } from "@convex/_generated/api";
-import { useQuery } from "convex/react";
-import type { LucideIcon } from "lucide-react";
-import { Mic2, Sparkles, Wand2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PLAN_LIMITS } from "@/lib/tier-config";
+import { useAuth } from '@clerk/nextjs';
+import { api } from '@convex/_generated/api';
+import { useQuery } from 'convex/react';
+import type { LucideIcon } from 'lucide-react';
+import { Mic2, Sparkles, Wand2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PLAN_LIMITS } from '@/lib/tier-config';
 
 interface StudioAction {
   title: string;
@@ -19,18 +19,18 @@ interface StudioAction {
 
 const studioActions: ReadonlyArray<StudioAction> = [
   {
-    title: "Generate Episode Summary",
-    description: "Create concise show notes and social-ready highlights.",
+    title: 'Generate Episode Summary',
+    description: 'Create concise show notes and social-ready highlights.',
     icon: Wand2,
   },
   {
-    title: "Create Social Content",
-    description: "Produce platform-specific posts in one click.",
+    title: 'Create Social Content',
+    description: 'Produce platform-specific posts in one click.',
     icon: Sparkles,
   },
   {
-    title: "Draft Intro/Outro",
-    description: "Generate polished scripts for your next release.",
+    title: 'Draft Intro/Outro',
+    description: 'Generate polished scripts for your next release.',
     icon: Mic2,
   },
 ];
@@ -39,17 +39,21 @@ export default function StudioPage() {
   const { userId, has } = useAuth();
   const activeProjectCount = useQuery(
     api.projects.getUserProjectCount,
-    userId ? { userId, includeDeleted: false } : "skip",
+    userId ? { userId, includeDeleted: false } : 'skip',
   );
-  const plan = has?.({ plan: "ultra" }) ? "ultra" : has?.({ plan: "pro" }) ? "pro" : "free";
+  const plan = has?.({ plan: 'ultra' })
+    ? 'ultra'
+    : has?.({ plan: 'pro' })
+      ? 'pro'
+      : 'free';
   const maxProjects = PLAN_LIMITS[plan].maxProjects;
 
   const remainingGenerations = useMemo(() => {
     if (maxProjects === null) {
-      return "Unlimited";
+      return 'Unlimited';
     }
-    if (typeof activeProjectCount !== "number") {
-      return "...";
+    if (typeof activeProjectCount !== 'number') {
+      return '...';
     }
     return Math.max(0, maxProjects - activeProjectCount).toString();
   }, [activeProjectCount, maxProjects]);
@@ -68,10 +72,15 @@ export default function StudioPage() {
           <div>
             <p className="font-semibold">Current plan usage</p>
             <p className="text-sm text-muted-foreground">
-              You have {remainingGenerations} AI generations remaining on your current plan.
+              You have {remainingGenerations} AI generations remaining on your
+              current plan.
             </p>
           </div>
-          <Badge>{remainingGenerations === "Unlimited" ? "Unlimited" : `${remainingGenerations} left`}</Badge>
+          <Badge>
+            {remainingGenerations === 'Unlimited'
+              ? 'Unlimited'
+              : `${remainingGenerations} left`}
+          </Badge>
         </CardContent>
       </Card>
 
@@ -80,8 +89,8 @@ export default function StudioPage() {
           const Icon = action.icon;
           const comingSoonId = `studio-coming-soon-${action.title
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)/g, "")}`;
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')}`;
           return (
             <Card key={action.title} className="glass-card">
               <CardHeader>
@@ -91,7 +100,9 @@ export default function StudioPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{action.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {action.description}
+                </p>
                 <p id={comingSoonId} className="text-xs text-muted-foreground">
                   Coming soon
                 </p>
@@ -112,4 +123,3 @@ export default function StudioPage() {
     </div>
   );
 }
-

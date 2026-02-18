@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 
 export default function SettingsPage() {
-  const [displayName, setDisplayName] = useState("");
-  const [podcastCategory, setPodcastCategory] = useState("");
+  const [displayName, setDisplayName] = useState('');
+  const [podcastCategory, setPodcastCategory] = useState('');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -29,8 +29,8 @@ export default function SettingsPage() {
     setIsSaving(true);
     // Placeholder persistence until settings API is connected.
     saveTimeoutRef.current = setTimeout(() => {
-      toast.success("Settings saved", {
-        description: `Notifications: ${emailNotifications ? "enabled" : "disabled"}`,
+      toast.success('Settings saved', {
+        description: `Notifications: ${emailNotifications ? 'enabled' : 'disabled'}`,
       });
       setIsSaving(false);
     }, 250);
@@ -77,7 +77,10 @@ export default function SettingsPage() {
               <label htmlFor="emailNotifications" className="font-medium">
                 Email notifications
               </label>
-              <p id="emailNotifications-desc" className="text-xs text-muted-foreground">
+              <p
+                id="emailNotifications-desc"
+                className="text-xs text-muted-foreground"
+              >
                 Receive updates when AI generation completes.
               </p>
             </div>
@@ -89,11 +92,10 @@ export default function SettingsPage() {
             />
           </div>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
         </CardContent>
       </Card>
     </div>
   );
 }
-

@@ -22,23 +22,23 @@
  * 4. UI reactively displays progress via Convex subscriptions
  */
 
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 export default defineSchema({
   userPreferences: defineTable({
     userId: v.string(),
     onboardingCompleted: v.boolean(),
     categories: v.array(v.string()),
-  }).index("by_user", ["userId"]),
+  }).index('by_user', ['userId']),
   userProjectCounts: defineTable({
     userId: v.string(),
     totalCount: v.number(),
     activeCount: v.number(),
-  }).index("by_user", ["userId"]),
+  }).index('by_user', ['userId']),
   userProjectCountsRegistry: defineTable({
     userId: v.string(),
     initializedAt: v.number(),
-  }).index("by_user", ["userId"]),
+  }).index('by_user', ['userId']),
   projects: defineTable({
     //NOTE - User Ownership And Metadata
     userId: v.string(),
@@ -62,11 +62,11 @@ export default defineSchema({
 
     //NOTE - Job Status (upload/processing lifecycle)
     status: v.union(
-      v.literal("pending"),
-      v.literal("uploading"),
-      v.literal("processing"),
-      v.literal("completed"),
-      v.literal("failed"),
+      v.literal('pending'),
+      v.literal('uploading'),
+      v.literal('processing'),
+      v.literal('completed'),
+      v.literal('failed'),
     ),
 
     //NOTE - Granular Job Status Tracking System
@@ -74,19 +74,19 @@ export default defineSchema({
       v.object({
         transcription: v.optional(
           v.union(
-            v.literal("pending"),
-            v.literal("uploading"),
-            v.literal("processing"),
-            v.literal("completed"),
-            v.literal("failed"),
+            v.literal('pending'),
+            v.literal('uploading'),
+            v.literal('processing'),
+            v.literal('completed'),
+            v.literal('failed'),
           ),
         ),
         contentGeneration: v.optional(
           v.union(
-            v.literal("pending"),
-            v.literal("running"),
-            v.literal("completed"),
-            v.literal("failed"),
+            v.literal('pending'),
+            v.literal('running'),
+            v.literal('completed'),
+            v.literal('failed'),
           ),
         ),
       }),
@@ -234,12 +234,11 @@ export default defineSchema({
   })
 
     //Indexes For Efficient Queries
-    .index("by_user", ["userId"]) //List All Project For User
-    .index("by_status", ["status"]) //List All Project For Status
-    .index("by_user_and_status", ["userId", "status"]) //List All Project For User And Status
-    .index("by_user_and_deleted_at", ["userId", "deletedAt"]) //List projects by user and soft-delete
-    .index("by_created_at", ["createdAt"]) //List All Project For Created At
-    .index("by_updated_at", ["updatedAt"]) //List All Project For Updated At
-    .index("by_completed_at", ["completedAt"]), //List All Project For Completed At
-
+    .index('by_user', ['userId']) //List All Project For User
+    .index('by_status', ['status']) //List All Project For Status
+    .index('by_user_and_status', ['userId', 'status']) //List All Project For User And Status
+    .index('by_user_and_deleted_at', ['userId', 'deletedAt']) //List projects by user and soft-delete
+    .index('by_created_at', ['createdAt']) //List All Project For Created At
+    .index('by_updated_at', ['updatedAt']) //List All Project For Updated At
+    .index('by_completed_at', ['completedAt']), //List All Project For Completed At
 });

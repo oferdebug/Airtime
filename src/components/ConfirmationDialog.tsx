@@ -40,7 +40,9 @@ export function ConfirmationDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isConfirming}>{cancelText}</AlertDialogCancel>
+          <AlertDialogCancel disabled={isConfirming}>
+            {cancelText}
+          </AlertDialogCancel>
           <AlertDialogAction
             disabled={isConfirming}
             onClick={async (event) => {

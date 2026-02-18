@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -12,9 +12,9 @@ export function useIsMobile() {
     const onChange = (e: MediaQueryListEvent) => {
       setIsMobile(e.matches);
     };
-    mql.addEventListener("change", onChange);
+    mql.addEventListener('change', onChange);
     setIsMobile(mql.matches);
-    return () => mql.removeEventListener("change", onChange);
+    return () => mql.removeEventListener('change', onChange);
   }, []);
 
   return !!isMobile;

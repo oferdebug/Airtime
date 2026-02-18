@@ -1,15 +1,5 @@
 'use client';
 
-import {
-  deleteProjectAction,
-  updateDisplayNameAction,
-} from '@/app/actions/projects';
-import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@convex/_generated/api';
 import type { Id } from '@convex/_generated/dataModel';
@@ -18,6 +8,16 @@ import { Loader2, Save, XIcon } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import {
+  deleteProjectAction,
+  updateDisplayNameAction,
+} from '@/app/actions/projects';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 export default function ProjectDetailsPage() {
   const { userId } = useAuth();
@@ -110,7 +110,9 @@ export default function ProjectDetailsPage() {
       <div className="container max-w-7xl mx-auto py-10 px-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Project not found.</p>
+            <p className="text-center text-muted-foreground">
+              Project not found.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -132,7 +134,9 @@ export default function ProjectDetailsPage() {
       <div className="container max-w-7xl mx-auto py-10 px-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Project not found.</p>
+            <p className="text-center text-muted-foreground">
+              Project not found.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -159,7 +163,8 @@ export default function ProjectDetailsPage() {
   const showGenerating = isProcessing && generationStatus === 'running';
   const showTranscribing =
     isProcessing &&
-    (transcriptionStatus === 'uploading' || transcriptionStatus === 'processing');
+    (transcriptionStatus === 'uploading' ||
+      transcriptionStatus === 'processing');
 
   return (
     <div className="container max-w-7xl mx-auto py-10 px-4 space-y-6">
@@ -217,7 +222,11 @@ export default function ProjectDetailsPage() {
             </div>
           )}
         </div>
-        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+        <Button
+          variant="destructive"
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
           {isDeleting ? 'Deleting...' : 'Delete Project'}
         </Button>
       </div>
@@ -242,7 +251,7 @@ export default function ProjectDetailsPage() {
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Created{" "}
+              Created{' '}
               {new Date(project.createdAt).toLocaleDateString(undefined, {
                 month: 'short',
                 day: 'numeric',
@@ -259,7 +268,9 @@ export default function ProjectDetailsPage() {
               <p className="text-sm text-emerald-600">Project completed.</p>
             ) : null}
             {hasFailed ? (
-              <p className="text-sm text-destructive">Project processing failed.</p>
+              <p className="text-sm text-destructive">
+                Project processing failed.
+              </p>
             ) : null}
           </CardContent>
         </Card>
@@ -281,8 +292,13 @@ export default function ProjectDetailsPage() {
             {project.keyMoments?.length ? (
               <ul className="space-y-2">
                 {project.keyMoments.slice(0, 4).map((moment, idx) => (
-                  <li key={`${moment.timestamp}-${idx}`} className="rounded-lg border border-border px-3 py-2">
-                    <p className="text-xs text-muted-foreground">{moment.time}</p>
+                  <li
+                    key={`${moment.timestamp}-${idx}`}
+                    className="rounded-lg border border-border px-3 py-2"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      {moment.time}
+                    </p>
                     <p className="text-sm">{moment.description}</p>
                   </li>
                 ))}
@@ -298,3 +314,4 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+

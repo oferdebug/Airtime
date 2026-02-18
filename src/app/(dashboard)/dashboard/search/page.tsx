@@ -1,28 +1,29 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const sampleResults = [
   {
-    id: "episode-24-pricing-growth-loops",
-    title: "Episode 24 - Pricing Growth Loops",
-    snippet: "…we tested three pricing tiers and saw conversion lift at week 6…",
-    timestamp: "12:40",
+    id: 'episode-24-pricing-growth-loops',
+    title: 'Episode 24 - Pricing Growth Loops',
+    snippet:
+      '…we tested three pricing tiers and saw conversion lift at week 6…',
+    timestamp: '12:40',
   },
   {
-    id: "episode-18-founder-sales",
-    title: "Episode 18 - Founder Sales",
-    snippet: "…cold outreach worked once we personalized opening hooks…",
-    timestamp: "31:12",
+    id: 'episode-18-founder-sales',
+    title: 'Episode 18 - Founder Sales',
+    snippet: '…cold outreach worked once we personalized opening hooks…',
+    timestamp: '31:12',
   },
 ];
 
 export default function SearchPage() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const filteredResults = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) {
@@ -68,7 +69,8 @@ export default function SearchPage() {
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            Start typing to search episodes, transcripts, and generated insights.
+            Start typing to search episodes, transcripts, and generated
+            insights.
           </p>
 
           <div className="space-y-3 pt-2">
@@ -81,7 +83,9 @@ export default function SearchPage() {
                   <p className="font-medium">{result.title}</p>
                   <Badge>{result.timestamp}</Badge>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{result.snippet}</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {result.snippet}
+                </p>
               </div>
             ))}
             {filteredResults.length === 0 ? (
@@ -95,4 +99,3 @@ export default function SearchPage() {
     </div>
   );
 }
-

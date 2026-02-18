@@ -1,4 +1,4 @@
-import { Quote, Star } from "lucide-react";
+import { Quote, Star } from 'lucide-react';
 
 interface Testimonial {
   id: string;
@@ -11,28 +11,28 @@ interface Testimonial {
 
 const testimonials: Testimonial[] = [
   {
-    id: "1",
-    name: "Sarah Chen",
-    role: "Podcast Host",
-    company: "Tech Talk Daily",
+    id: '1',
+    name: 'Sarah Chen',
+    role: 'Podcast Host',
+    company: 'Tech Talk Daily',
     content:
-      "Airtime has completely transformed how I manage my podcast content. The AI transcription is incredibly accurate, and the search feature helps me find specific moments instantly. Game changer!",
+      'Airtime has completely transformed how I manage my podcast content. The AI transcription is incredibly accurate, and the search feature helps me find specific moments instantly. Game changer!',
     rating: 5,
   },
   {
-    id: "2",
-    name: "Marcus Johnson",
-    role: "Content Creator",
-    company: "The Daily Grind",
+    id: '2',
+    name: 'Marcus Johnson',
+    role: 'Content Creator',
+    company: 'The Daily Grind',
     content:
-      "The social post generation feature alone saves me hours every week. I can now focus on creating great content instead of spending time on social media management.",
+      'The social post generation feature alone saves me hours every week. I can now focus on creating great content instead of spending time on social media management.',
     rating: 5,
   },
   {
-    id: "3",
-    name: "Emily Rodriguez",
-    role: "Media Producer",
-    company: "Creative Studios",
+    id: '3',
+    name: 'Emily Rodriguez',
+    role: 'Media Producer',
+    company: 'Creative Studios',
     content:
       "As someone who produces multiple podcasts, Airtime's platform makes it easy to manage everything in one place. The key moments feature helps me create highlight reels quickly.",
     rating: 5,
@@ -53,8 +53,8 @@ function renderStars(rating: number) {
           aria-hidden="true"
           className={`h-5 w-5 ${
             i < Math.floor(clamped)
-              ? "fill-yellow-400 text-yellow-400"
-              : "fill-none text-slate-300"
+              ? 'fill-yellow-400 text-yellow-400'
+              : 'fill-none text-slate-300 dark:text-slate-600'
           }`}
         />
       ))}
@@ -73,11 +73,11 @@ export function TestimonialsSection() {
               What Our Users Say
             </span>
           </div>
-          <h2 className="text-5xl md:text-6xl font-extrabold mb-4 text-slate-950">
-            Loved by{" "}
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-4 text-slate-950 dark:text-slate-100">
+            Loved by{' '}
             <span className="gradient-brand-text">Podcast Creators</span>
           </h2>
-          <p className="text-xl text-slate-700 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-700 dark:text-slate-300 max-w-2xl mx-auto">
             Join thousands of creators who are transforming their podcast
             workflow with AI-powered tools.
           </p>
@@ -92,16 +92,16 @@ export function TestimonialsSection() {
               <div className="flex items-center gap-1 mb-4">
                 {renderStars(testimonial.rating)}
               </div>
-              <p className="text-slate-700 mb-6 leading-relaxed italic">
-                "{testimonial.content}"
+              <p className="text-slate-700 dark:text-slate-300 mb-6 leading-relaxed italic">
+                &quot;{testimonial.content}&quot;
               </p>
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full gradient-brand flex items-center justify-center text-white font-bold">
                   {testimonial.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-950">{testimonial.name}</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="font-bold text-slate-950 dark:text-slate-100">{testimonial.name}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     {testimonial.role} at {testimonial.company}
                   </p>
                 </div>

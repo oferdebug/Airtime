@@ -1,9 +1,9 @@
 'use client';
 
-import { ProjectsList } from '@/components/ProjectsList';
-import { Loader2 } from 'lucide-react';
 import { useAuth } from '@clerk/nextjs';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { ProjectsList } from '@/components/ProjectsList';
 
 export default function ProjectsPage() {
   const { userId, isLoaded } = useAuth();
@@ -22,8 +22,11 @@ export default function ProjectsPage() {
     return (
       <div className="container max-w-6xl mx-auto py-10 px-4">
         <p className="text-muted-foreground">
-          Please sign in to view projects.{" "}
-          <Link href="/sign-in" className="underline underline-offset-4 hover:text-foreground">
+          Please sign in to view projects.{' '}
+          <Link
+            href="/sign-in"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
             Sign in
           </Link>
         </p>

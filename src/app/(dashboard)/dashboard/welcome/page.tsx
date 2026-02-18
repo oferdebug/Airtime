@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Sparkles, Upload } from "lucide-react";
+import { CheckCircle2, Sparkles, Upload } from 'lucide-react';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function WelcomePage() {
   return (
@@ -38,9 +38,9 @@ export default function WelcomePage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          "Transcription enabled",
-          "Magic search available",
-          "Publishing workflow connected",
+          'Transcription enabled',
+          'Magic search available',
+          'Publishing workflow connected',
         ].map((item) => (
           <Card key={item} className="glass-card">
             <CardContent className="p-4 flex items-center gap-2 text-sm">
@@ -53,4 +53,3 @@ export default function WelcomePage() {
     </div>
   );
 }
-

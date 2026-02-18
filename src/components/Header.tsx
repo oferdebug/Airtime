@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
 // biome-ignore assist/source/organizeImports: Custom organization preferred for imports
-import Link from "next/link";
-import Image from "next/image";
-import { Protect, useAuth, UserButton } from "@clerk/nextjs";
-import { Crown, Home, Mic2, Zap } from "lucide-react";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import Image from 'next/image';
+import { Protect, useAuth, UserButton } from '@clerk/nextjs';
+import { Crown, Home, Mic2, Zap } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import DashboardNav from "./DashboardNav";
-import ThemeToggle from "./ThemeToggle";
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import DashboardNav from './DashboardNav';
+import ThemeToggle from './ThemeToggle';
 
 export function Header() {
   const { isSignedIn } = useAuth();
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
+  const isDashboard = pathname?.startsWith('/dashboard');
   const showDashboardNav = isDashboard;
 
   return (
     <header
       className={
         isDashboard
-          ? "gradient-brand sticky top-0 transition-all shadow-xxl backdrop-blur-sm z-50 border-b border-white/15"
-          : "glass-nav sticky top-0 transition-all z-50 backdrop-blur-md border-b border-brand-200/50 shadow-sm"
+          ? 'gradient-brand sticky top-0 transition-all shadow-xxl backdrop-blur-sm z-50 border-b border-white/15'
+          : 'glass-nav sticky top-0 transition-all z-50 backdrop-blur-md border-b border-brand-200/50 shadow-sm'
       }
     >
       <div className="container mx-auto px-5 lg:px-8">
@@ -36,8 +36,8 @@ export function Header() {
               <div
                 className={`flex items-center gap-2 p-3 rounded-xl transition-all duration-300 ${
                   isDashboard
-                    ? "bg-white/90 dark:bg-black/90 group-hover:bg-white group-hover:scale-105 group-hover:shadow-xl transition-all duration-300"
-                    : "p-2 rounded-xl bg-white/95 group-hover:bg-white group-hover:scale-115 group-hover:shadow-xl transition-all duration-300"
+                    ? 'bg-white/90 group-hover:bg-white group-hover:scale-105 group-hover:shadow-xl transition-all duration-300'
+                    : 'p-2 rounded-xl bg-white/95 group-hover:bg-white group-hover:scale-115 group-hover:shadow-xl transition-all duration-300'
                 }`}
               >
                 <Image
@@ -48,17 +48,15 @@ export function Header() {
                   className="h-10 w-10 shrink-0"
                 />
                 <span
-                  className={`text-xl font-bold tracking-tight ${
-                    isDashboard ? "text-black dark:text-white" : "text-black"
-                  }`}
+                  className="text-xl font-bold tracking-tight text-black"
                 >
                   Airtime
                 </span>
                 <Mic2
                   className={
                     isDashboard
-                      ? "h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300"
-                      : "h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300"
+                      ? 'h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300'
+                      : 'h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300'
                   }
                 />
               </div>
@@ -79,7 +77,7 @@ export function Header() {
                 {/* Show Upgrade to Pro If The User Is In The Free Plan */}
                 <Protect
                   condition={(has) =>
-                    !has({ plan: "pro" }) && !has({ plan: "ultra" })
+                    !has({ plan: 'pro' }) && !has({ plan: 'ultra' })
                   }
                   fallback={null}
                 >
@@ -87,8 +85,8 @@ export function Header() {
                     href="/dashboard/upgrade"
                     className={
                       isDashboard
-                        ? "flex items-center px-4 py-2 rounded-full bg-white/90 text-brand-600 hover:bg-white hover:scale-110 gap-3 shadow-lg font-semibold transition-all duration-300 border border-white/30"
-                        : "flex items-center px-4 py-2 rounded-full gradient-brand text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300"
+                        ? 'flex items-center px-4 py-2 rounded-full bg-white/90 text-brand-600 hover:bg-white hover:scale-110 gap-3 shadow-lg font-semibold transition-all duration-300 border border-white/30'
+                        : 'flex items-center px-4 py-2 rounded-full gradient-brand text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300'
                     }
                   >
                     <Zap className="h-5 w-5" />
@@ -99,7 +97,7 @@ export function Header() {
                 {/* Show Upgrade To Ultra From Pro Button For Pro Users */}
                 <Protect
                   condition={(has) =>
-                    has({ plan: "pro" }) && !has({ plan: "ultra" })
+                    has({ plan: 'pro' }) && !has({ plan: 'ultra' })
                   }
                   fallback={null}
                 >
@@ -107,8 +105,8 @@ export function Header() {
                     href="/dashboard/upgrade"
                     className={
                       isDashboard
-                        ? "flex items-center px-4 py-2 rounded-full bg-white/90 text-brand-600 hover:bg-white hover:scale-110 gap-3 shadow-lg font-semibold transition-all duration-300 border border-white/30"
-                        : "flex items-center px-4 py-2 rounded-full gradient-brand text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300"
+                        ? 'flex items-center px-4 py-2 rounded-full bg-white/90 text-brand-600 hover:bg-white hover:scale-110 gap-3 shadow-lg font-semibold transition-all duration-300 border border-white/30'
+                        : 'flex items-center px-4 py-2 rounded-full gradient-brand text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300'
                     }
                   >
                     <Zap className="h-5 w-5" />
@@ -118,14 +116,14 @@ export function Header() {
                 </Protect>
                 {/* Ultra Badge For All Ultra Users */}
                 <Protect
-                  condition={(has) => has({ plan: "ultra" })}
+                  condition={(has) => has({ plan: 'ultra' })}
                   fallback={null}
                 >
                   <Badge
                     className={
                       isDashboard
-                        ? "gap-1.5 hidden md:flex bg-white/95 text-brand-600 border-0 px-3 py-1.5 shadow-md hover:shadow-lg transition-all duration-300"
-                        : "gap-1.5 hidden md:flex gradient-brand text-white border-0 px-3 py-1.5 shadow-md hover:shadow-lg transition-all duration-300"
+                        ? 'gap-1.5 hidden md:flex bg-white/95 text-brand-600 border-0 px-3 py-1.5 shadow-md hover:shadow-lg transition-all duration-300'
+                        : 'gap-1.5 hidden md:flex gradient-brand text-white border-0 px-3 py-1.5 shadow-md hover:shadow-lg transition-all duration-300'
                     }
                   >
                     <Crown className="h-4 w-4" />
@@ -151,8 +149,8 @@ export function Header() {
                       size="sm"
                       className={
                         isDashboard
-                          ? "gap-3 hover-scale text-white hover:bg-white/20 transition-all duration-300"
-                          : "gap-3 hover-scale transition-all duration-300"
+                          ? 'gap-3 hover-scale text-white hover:bg-white/20 transition-all duration-300'
+                          : 'gap-3 hover-scale transition-all duration-300'
                       }
                     >
                       <Home className="h-4 w-4" />
@@ -169,8 +167,8 @@ export function Header() {
                 <Button
                   className={
                     isDashboard
-                      ? "flex items-center px-4 py-2 rounded-full bg-white/90 text-brand-600 hover:bg-white hover:scale-110 gap-3 shadow-lg font-semibold transition-all duration-300 border border-white/30"
-                      : "flex items-center px-4 py-2 rounded-full gradient-brand text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300"
+                      ? 'flex items-center px-4 py-2 rounded-full bg-white/90 text-brand-600 hover:bg-white hover:scale-110 gap-3 shadow-lg font-semibold transition-all duration-300 border border-white/30'
+                      : 'flex items-center px-4 py-2 rounded-full gradient-brand text-white hover-glow hover:scale-110 gap-3 shadow-lg transition-all duration-300'
                   }
                 >
                   Sign In

@@ -7,7 +7,7 @@
  * Reference: https://clerk.com/docs/nextjs/guides/billing/for-b2c
  */
 
-export type PlanName = "free" | "pro" | "ultra";
+export type PlanName = 'free' | 'pro' | 'ultra';
 
 export interface PlanLimits {
   maxProjects: number | null; // null = unlimited
@@ -44,13 +44,13 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
  * Note: Transcription is NOT a feature - it's core functionality available to all plans
  */
 export const FEATURES = {
-  SUMMARY: "summary",
-  SOCIAL_POSTS: "social_posts",
-  TITLES: "titles",
-  HASHTAGS: "hashtags",
-  YOUTUBE_TIMESTAMPS: "youtube_timestamps",
-  KEY_MOMENTS: "key_moments",
-  SPEAKER_DIARIZATION: "speaker_diarization",
+  SUMMARY: 'summary',
+  SOCIAL_POSTS: 'social_posts',
+  TITLES: 'titles',
+  HASHTAGS: 'hashtags',
+  YOUTUBE_TIMESTAMPS: 'youtube_timestamps',
+  KEY_MOMENTS: 'key_moments',
+  SPEAKER_DIARIZATION: 'speaker_diarization',
 } as const;
 
 export type FeatureName = (typeof FEATURES)[keyof typeof FEATURES];
@@ -84,18 +84,18 @@ export const PLAN_FEATURES: Record<PlanName, FeatureName[]> = {
  * Human-readable plan names for UI display
  */
 export const PLAN_NAMES: Record<PlanName, string> = {
-  free: "Free",
-  pro: "Pro",
-  ultra: "Ultra",
+  free: 'Free',
+  pro: 'Pro',
+  ultra: 'Ultra',
 };
 
 /**
  * Price information for upgrade messaging
  */
 export const PLAN_PRICES: Record<PlanName, string> = {
-  free: "$0",
-  pro: "$29/month",
-  ultra: "$69/month",
+  free: '$0',
+  pro: '$29/month',
+  ultra: '$69/month',
 };
 
 /**
@@ -106,13 +106,13 @@ export const PLAN_PRICES: Record<PlanName, string> = {
  * (always present in generated content); see actions/generate-missing-features.ts.
  */
 export const FEATURE_TO_JOB_MAP = {
-  [FEATURES.SOCIAL_POSTS]: "socialPosts",
-  [FEATURES.TITLES]: "titles",
-  [FEATURES.HASHTAGS]: "hashtags",
-  [FEATURES.KEY_MOMENTS]: "keyMoments",
-  [FEATURES.YOUTUBE_TIMESTAMPS]: "youtubeTimestamps",
-  [FEATURES.SUMMARY]: "summary",
-  [FEATURES.SPEAKER_DIARIZATION]: "speakerDiarization",
+  [FEATURES.SOCIAL_POSTS]: 'socialPosts',
+  [FEATURES.TITLES]: 'titles',
+  [FEATURES.HASHTAGS]: 'hashtags',
+  [FEATURES.KEY_MOMENTS]: 'keyMoments',
+  [FEATURES.YOUTUBE_TIMESTAMPS]: 'youtubeTimestamps',
+  [FEATURES.SUMMARY]: 'summary',
+  [FEATURES.SPEAKER_DIARIZATION]: 'speakerDiarization',
 } as const;
 
 export type JobName =

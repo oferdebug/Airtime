@@ -1,8 +1,8 @@
-"use client";
-import { AlertTriangle, RefreshCw } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { Component, type ErrorInfo, type ReactNode } from "react";
-import { Button } from "./ui/button";
+'use client';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Button } from './ui/button';
 
 /** Canonical props for fallback component. Matches render-prop API: (error, reset). */
 type FallbackProps = {
@@ -17,12 +17,12 @@ type Props =
   | {
       children: ReactNode;
       fallback: (error: Error | null, reset: () => void) => ReactNode;
-      fallbackType: "render";
+      fallbackType: 'render';
     }
   | {
       children: ReactNode;
       fallback: React.ComponentType<FallbackProps>;
-      fallbackType: "component";
+      fallbackType: 'component';
     };
 
 interface State {
@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
     // Send to reporting service, e.g.:
     // import * as Sentry from "@sentry/nextjs";
     // Sentry.captureException(error, { extra: errorInfo });
@@ -55,16 +55,16 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) {
         if (
-          typeof this.props.fallback === "function" &&
-          "fallbackType" in this.props
+          typeof this.props.fallback === 'function' &&
+          'fallbackType' in this.props
         ) {
           const { fallback, fallbackType } = this.props;
-          if (fallbackType === "render") {
+          if (fallbackType === 'render') {
             return (
               fallback as (error: Error | null, reset: () => void) => ReactNode
             )(this.state.error, this.resetErrorBoundary);
           }
-          if (fallbackType === "component") {
+          if (fallbackType === 'component') {
             return React.createElement(
               fallback as React.ComponentType<FallbackProps>,
               {
@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<Props, State> {
               },
             );
           }
-          console.error("[ErrorBoundary] Unknown fallbackType:", fallbackType);
+          console.error('[ErrorBoundary] Unknown fallbackType:', fallbackType);
           throw new Error(
             `[ErrorBoundary] Unknown fallbackType: ${String(fallbackType)}`,
           );
@@ -82,14 +82,14 @@ export class ErrorBoundary extends Component<Props, State> {
         if (React.isValidElement(this.props.fallback)) {
           const props = this.props.fallback.props as Record<string, unknown>;
           const onReset =
-            typeof props?.onReset === "function" ? props.onReset : undefined;
+            typeof props?.onReset === 'function' ? props.onReset : undefined;
           const handleReset =
-            typeof props?.handleReset === "function"
+            typeof props?.handleReset === 'function'
               ? props.handleReset
               : undefined;
           if (handleReset !== undefined) {
             console.warn(
-              "[ErrorBoundary] handleReset is deprecated; use resetErrorBoundary on your fallback component.",
+              '[ErrorBoundary] handleReset is deprecated; use resetErrorBoundary on your fallback component.',
             );
           }
           const effectiveReset =
@@ -100,8 +100,8 @@ export class ErrorBoundary extends Component<Props, State> {
             handleReset: effectiveReset,
           } as Record<string, unknown>);
         }
-        if (typeof this.props.fallback === "function") {
-          if (process.env.NODE_ENV === "development") {
+        if (typeof this.props.fallback === 'function') {
+          if (process.env.NODE_ENV === 'development') {
             console.error(
               "[ErrorBoundary] fallback is a function but fallbackType is missing. Use fallbackType: 'render' or 'component'.",
             );
@@ -142,7 +142,7 @@ function ErrorFallbackUI({
   const router = useRouter();
 
   // Generic user-facing message - never expose raw error.message
-  const userMessage = "An unexpected error occurred. Please try again.";
+  const userMessage = 'An unexpected error occurred. Please try again.';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-white to-brand-50/30">
@@ -168,7 +168,7 @@ function ErrorFallbackUI({
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
           </Button>
-          <Button variant="outline" onClick={() => router.push("/")}>
+          <Button variant="outline" onClick={() => router.push('/')}>
             Go Home
           </Button>
         </div>

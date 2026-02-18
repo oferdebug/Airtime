@@ -1,26 +1,26 @@
-"use server";
+'use server';
 
-import { auth } from "@clerk/nextjs/server";
-import { del } from "@vercel/blob";
-import { fetchMutation } from "convex/nextjs";
-import type { FunctionReference } from "convex/server";
-import { inngest } from "@/app/api/inngest/client";
-import { checkUploadLimits } from "@/lib/tier-utils";
-import { api } from "../convex/_generated/api";
-import type { Id } from "../convex/_generated/dataModel";
+import { auth } from '@clerk/nextjs/server';
+import { del } from '@vercel/blob';
+import { fetchMutation } from 'convex/nextjs';
+import type { FunctionReference } from 'convex/server';
+import { inngest } from '@/app/api/inngest/client';
+import { checkUploadLimits } from '@/lib/tier-utils';
+import { api } from '../convex/_generated/api';
+import type { Id } from '../convex/_generated/dataModel';
 
 type ProjectsApiShape = {
-  createProject: FunctionReference<"mutation">;
-  deleteProject: FunctionReference<"mutation">;
-  updateProjectDisplayName: FunctionReference<"mutation">;
+  createProject: FunctionReference<'mutation'>;
+  deleteProject: FunctionReference<'mutation'>;
+  updateProjectDisplayName: FunctionReference<'mutation'>;
 };
 
 function validateProjectsApi(
   apiObj: unknown,
 ): apiObj is { projects: ProjectsApiShape } {
-  if (!apiObj || typeof apiObj !== "object") return false;
+  if (!apiObj || typeof apiObj !== 'object') return false;
   const projects = (apiObj as Record<string, unknown>).projects;
-  if (!projects || typeof projects !== "object") return false;
+  if (!projects || typeof projects !== 'object') return false;
   const p = projects as Record<string, unknown>;
   return (
     p.createProject != null &&
@@ -31,7 +31,7 @@ function validateProjectsApi(
 
 if (!validateProjectsApi(api)) {
   throw new Error(
-    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, and updateProjectDisplayName",
+    '[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, and updateProjectDisplayName',
   );
 }
 const projectsApi = api.projects;
@@ -57,7 +57,7 @@ export async function validateUploadAction(input: {
   const authObj = await auth();
   const { userId } = authObj;
   if (!userId) {
-    return { success: false, error: "Unauthorized" };
+    return { success: false, error: 'Unauthorized' };
   }
   const validation = await checkUploadLimits(
     authObj,
@@ -66,17 +66,17 @@ export async function validateUploadAction(input: {
     input.duration,
   );
   if (!validation.allowed) {
-    console.log("[VALIDATE] Failed:", {
+    console.log('[VALIDATE] Failed:', {
       userId,
       reason: validation.reason,
       message: validation.message,
     });
     return {
       success: false,
-      error: validation.message ?? "Upload not allowed",
+      error: validation.message ?? 'Upload not allowed',
     };
   }
-  console.log("[VALIDATE] Passed:", { userId, fileSize: input.fileSize });
+  console.log('[VALIDATE] Passed:', { userId, fileSize: input.fileSize });
   return { success: true };
 }
 
@@ -117,33 +117,33 @@ export async function createProjectAction(
     const authObj = await auth();
     const { userId } = authObj;
     if (!userId) {
-      return { success: false, error: "Unauthorized" };
+      return { success: false, error: 'Unauthorized' };
     }
 
     const { fileUrl, fileName, fileSize, mimeType, fileDuration } = input;
 
     if (!fileUrl || !fileName) {
-      return { success: false, error: "Missing required fields" };
+      return { success: false, error: 'Missing required fields' };
     }
 
     if (
       fileSize == null ||
-      typeof fileSize !== "number" ||
+      typeof fileSize !== 'number' ||
       Number.isNaN(fileSize) ||
       fileSize <= 0
     ) {
       return {
         success: false,
-        error: "Invalid file size. Please provide a valid positive file size.",
+        error: 'Invalid file size. Please provide a valid positive file size.',
       };
     }
 
-    let plan: "free" | "pro" | "ultra" = "free";
+    let plan: 'free' | 'pro' | 'ultra' = 'free';
     const { has } = authObj;
-    if (has?.({ plan: "ultra" })) {
-      plan = "ultra";
-    } else if (has?.({ plan: "pro" })) {
-      plan = "pro";
+    if (has?.({ plan: 'ultra' })) {
+      plan = 'ultra';
+    } else if (has?.({ plan: 'pro' })) {
+      plan = 'pro';
     }
 
     const validation = await checkUploadLimits(
@@ -154,20 +154,20 @@ export async function createProjectAction(
     );
 
     if (!validation.allowed) {
-      console.log("[VALIDATE] Failed:", {
+      console.log('[VALIDATE] Failed:', {
         userId,
         reason: validation.reason,
         message: validation.message,
       });
       return {
         success: false,
-        error: validation.message ?? "Upload not allowed for your plan",
+        error: validation.message ?? 'Upload not allowed for your plan',
       };
     }
 
-    const fileExtension = fileName.split(".").pop() ?? "Unknown";
+    const fileExtension = fileName.split('.').pop() ?? 'Unknown';
 
-    const token = await authObj.getToken({ template: "convex" });
+    const token = await authObj.getToken({ template: 'convex' });
     const projectId = await fetchMutation(
       projectsApi.createProject,
       {
@@ -183,7 +183,7 @@ export async function createProjectAction(
     );
 
     const eventPayload = {
-      name: "podcast/uploaded" as const,
+      name: 'podcast/uploaded' as const,
       data: {
         projectId,
         userId,
@@ -211,7 +211,7 @@ export async function createProjectAction(
           await new Promise((r) => setTimeout(r, delayMs));
         } else {
           console.error(
-            "[createProjectAction] inngest.send failed after retries",
+            '[createProjectAction] inngest.send failed after retries',
             {
               projectId,
               userId,
@@ -224,7 +224,7 @@ export async function createProjectAction(
             error:
               lastError instanceof Error
                 ? lastError.message
-                : "Failed to trigger processing. Please try again.",
+                : 'Failed to trigger processing. Please try again.',
           };
         }
       }
@@ -232,7 +232,7 @@ export async function createProjectAction(
 
     return { success: true, projectId };
   } catch (error) {
-    console.error("Error Creating Project, Please Try Again Later:", error);
+    console.error('Error Creating Project, Please Try Again Later:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
@@ -241,19 +241,19 @@ export async function createProjectAction(
 }
 
 export async function deleteProjectAction(
-  projectId: Id<"projects">,
+  projectId: Id<'projects'>,
 ): Promise<{ success: true } | { success: false; error: string }> {
   const authObj = await auth();
   const { userId } = authObj;
   if (!userId) {
     return {
       success: false,
-      error: "Unauthorized, You Must Be Logged In To Delete A Project",
+      error: 'Unauthorized, You Must Be Logged In To Delete A Project',
     };
   }
 
   try {
-    const token = await authObj.getToken({ template: "convex" });
+    const token = await authObj.getToken({ template: 'convex' });
     const result = await fetchMutation(
       projectsApi.deleteProject,
       { projectId, userId },
@@ -276,7 +276,7 @@ export async function deleteProjectAction(
           } else {
             // Orphaned blob: project deleted but blob deletion failed — log for monitoring/cleanup
             console.warn(
-              "[ORPHANED_BLOB] Vercel blob deletion failed after project delete",
+              '[ORPHANED_BLOB] Vercel blob deletion failed after project delete',
               {
                 projectId,
                 userId,
@@ -293,17 +293,17 @@ export async function deleteProjectAction(
     }
     return { success: true };
   } catch (error) {
-    console.error("Error deleting project:", error);
+    console.error('Error deleting project:', error);
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to delete project",
+        error instanceof Error ? error.message : 'Failed to delete project',
     };
   }
 }
 
 export async function updateDisplayNameAction(
-  projectId: Id<"projects">,
+  projectId: Id<'projects'>,
   displayName: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
@@ -313,7 +313,7 @@ export async function updateDisplayNameAction(
       return {
         success: false,
         error:
-          "Unauthorized, You Must Be Logged In To Update A Project Display Name",
+          'Unauthorized, You Must Be Logged In To Update A Project Display Name',
       };
     }
 
@@ -321,7 +321,7 @@ export async function updateDisplayNameAction(
       return {
         success: false,
         error:
-          "Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue",
+          'Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue',
       };
     }
 
@@ -329,11 +329,11 @@ export async function updateDisplayNameAction(
       return {
         success: false,
         error:
-          "Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue",
+          'Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue',
       };
     }
 
-    const token = await authObj.getToken({ template: "convex" });
+    const token = await authObj.getToken({ template: 'convex' });
     await fetchMutation(
       projectsApi.updateProjectDisplayName,
       {
@@ -346,7 +346,7 @@ export async function updateDisplayNameAction(
 
     return { success: true };
   } catch (error) {
-    console.error("Error Updating Display Name:", error);
+    console.error('Error Updating Display Name:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),

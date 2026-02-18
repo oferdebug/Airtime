@@ -1,35 +1,35 @@
-"use client";
+'use client';
 
-import { api } from "@convex/_generated/api";
-import { usePaginatedQuery } from "convex/react";
-import { ChevronRight, Clock3, FileAudio2 } from "lucide-react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { api } from '@convex/_generated/api';
+import { usePaginatedQuery } from 'convex/react';
+import { ChevronRight, Clock3, FileAudio2 } from 'lucide-react';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 function formatDate(timestamp?: number) {
   if (!timestamp) {
-    return "Unknown date";
+    return 'Unknown date';
   }
   return new Date(timestamp).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
 function formatDuration(duration?: number | string) {
   if (duration === undefined || duration === null) {
-    return "N/A";
+    return 'N/A';
   }
   const seconds =
-    typeof duration === "string" ? Number.parseFloat(duration) : duration;
+    typeof duration === 'string' ? Number.parseFloat(duration) : duration;
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return "N/A";
+    return 'N/A';
   }
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function ProjectsList({ userId }: { userId: string }) {
@@ -43,7 +43,7 @@ export function ProjectsList({ userId }: { userId: string }) {
     { initialNumItems: 20 },
   );
 
-  if (status === "LoadingFirstPage") {
+  if (status === 'LoadingFirstPage') {
     return <p className="mt-5 text-stone-500">Loading projects...</p>;
   }
 
@@ -63,8 +63,8 @@ export function ProjectsList({ userId }: { userId: string }) {
             <Link
               href={`/dashboard/projects/${project._id}`}
               className={cn(
-                "group block rounded-2xl border border-border bg-card/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg",
-                "dark:bg-card/40",
+                'group block rounded-2xl border border-border bg-card/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg',
+                'dark:bg-card/40',
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -74,7 +74,7 @@ export function ProjectsList({ userId }: { userId: string }) {
                   </div>
                   <div className="min-w-0">
                     <h2 className="font-semibold text-foreground truncate">
-                      {project.displayName ?? project.fileName ?? "Untitled"}
+                      {project.displayName ?? project.fileName ?? 'Untitled'}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {project.fileName}
@@ -100,7 +100,7 @@ export function ProjectsList({ userId }: { userId: string }) {
           </li>
         ))}
       </ul>
-      {status === "CanLoadMore" && (
+      {status === 'CanLoadMore' && (
         <div className="mt-6 text-center">
           <button
             type="button"
@@ -111,7 +111,7 @@ export function ProjectsList({ userId }: { userId: string }) {
           </button>
         </div>
       )}
-      {status === "LoadingMore" && (
+      {status === 'LoadingMore' && (
         <p className="mt-4 text-center text-sm text-stone-500">
           Loading more...
         </p>

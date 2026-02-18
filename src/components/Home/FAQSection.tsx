@@ -1,10 +1,10 @@
-import { HelpCircle } from "lucide-react";
+import { HelpCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../ui/accordion";
+} from '../ui/accordion';
 
 interface FAQ {
   id: string;
@@ -14,40 +14,40 @@ interface FAQ {
 
 const faqs: FAQ[] = [
   {
-    id: "1",
-    question: "How accurate is the AI transcription?",
+    id: '1',
+    question: 'How accurate is the AI transcription?',
     answer:
-      "Our AI transcription uses state-of-the-art speech recognition models with an accuracy rate of 95%+ for clear audio. The accuracy may vary slightly based on audio quality, background noise, accents, and speaking speed. We continuously improve our models to provide the best possible results.",
+      'Our AI transcription uses state-of-the-art speech recognition models with an accuracy rate of 95%+ for clear audio. The accuracy may vary slightly based on audio quality, background noise, accents, and speaking speed. We continuously improve our models to provide the best possible results.',
   },
   {
-    id: "2",
-    question: "What audio formats do you support?",
+    id: '2',
+    question: 'What audio formats do you support?',
     answer:
-      "We support all major audio formats including MP3, WAV, M4A, FLAC, OGG, and more. You can upload files up to 2GB in size. For longer podcasts, we recommend using our premium plans which support larger file sizes.",
+      'We support all major audio formats including MP3, WAV, M4A, FLAC, OGG, and more. You can upload files up to 2GB in size. For longer podcasts, we recommend using our premium plans which support larger file sizes.',
   },
   {
-    id: "3",
-    question: "How long does transcription take?",
+    id: '3',
+    question: 'How long does transcription take?',
     answer:
-      "Transcription speed depends on the length of your audio file. Typically, we process audio at approximately 1 minute of audio per 10-15 seconds of processing time. A 60-minute podcast usually takes about 10-15 minutes to transcribe completely.",
+      'Transcription speed depends on the length of your audio file. Typically, we process audio at approximately 1 minute of audio per 10-15 seconds of processing time. A 60-minute podcast usually takes about 10-15 minutes to transcribe completely.',
   },
   {
-    id: "4",
+    id: '4',
     question: "Can I edit transcripts after they're generated?",
     answer:
-      "Yes! All transcripts are fully editable. You can correct any errors, add speaker labels, and make any necessary adjustments. Your edits are saved automatically and sync across all features including search and social post generation.",
+      'Yes! All transcripts are fully editable. You can correct any errors, add speaker labels, and make any necessary adjustments. Your edits are saved automatically and sync across all features including search and social post generation.',
   },
   {
-    id: "5",
-    question: "Is my audio data secure and private?",
+    id: '5',
+    question: 'Is my audio data secure and private?',
     answer:
       "Absolutely. We take data security seriously. All audio files are encrypted in transit and at rest. We never share your content with third parties, and you can delete your data at any time. We're SOC 2 compliant and follow industry best practices for data protection.",
   },
   {
-    id: "6",
-    question: "Can I use Airtime for multiple podcasts?",
+    id: '6',
+    question: 'Can I use Airtime for multiple podcasts?',
     answer:
-      "Yes! Our platform supports multiple projects and podcasts. You can organize your content by project, making it easy to manage multiple shows. Premium plans include unlimited projects and storage.",
+      'Yes! Our platform supports multiple projects and podcasts. You can organize your content by project, making it easy to manage multiple shows. Premium plans include unlimited projects and storage.',
   },
 ];
 
@@ -62,10 +62,10 @@ export function FAQSection() {
               Frequently Asked Questions
             </span>
           </div>
-          <h2 className="text-5xl md:text-6xl font-extrabold mb-4 text-slate-950">
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-4 text-slate-950 dark:text-slate-100">
             Got <span className="gradient-brand-text">Questions?</span>
           </h2>
-          <p className="text-xl text-slate-700 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-700 dark:text-slate-300 max-w-2xl mx-auto">
             Find answers to common questions about Airtime and how it can help
             transform your podcast workflow.
           </p>
@@ -78,10 +78,10 @@ export function FAQSection() {
               value={faq.id}
               className="glass-card rounded-2xl px-6 border-none"
             >
-              <AccordionTrigger className="text-left font-semibold text-slate-950 hover:text-brand-600 py-6">
+              <AccordionTrigger className="text-left font-semibold text-slate-950 dark:text-slate-100 hover:text-brand-600 py-6">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-slate-700 leading-relaxed pb-6">
+              <AccordionContent className="text-slate-700 dark:text-slate-300 leading-relaxed pb-6">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>

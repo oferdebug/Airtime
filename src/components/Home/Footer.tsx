@@ -1,25 +1,25 @@
-import { Github, Linkedin, Mail, Mic2, Twitter } from "lucide-react";
-import Link from "next/link";
-import { NewsletterSignup } from "./NewsletterSignup";
+import { Github, Linkedin, Mail, Mic2, Twitter } from 'lucide-react';
+import Link from 'next/link';
+import { NewsletterSignup } from './NewsletterSignup';
 
 const footerLinks = {
   Product: [
-    { href: "/features", label: "Features" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/integrations", label: "Integrations" },
+    { href: '/features', label: 'Features' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/integrations', label: 'Integrations' },
   ],
   Company: [
-    { href: "/about", label: "About Us" },
-    { href: "/blog", label: "Blog" },
-    { href: "/careers", label: "Careers" },
-    { href: "/contact", label: "Contact" },
+    { href: '/about', label: 'About Us' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/careers', label: 'Careers' },
+    { href: '/contact', label: 'Contact' },
   ],
   Legal: [
-    { href: "/privacy", label: "Privacy Policy" },
-    { href: "/terms", label: "Terms of Service" },
-    { href: "/cookies", label: "Cookie Policy" },
-    { href: "/security", label: "Security" },
+    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms of Service' },
+    { href: '/cookies', label: 'Cookie Policy' },
+    { href: '/security', label: 'Security' },
   ],
 } as const;
 
@@ -46,7 +46,7 @@ export default function Footer() {
                 <div className="p-2.5 rounded-xl gradient-brand shadow-lg">
                   <Mic2 className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-2xl font-extrabold text-black dark:text-white">
+                <span className="text-2xl font-extrabold text-foreground">
                   Airtime
                 </span>
               </div>
@@ -95,7 +95,7 @@ export default function Footer() {
 
             {Object.entries(footerLinks).map(([section, links]) => (
               <div key={section}>
-                <h3 className="font-extrabold mb-5 text-black dark:text-white text-sm uppercase tracking-wider">
+                <h3 className="font-extrabold mb-5 text-foreground text-sm uppercase tracking-wider">
                   {section}
                 </h3>
                 <ul className="space-y-3">
@@ -117,7 +117,10 @@ export default function Footer() {
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-brand-200/50 dark:border-white/10">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-slate-700 dark:text-slate-300" suppressHydrationWarning>
+              <p
+                className="text-sm text-slate-700 dark:text-slate-300"
+                suppressHydrationWarning
+              >
                 © {currentYear} Airtime. All rights reserved. This is a demo
                 project.
               </p>

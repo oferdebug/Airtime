@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Mic, UploadCloud } from "lucide-react";
-import PodcastUploader from "@/components/Podcast-Uploader";
+import { Mic, UploadCloud } from 'lucide-react';
+import type { Metadata } from 'next';
+import PodcastUploader from '@/components/Podcast-Uploader';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: "Upload Podcast",
+  title: 'Upload Podcast',
   description:
-    "Upload your podcast audio file to get AI-powered transcription, summaries, social posts, and key moments.",
+    'Upload your podcast audio file to get AI-powered transcription, summaries, social posts, and key moments.',
   openGraph: {
-    title: "Upload Podcast | Airtime",
+    title: 'Upload Podcast | Airtime',
     description:
-      "Upload your podcast audio file to get AI-powered transcription, summaries, social posts, and key moments.",
+      'Upload your podcast audio file to get AI-powered transcription, summaries, social posts, and key moments.',
   },
   robots: { index: true, follow: true },
 };

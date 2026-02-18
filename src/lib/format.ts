@@ -7,9 +7,9 @@
  *
  * Uses established libraries (bytes, date-fns) and Intl for robust, localized formatting.
  */
-import bytes from "bytes";
-import { format } from "date-fns";
-import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE } from "./constants";
+import bytes from 'bytes';
+import { format } from 'date-fns';
+import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE } from './constants';
 
 /**
  * Format file size in human-readable format
@@ -22,8 +22,8 @@ import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE } from "./constants";
  * Uses bytes library for consistent cross-platform formatting.
  */
 export function formatFileSize(size: number): string {
-  if (!Number.isFinite(size) || size < 0) return "0 B";
-  return bytes(size, { unitSeparator: " ", decimalPlaces: 1 }) ?? "0 B";
+  if (!Number.isFinite(size) || size < 0) return '0 B';
+  return bytes(size, { unitSeparator: ' ', decimalPlaces: 1 }) ?? '0 B';
 }
 
 /**
@@ -37,12 +37,12 @@ export function formatFileSize(size: number): string {
  * Always pads minutes and seconds with leading zeros.
  */
 export function formatDuration(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
 
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
-  const pad = (n: number) => String(n).padStart(2, "0");
+  const pad = (n: number) => String(n).padStart(2, '0');
 
   if (hours > 0) return `${hours}:${pad(minutes)}:${pad(secs)}`;
   return `${minutes}:${pad(secs)}`;
@@ -71,9 +71,9 @@ export function formatTimestampSeconds(
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
 
-  const hoursStr = padHours ? String(hours).padStart(2, "0") : String(hours);
-  const minutesStr = String(minutes).padStart(2, "0");
-  const secsStr = String(secs).padStart(2, "0");
+  const hoursStr = padHours ? String(hours).padStart(2, '0') : String(hours);
+  const minutesStr = String(minutes).padStart(2, '0');
+  const secsStr = String(secs).padStart(2, '0');
 
   if (hours > 0 || forceHours) {
     return `${hoursStr}:${minutesStr}:${secsStr}`;
@@ -91,9 +91,9 @@ export function formatTimestampSeconds(
  * Good for: detail pages, logs, single timestamps.
  */
 export function formatTimestamp(timestamp: number | Date): string {
-  const date = typeof timestamp === "number" ? new Date(timestamp) : timestamp;
-  if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return format(date, "MMM d, yyyy h:mm a");
+  const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
+  return format(date, 'MMM d, yyyy h:mm a');
 }
 
 /**
@@ -105,9 +105,9 @@ export function formatTimestamp(timestamp: number | Date): string {
  * Good for: lists, tables, API display, blog post dates.
  */
 export function formatDate(dateParam: number | Date): string {
-  const date = typeof dateParam === "number" ? new Date(dateParam) : dateParam;
-  if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return format(date, "yyyy-MM-dd");
+  const date = typeof dateParam === 'number' ? new Date(dateParam) : dateParam;
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
+  return format(date, 'yyyy-MM-dd');
 }
 
 /**
@@ -119,9 +119,9 @@ export function formatDate(dateParam: number | Date): string {
  * Good for: time-only display, durations from midnight.
  */
 export function formatTime(dateParam: number | Date): string {
-  const date = typeof dateParam === "number" ? new Date(dateParam) : dateParam;
-  if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return format(date, "HH:mm:ss");
+  const date = typeof dateParam === 'number' ? new Date(dateParam) : dateParam;
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
+  return format(date, 'HH:mm:ss');
 }
 
 /**
@@ -133,9 +133,9 @@ export function formatTime(dateParam: number | Date): string {
  * Good for: exports, logs, full datetime in local timezone.
  */
 export function formatDateTime(dateParam: number | Date): string {
-  const date = typeof dateParam === "number" ? new Date(dateParam) : dateParam;
-  if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return format(date, "yyyy-MM-dd HH:mm:ss");
+  const date = typeof dateParam === 'number' ? new Date(dateParam) : dateParam;
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
+  return format(date, 'yyyy-MM-dd HH:mm:ss');
 }
 
 /**
@@ -156,9 +156,9 @@ export function formatDateTimeLocal(dateParam: number | Date): string {
  * Good for: detail pages, logs, human-friendly timestamps.
  */
 export function formatDateLong(timestamp: number | Date): string {
-  const date = typeof timestamp === "number" ? new Date(timestamp) : timestamp;
-  if (Number.isNaN(date.getTime())) return "Invalid Date";
-  return format(date, "PPpp");
+  const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+  if (Number.isNaN(date.getTime())) return 'Invalid Date';
+  return format(date, 'PPpp');
 }
 
 /**
@@ -180,7 +180,7 @@ export function formatSmartDate(timestamp: number): string {
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
 
-  if (diffMins < 1) return "Just now";
+  if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
 
   const diffHours = Math.floor(diffMs / MS_PER_HOUR);
@@ -207,8 +207,8 @@ export function formatNumber(
   value: number,
   options?: { decimals?: number; locale?: string },
 ): string {
-  if (!Number.isFinite(value)) return "0";
-  const { decimals = 2, locale = "en-US" } = options ?? {};
+  if (!Number.isFinite(value)) return '0';
+  const { decimals = 2, locale = 'en-US' } = options ?? {};
   return new Intl.NumberFormat(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: decimals,
@@ -227,13 +227,13 @@ export function formatNumber(
  * Good for: view counts, follower counts, large stats in limited space.
  */
 export function formatCompactNumber(value: number, decimals = 1): string {
-  if (!Number.isFinite(value) || value < 0) return "0";
+  if (!Number.isFinite(value) || value < 0) return '0';
   if (value < 1000) return String(Math.round(value));
   const units = [
-    { threshold: 1e12, suffix: "T" },
-    { threshold: 1e9, suffix: "B" },
-    { threshold: 1e6, suffix: "M" },
-    { threshold: 1e3, suffix: "K" },
+    { threshold: 1e12, suffix: 'T' },
+    { threshold: 1e9, suffix: 'B' },
+    { threshold: 1e6, suffix: 'M' },
+    { threshold: 1e3, suffix: 'K' },
   ];
   for (const { threshold, suffix } of units) {
     if (value >= threshold) {
@@ -241,7 +241,7 @@ export function formatCompactNumber(value: number, decimals = 1): string {
       const formatted =
         scaled % 1 === 0
           ? String(Math.round(scaled))
-          : scaled.toFixed(decimals).replace(/\.?0+$/, "");
+          : scaled.toFixed(decimals).replace(/\.?0+$/, '');
       return `${formatted}${suffix}`;
     }
   }
@@ -263,7 +263,7 @@ export function formatPercent(
   value: number,
   options?: { decimals?: number; wholeNumber?: boolean },
 ): string {
-  if (!Number.isFinite(value)) return "0%";
+  if (!Number.isFinite(value)) return '0%';
   const { decimals = 1, wholeNumber = false } = options ?? {};
   const normalized = wholeNumber ? value / 100 : value;
   const pct = Math.min(1, Math.max(0, normalized)) * 100;
@@ -308,9 +308,9 @@ export function formatOrdinal(n: number): string {
   const lastTwo = s.slice(-2);
   const lastTwoNum = parseInt(lastTwo, 10);
   if (lastTwoNum >= 11 && lastTwoNum <= 13) return `${n}th`;
-  if (last === "1") return `${n}st`;
-  if (last === "2") return `${n}nd`;
-  if (last === "3") return `${n}rd`;
+  if (last === '1') return `${n}st`;
+  if (last === '2') return `${n}nd`;
+  if (last === '3') return `${n}rd`;
   return `${n}th`;
 }
 
@@ -327,7 +327,7 @@ export function formatOrdinal(n: number): string {
  * Omits zero segments. Good for: tooltips, secondary labels, compact UI.
  */
 export function formatDurationLong(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return "0s";
+  if (!Number.isFinite(seconds) || seconds < 0) return '0s';
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
@@ -335,7 +335,7 @@ export function formatDurationLong(seconds: number): string {
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
-  return parts.join(" ");
+  return parts.join(' ');
 }
 
 // ─── Lists & text ───────────────────────────────────────────────────────────
@@ -352,14 +352,14 @@ export function formatDurationLong(seconds: number): string {
  */
 export function formatList(
   items: string[],
-  options?: { conjunction?: "and" | "or" },
+  options?: { conjunction?: 'and' | 'or' },
 ): string {
-  const { conjunction = "and" } = options ?? {};
+  const { conjunction = 'and' } = options ?? {};
   const list = items.filter(Boolean);
-  if (list.length === 0) return "";
+  if (list.length === 0) return '';
   if (list.length === 1) return list[0];
   if (list.length === 2) return `${list[0]} ${conjunction} ${list[1]}`;
-  const rest = list.slice(0, -1).join(", ");
+  const rest = list.slice(0, -1).join(', ');
   const last = list[list.length - 1];
   return `${rest} ${conjunction} ${last}`;
 }
@@ -377,9 +377,9 @@ export function formatList(
 export function truncate(
   str: string,
   maxLength: number,
-  suffix = "...",
+  suffix = '...',
 ): string {
-  if (typeof str !== "string" || maxLength < 0) return "";
+  if (typeof str !== 'string' || maxLength < 0) return '';
   if (str.length <= maxLength) return str;
   if (suffix.length >= maxLength) return suffix.slice(0, maxLength);
   return str.slice(0, maxLength - suffix.length) + suffix;
@@ -397,7 +397,7 @@ export function truncate(
 export function formatRange(
   start: number | string,
   end: number | string,
-  separator = " – ",
+  separator = ' – ',
 ): string {
   return `${start}${separator}${end}`;
 }

@@ -1,17 +1,17 @@
-import { EventSchemas, Inngest } from "inngest";
+import { EventSchemas, Inngest } from 'inngest';
 
 // Create a client to send and receive events
 type Events = {
-  "test/hello.world": {
+  'test/hello.world': {
     data: {
       email: string;
     };
   };
-  "podcast/uploaded": {
+  'podcast/uploaded': {
     data: {
       projectId: string;
       userId: string;
-      plan: "free" | "pro" | "ultra";
+      plan: 'free' | 'pro' | 'ultra';
       fileUrl: string;
       fileName: string;
       fileSize: number;
@@ -20,18 +20,18 @@ type Events = {
       mimeType: string;
     };
   };
-  "podcast/retry-job": {
+  'podcast/retry-job': {
     data: {
       projectId: string;
       job: string;
       userId: string;
-      originalPlan: "free" | "pro" | "ultra";
-      currentPlan: "free" | "pro" | "ultra";
+      originalPlan: 'free' | 'pro' | 'ultra';
+      currentPlan: 'free' | 'pro' | 'ultra';
     };
   };
 };
 
 export const inngest = new Inngest({
-  id: "Airtime",
+  id: 'Airtime',
   schemas: new EventSchemas().fromRecord<Events>(),
 });

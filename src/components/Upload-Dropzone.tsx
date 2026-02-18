@@ -1,9 +1,9 @@
-"use client";
-import { Upload, XCircleIcon } from "lucide-react";
-import { useCallback } from "react";
-import { type FileRejection, useDropzone } from "react-dropzone";
-import { ACCEPT_AUDIO, MAX_FILE_SIZE } from "@/lib/constants";
-import { cn, formatFileSize } from "@/lib/utils";
+'use client';
+import { Upload, XCircleIcon } from 'lucide-react';
+import { useCallback } from 'react';
+import { type FileRejection, useDropzone } from 'react-dropzone';
+import { ACCEPT_AUDIO, MAX_FILE_SIZE } from '@/lib/constants';
+import { cn, formatFileSize } from '@/lib/utils';
 
 /**
  * Upload dropzone — drag-and-drop or click-to-browse with validation.
@@ -17,10 +17,10 @@ import { cn, formatFileSize } from "@/lib/utils";
  * (Multiple MIME variants per format for Chrome, Firefox, Safari consistency.)
  */
 
-const DROPZONE_ID = "upload-dropzone";
-const DROPZONE_LABEL_ID = "upload-dropzone-label";
-const DROPZONE_DESC_ID = "upload-dropzone-desc";
-const DROPZONE_ERROR_ID = "upload-dropzone-error";
+const DROPZONE_ID = 'upload-dropzone';
+const DROPZONE_LABEL_ID = 'upload-dropzone-label';
+const DROPZONE_DESC_ID = 'upload-dropzone-desc';
+const DROPZONE_ERROR_ID = 'upload-dropzone-error';
 interface UploadDropzoneProps {
   onFileSelect: (file: File) => void;
   disabled?: boolean;
@@ -73,23 +73,23 @@ export function UploadDropzone({
     <div className="w-full" id={DROPZONE_ID}>
       <div
         {...getRootProps({
-          "aria-describedby": hasError
+          'aria-describedby': hasError
             ? `${DROPZONE_DESC_ID} ${DROPZONE_ERROR_ID}`
             : DROPZONE_DESC_ID,
-          "aria-invalid": hasError,
-          "aria-labelledby": DROPZONE_LABEL_ID,
+          'aria-invalid': hasError,
+          'aria-labelledby': DROPZONE_LABEL_ID,
         })}
         className={cn(
-          "relative rounded-2xl border-2 border-dashed p-8 text-center transition-all outline-none",
-          "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
-          "border-brand-300 bg-brand-50/30 hover:border-brand-500 hover:bg-brand-50/50",
+          'relative rounded-2xl border-2 border-dashed p-8 text-center transition-all outline-none',
+          'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
+          'border-brand-300 bg-brand-50/30 hover:border-brand-500 hover:bg-brand-50/50',
           isDragActive &&
             !isDragReject &&
-            "border-brand-600 bg-brand-100/80 scale-[1.01] shadow-lg",
-          isDragReject && "border-red-600 bg-red-50/50",
-          disabled && "cursor-not-allowed opacity-60",
-          hasError && "border-red-600 bg-red-50/30",
-          !disabled && "cursor-pointer",
+            'border-brand-600 bg-brand-100/80 scale-[1.01] shadow-lg',
+          isDragReject && 'border-red-600 bg-red-50/50',
+          disabled && 'cursor-not-allowed opacity-60',
+          hasError && 'border-red-600 bg-red-50/30',
+          !disabled && 'cursor-pointer',
         )}
       >
         <input
@@ -112,9 +112,9 @@ export function UploadDropzone({
           >
             {isDragActive
               ? isDragReject
-                ? "Wrong format or file too large"
-                : "Drop your audio file here"
-              : "Drag & drop your audio file, or click to browse your files"}
+                ? 'Wrong format or file too large'
+                : 'Drop your audio file here'
+              : 'Drag & drop your audio file, or click to browse your files'}
           </p>
           <p id={DROPZONE_DESC_ID} className="text-sm text-stone-500">
             {formatFileSize(maxSize)} max · MP3, M4A, WAV, AAC, FLAC, OGG, Opus,

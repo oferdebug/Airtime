@@ -1,4 +1,4 @@
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from './ui/skeleton';
 
 export function PageSkeleton() {
   return (
@@ -10,7 +10,10 @@ export function PageSkeleton() {
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {Array.from({ length: 6 }, (_, skeletonIndex) => (
-            <div key={`page-skeleton-${skeletonIndex + 1}`} className="space-y-4">
+            <div
+              key={`page-skeleton-${skeletonIndex + 1}`}
+              className="space-y-4"
+            >
               <Skeleton className="h-48 w-full rounded-2xl" />
               <Skeleton className="h-6 w-3/4" />
               <Skeleton className="h-4 w-full" />

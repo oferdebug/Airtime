@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { Cable, Sparkles, BellRing } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { BellRing, Cable, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 export default function OnboardingStepTwoPage() {
   const router = useRouter();
@@ -17,14 +17,14 @@ export default function OnboardingStepTwoPage() {
 
   const handleFinish = async () => {
     localStorage.setItem(
-      "airtime-onboarding-preferences",
+      'airtime-onboarding-preferences',
       JSON.stringify({
         emailNotifications,
         enableMagicSearch,
         autoSocialDrafts,
       }),
     );
-    router.push("/dashboard/welcome");
+    router.push('/dashboard/welcome');
   };
 
   return (
@@ -117,4 +117,3 @@ export default function OnboardingStepTwoPage() {
     </main>
   );
 }
-
