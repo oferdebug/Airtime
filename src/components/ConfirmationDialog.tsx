@@ -20,6 +20,7 @@ interface ConfirmationDialogProps {
   cancelText?: string;
   isConfirming?: boolean;
   onConfirm: () => void | Promise<void>;
+  onError?: (error: unknown) => void;
 }
 
 export function ConfirmationDialog({
@@ -31,6 +32,7 @@ export function ConfirmationDialog({
   cancelText = 'Cancel',
   isConfirming = false,
   onConfirm,
+  onError,
 }: ConfirmationDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -50,7 +52,8 @@ export function ConfirmationDialog({
               try {
                 await onConfirm();
               } catch (error) {
-                console.error('Confirmation action failed', error);
+                onError?.(error);
+                throw error;
               }
             }}
           >

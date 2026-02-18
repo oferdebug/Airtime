@@ -4,8 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { api } from '@convex/_generated/api';
 import { useQuery } from 'convex/react';
 import type { LucideIcon } from 'lucide-react';
-import { Mic2, Sparkles, Wand2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { Loader2, Mic2, Sparkles, Wand2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,27 +35,36 @@ const studioActions: ReadonlyArray<StudioAction> = [
 ];
 
 export default function StudioPage() {
-  const { userId, has } = useAuth();
+  const { isLoaded, userId, has } = useAuth();
   const activeProjectCount = useQuery(
     api.projects.getUserProjectCount,
     userId ? { userId, includeDeleted: false } : 'skip',
   );
-  const plan = has?.({ plan: 'ultra' })
-    ? 'ultra'
-    : has?.({ plan: 'pro' })
-      ? 'pro'
-      : 'free';
+
+  if (!isLoaded) {
+    return (
+      <div className="container max-w-6xl mx-auto px-4 py-10">
+        <div className="flex items-center justify-center min-h-[300px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  const plan =
+    userId && has?.({ plan: 'ultra' })
+      ? 'ultra'
+      : userId && has?.({ plan: 'pro' })
+        ? 'pro'
+        : 'free';
   const maxProjects = PLAN_LIMITS[plan].maxProjects;
 
-  const remainingGenerations = useMemo(() => {
-    if (maxProjects === null) {
-      return 'Unlimited';
-    }
-    if (typeof activeProjectCount !== 'number') {
-      return '...';
-    }
-    return Math.max(0, maxProjects - activeProjectCount).toString();
-  }, [activeProjectCount, maxProjects]);
+  let remainingGenerations = '...';
+  if (maxProjects === null) {
+    remainingGenerations = 'Unlimited';
+  } else if (typeof activeProjectCount === 'number') {
+    remainingGenerations = Math.max(0, maxProjects - activeProjectCount).toString();
+  }
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-10 space-y-6">

@@ -20,7 +20,7 @@ function formatTimestamp(seconds: number) {
 
 export default function PlayerPage() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration] = useState(DEFAULT_DURATION_SECONDS);
+  const duration = DEFAULT_DURATION_SECONDS;
   const [currentTime, setCurrentTime] = useState(34 * 60 + 22);
   const [volume, setVolume] = useState(67);
 
@@ -50,6 +50,11 @@ export default function PlayerPage() {
     setCurrentTime((nextPercent / 100) * duration);
   };
 
+  const formatDurationBadge = (value: number) => {
+    const formattedDuration = formatTimestamp(value);
+    return value >= 3600 ? formattedDuration : formattedDuration.slice(3);
+  };
+
   return (
     <div className="container max-w-6xl mx-auto px-4 py-10 space-y-6">
       <div>
@@ -63,9 +68,7 @@ export default function PlayerPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <CardTitle>The Future of AI in Podcasting</CardTitle>
-            <Badge variant="outline">
-              {formatTimestamp(duration).slice(3)}
-            </Badge>
+            <Badge variant="outline">{formatDurationBadge(duration)}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-5">

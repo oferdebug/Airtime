@@ -19,12 +19,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
+function isValidProjectId(value: string): boolean {
+  return /^[a-z0-9]+$/i.test(value);
+}
+
 export default function ProjectDetailsPage() {
   const { userId } = useAuth();
   const router = useRouter();
   const { id } = useParams();
 
-  const projectId = typeof id === 'string' ? (id as Id<'projects'>) : null;
+  const projectId =
+    typeof id === 'string' && isValidProjectId(id)
+      ? (id as Id<'projects'>)
+      : null;
   const project = useQuery(
     api.projects.getProject,
     projectId ? { projectId } : 'skip',
@@ -36,8 +43,8 @@ export default function ProjectDetailsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const transcriptionStatus = project?.jobStatus?.transcription || 'pending';
-  const generationStatus = project?.jobStatus?.contentGeneration || 'pending';
+  const transcriptionStatus = project?.jobStatus?.transcription ?? 'pending';
+  const generationStatus = project?.jobStatus?.contentGeneration ?? 'pending';
 
   const handleStartEdit = () => {
     setEditedName(project?.displayName || project?.fileName || '');
@@ -63,7 +70,11 @@ export default function ProjectDetailsPage() {
 
     setIsSaving(true);
     try {
-      await updateDisplayNameAction(projectId, trimmedName);
+      const result = await updateDisplayNameAction(projectId, trimmedName);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to update project name');
+        return;
+      }
       toast.success('Project Name Updated Successfully');
       setEditedName(trimmedName);
       setIsEditing(false);
@@ -90,7 +101,11 @@ export default function ProjectDetailsPage() {
 
     setIsDeleting(true);
     try {
-      await deleteProjectAction(projectId);
+      const result = await deleteProjectAction(projectId);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to delete project, please try again');
+        return;
+      }
       toast.success('Project Deleted Successfully');
       setIsDeleteDialogOpen(false);
       router.push('/dashboard/projects');

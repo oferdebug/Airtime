@@ -32,6 +32,13 @@ function formatDuration(duration?: number | string) {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  processing: 'Processing',
+  completed: 'Completed',
+  failed: 'Failed',
+};
+
 export function ProjectsList({ userId }: { userId: string }) {
   const {
     results: projects,
@@ -58,8 +65,10 @@ export function ProjectsList({ userId }: { userId: string }) {
   return (
     <>
       <ul className="mt-5 space-y-4">
-        {projects.map((project) => (
-          <li key={project._id}>
+        {projects.map((project) => {
+          const title = project.displayName ?? project.fileName ?? 'Untitled';
+          return (
+            <li key={project._id}>
             <Link
               href={`/dashboard/projects/${project._id}`}
               className={cn(
@@ -74,11 +83,13 @@ export function ProjectsList({ userId }: { userId: string }) {
                   </div>
                   <div className="min-w-0">
                     <h2 className="font-semibold text-foreground truncate">
-                      {project.displayName ?? project.fileName ?? 'Untitled'}
+                      {title}
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {project.fileName}
-                    </p>
+                    {project.fileName && project.fileName !== title ? (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {project.fileName}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -86,7 +97,7 @@ export function ProjectsList({ userId }: { userId: string }) {
 
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
                 <Badge variant="outline" className="capitalize">
-                  {project.status}
+                  {STATUS_LABELS[project.status] ?? project.status}
                 </Badge>
                 <span className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-muted-foreground">
                   <Clock3 className="h-3 w-3" />
@@ -97,8 +108,9 @@ export function ProjectsList({ userId }: { userId: string }) {
                 </span>
               </div>
             </Link>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
       {status === 'CanLoadMore' && (
         <div className="mt-6 text-center">

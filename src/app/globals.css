@@ -282,11 +282,11 @@ div[role="alertdialog"] {
 }
 
 /* TODO(redesign): remove after marketing sections fully migrate to explicit dark: variants. */
-.dark .mesh-background .text-slate-950,
-.dark .mesh-background .text-slate-900,
-.dark .mesh-background .text-slate-800,
-.dark .mesh-background .text-slate-700,
-.dark .mesh-background .text-slate-600 {
+.dark .mesh-background h1.text-slate-950,
+.dark .mesh-background h2.text-slate-900,
+.dark .mesh-background h3.text-slate-800,
+.dark .mesh-background p.text-slate-700,
+.dark .mesh-background p.text-slate-600 {
   color: rgba(255, 255, 255, 0.9);
 }
 

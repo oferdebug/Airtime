@@ -73,21 +73,27 @@ export default function SearchPage() {
             insights.
           </p>
 
-          <div className="space-y-3 pt-2">
-            {filteredResults.map((result, index) => (
-              <div
-                key={result.id ?? `result-${index}`}
-                className="rounded-xl border border-border bg-card/50 p-4"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium">{result.title}</p>
-                  <Badge>{result.timestamp}</Badge>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {result.snippet}
-                </p>
-              </div>
-            ))}
+          <div className="pt-2">
+            <ul className="space-y-3">
+              {filteredResults.map((result, index) => (
+                <li
+                  key={result.id ?? `result-${index}`}
+                  className="rounded-xl border border-border bg-card/50 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium">{result.title}</p>
+                    <Badge
+                      aria-label={`Episode timestamp: ${result.timestamp}`}
+                    >
+                      {result.timestamp}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {result.snippet}
+                  </p>
+                </li>
+              ))}
+            </ul>
             {filteredResults.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No matching episodes found for &quot;{searchTerm}&quot;.

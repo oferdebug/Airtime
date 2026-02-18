@@ -53,11 +53,7 @@ export function Header() {
                   Airtime
                 </span>
                 <Mic2
-                  className={
-                    isDashboard
-                      ? 'h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300'
-                      : 'h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300'
-                  }
+                  className="h-6 w-6 text-brand-700 group-hover:rotate-12 transition-transform duration-300"
                 />
               </div>
             </Link>

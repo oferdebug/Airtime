@@ -3,7 +3,7 @@
 import { BellRing, Cable, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,29 @@ export default function OnboardingStepTwoPage() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [enableMagicSearch, setEnableMagicSearch] = useState(true);
   const [autoSocialDrafts, setAutoSocialDrafts] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('airtime-onboarding-preferences');
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as {
+        emailNotifications?: unknown;
+        enableMagicSearch?: unknown;
+        autoSocialDrafts?: unknown;
+      };
+      if (typeof parsed.emailNotifications === 'boolean') {
+        setEmailNotifications(parsed.emailNotifications);
+      }
+      if (typeof parsed.enableMagicSearch === 'boolean') {
+        setEnableMagicSearch(parsed.enableMagicSearch);
+      }
+      if (typeof parsed.autoSocialDrafts === 'boolean') {
+        setAutoSocialDrafts(parsed.autoSocialDrafts);
+      }
+    } catch {
+      // Ignore malformed localStorage and keep defaults.
+    }
+  }, []);
 
   const handleFinish = async () => {
     localStorage.setItem(

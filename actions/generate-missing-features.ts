@@ -112,7 +112,11 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
 
   // Infer what plan was used during processing based on generated features
   let originalPlan: 'free' | 'pro' | 'ultra' = 'free';
-  if (project.keyMoments || project.youtubeTiestamps) {
+  const hasYoutubeTimestamps =
+    project.youtubeTiestamps ||
+    (project as typeof project & { youtubeTimestamps?: unknown })
+      .youtubeTimestamps;
+  if (project.keyMoments || hasYoutubeTimestamps) {
     originalPlan = 'ultra';
   } else if (project.socialPosts || project.title) {
     originalPlan = 'pro';

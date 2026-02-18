@@ -3,7 +3,7 @@
 import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ const categories = [
 export default function OnboardingStepOnePage() {
   const router = useRouter();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const hasInitializedCategories = useRef(false);
 
   useEffect(() => {
     try {
@@ -35,10 +36,15 @@ export default function OnboardingStepOnePage() {
       }
     } catch {
       // Ignore malformed localStorage values; user can re-select categories.
+    } finally {
+      hasInitializedCategories.current = true;
     }
   }, []);
 
   useEffect(() => {
+    if (!hasInitializedCategories.current) {
+      return;
+    }
     localStorage.setItem(
       'airtime-onboarding-categories',
       JSON.stringify(selectedCategories),
@@ -54,10 +60,6 @@ export default function OnboardingStepOnePage() {
   };
 
   const handleContinue = () => {
-    localStorage.setItem(
-      'airtime-onboarding-categories',
-      JSON.stringify(selectedCategories),
-    );
     router.push('/onboarding/step-2');
   };
 
