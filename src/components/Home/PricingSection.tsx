@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { PricingTable } from "@clerk/nextjs";
-import { Loader2 } from "lucide-react";
+import { PricingTable } from '@clerk/nextjs';
+import { Loader2 } from 'lucide-react';
 
 interface PricingSectionProps {
   compact?: boolean;
@@ -19,11 +19,11 @@ export default function PricingSection({
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-extrabold mb-7 text-slate-950">
-              Simple, <span className="gradient-brand-text">Transparent</span>{" "}
+            <h2 className="text-5xl md:text-6xl font-extrabold mb-7 text-slate-950 dark:text-slate-100">
+              Simple, <span className="gradient-brand-text">Transparent</span>{' '}
               Pricing
             </h2>
-            <p className="text-xl md:text-2xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
               Choose the plan that fits your podcasting needs. No hidden fees,
               no surprises.
             </p>
@@ -32,95 +32,14 @@ export default function PricingSection({
           {/* Pricing Table */}
           <div className="flex justify-center w-full">
             <div
-              className={`clerk-pricing-theme ${compact ? "max-w-4xl w-full" : "max-w-5xl w-full"}`}
+              className={`clerk-pricing-theme ${compact ? 'max-w-4xl w-full' : 'max-w-5xl w-full'}`}
             >
               <PricingTable
-                appearance={{
-                  elements: {
-                    pricingTableCardHeader: {
-                      background:
-                        "linear-gradient(135deg, rgb(236, 72, 153), rgb(139, 92, 246))",
-                      boxShadow: "0 4px 15px rgba(139, 92, 246, 0.3)",
-                      color: "white",
-                      borderRadius: "1rem 1rem 0 0",
-                      padding: compact ? "2rem" : "3.5rem",
-                    },
-                    pricingTableCardTitle: {
-                      fontSize: compact ? "1.75rem" : "2.25rem",
-                      fontWeight: "800",
-                      color: "white",
-                      marginBottom: "0.5rem",
-                    },
-                    pricingTableCardDescription: {
-                      fontSize: compact ? "0.95rem" : "1.1rem",
-                      color: "rgba(255, 255, 255, 0.95)",
-                      fontWeight: "500",
-                    },
-                    pricingTableCardFee: {
-                      color: "white",
-                      fontWeight: "800",
-                      fontSize: compact ? "2.5rem" : "3rem",
-                    },
-                    pricingTableCardFeePeriod: {
-                      color: "rgba(255, 255, 255, 0.85)",
-                      fontSize: "1.1rem",
-                    },
-                    pricingTableToggleLabel: {
-                      color: "white",
-                    },
-                    pricingTableCardPrice: {
-                      color: "white",
-                    },
-                    pricingTableCardPriceAmount: {
-                      color: "white",
-                    },
-                    pricingTableCardPricePeriod: {
-                      color: "white",
-                    },
-                    pricingTableCardPriceIdentifier: {
-                      color: "white",
-                    },
-                    pricingTableCard: {
-                      borderRadius: "1rem",
-                      border: "2px solid rgb(139 92 246 / 0.2)",
-                      boxShadow: "0 10px 40px rgba(139, 92, 246, 0.15)",
-                      transition: "all 0.3s ease",
-                      overflow: "hidden",
-                      background: "rgba(255, 255, 255, 0.9)",
-                      backdropFilter: "blur(10px)",
-                    },
-                    pricingTableCardBody: {
-                      padding: compact ? "2rem" : "2.5rem",
-                    },
-                    pricingTableCardFeatures: {
-                      marginTop: "2rem",
-                      gap: "1rem",
-                    },
-                    pricingTableCardFeature: {
-                      fontSize: compact ? "0.95rem" : "1.05rem",
-                      padding: "0.75rem 0",
-                      fontWeight: "500",
-                      color: "rgb(30, 41, 59)",
-                    },
-                    pricingTableCardButton: {
-                      marginTop: "2rem",
-                      borderRadius: "0.75rem",
-                      fontWeight: "700",
-                      padding: "1rem 2.5rem",
-                      transition: "all 0.2s ease",
-                      fontSize: "1.1rem",
-                      background:
-                        "linear-gradient(135deg, rgb(236, 72, 153), rgb(139, 92, 246))",
-                      border: "none",
-                      boxShadow: "0 4px 15px rgba(236, 72, 153, 0.3)",
-                    },
-                  },
-                }}
                 fallback={
                   <div className="flex items-center justify-center py-20">
                     <div className="text-center space-y-4 glass-card p-12 rounded-2xl">
                       <Loader2 className="h-16 w-16 animate-spin text-brand-500 mx-auto" />
-                      <p className="text-slate-900 text-lg font-medium">
+                      <p className="text-slate-900 dark:text-slate-100 text-lg font-medium">
                         Loading pricing options...
                       </p>
                     </div>

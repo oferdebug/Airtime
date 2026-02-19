@@ -1,13 +1,13 @@
-"use server";
+'use server';
 
-import { auth } from "@clerk/nextjs/server";
-import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
-import { del } from "@vercel/blob";
-import { fetchMutation } from "convex/nextjs";
-import type { FunctionReference } from "convex/server";
-import { inngest } from "@/app/api/inngest/client";
-import { checkUploadLimits } from "@/lib/tier-utils";
+import { auth } from '@clerk/nextjs/server';
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
+import { del } from '@vercel/blob';
+import { fetchMutation } from 'convex/nextjs';
+import type { FunctionReference } from 'convex/server';
+import { inngest } from '@/app/api/inngest/client';
+import { checkUploadLimits } from '@/lib/tier-utils';
 
 /**
  * Project Server Actions
@@ -30,18 +30,18 @@ import { checkUploadLimits } from "@/lib/tier-utils";
 
 // Narrow the generated api type at runtime so we can safely access api.projects
 type ProjectsApiShape = {
-  createProject: FunctionReference<"mutation">;
-  deleteProject: FunctionReference<"mutation">;
-  updateProjectDisplayName: FunctionReference<"mutation">;
-  recordOrphanedBlob: FunctionReference<"mutation">;
+  createProject: FunctionReference<'mutation'>;
+  deleteProject: FunctionReference<'mutation'>;
+  updateProjectDisplayName: FunctionReference<'mutation'>;
+  recordOrphanedBlob: FunctionReference<'mutation'>;
 };
 
 function validateProjectsApi(
   apiObj: unknown,
 ): apiObj is { projects: ProjectsApiShape } {
-  if (!apiObj || typeof apiObj !== "object") return false;
+  if (!apiObj || typeof apiObj !== 'object') return false;
   const projects = (apiObj as Record<string, unknown>).projects;
-  if (!projects || typeof projects !== "object") return false;
+  if (!projects || typeof projects !== 'object') return false;
   const p = projects as Record<string, unknown>;
   return (
     p.createProject != null &&
@@ -52,33 +52,33 @@ function validateProjectsApi(
 }
 
 function getProjectsApiValidationDetails(apiObj: unknown): string {
-  if (!apiObj || typeof apiObj !== "object") {
-    return "api is not an object";
+  if (!apiObj || typeof apiObj !== 'object') {
+    return 'api is not an object';
   }
 
   const projects = (apiObj as Record<string, unknown>).projects;
-  if (!projects || typeof projects !== "object") {
-    return "api.projects is missing or not an object";
+  if (!projects || typeof projects !== 'object') {
+    return 'api.projects is missing or not an object';
   }
 
   const p = projects as Record<string, unknown>;
   const missingMethods = [
-    p.createProject == null ? "createProject" : null,
-    p.deleteProject == null ? "deleteProject" : null,
-    p.updateProjectDisplayName == null ? "updateProjectDisplayName" : null,
-    p.recordOrphanedBlob == null ? "recordOrphanedBlob" : null,
+    p.createProject == null ? 'createProject' : null,
+    p.deleteProject == null ? 'deleteProject' : null,
+    p.updateProjectDisplayName == null ? 'updateProjectDisplayName' : null,
+    p.recordOrphanedBlob == null ? 'recordOrphanedBlob' : null,
   ].filter((name): name is string => name !== null);
 
   if (missingMethods.length === 0) {
-    return "validateProjectsApi(api) returned false unexpectedly";
+    return 'validateProjectsApi(api) returned false unexpectedly';
   }
 
-  return `api.projects is missing: ${missingMethods.join(", ")}`;
+  return `api.projects is missing: ${missingMethods.join(', ')}`;
 }
 
 if (!validateProjectsApi(api)) {
   const errorMessage =
-    "[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob";
+    '[projects] Convex API shape mismatch: api.projects must expose createProject, deleteProject, updateProjectDisplayName, and recordOrphanedBlob';
   const details = getProjectsApiValidationDetails(api);
   throw new Error(`${errorMessage}. Validation details: ${details}`);
 }
@@ -95,18 +95,18 @@ export async function validateUploadAction(input: {
   const authObj = await auth();
   const { userId } = authObj;
   if (!userId) {
-    return { success: false, error: "Not authenticated" };
+    return { success: false, error: 'Not authenticated' };
   }
 
   const fileSize = input.fileSize;
   if (
     fileSize == null ||
-    typeof fileSize !== "number" ||
+    typeof fileSize !== 'number' ||
     Number.isNaN(fileSize) ||
     fileSize <= 0
   ) {
-    const msg = "Invalid file size. Please provide a valid positive file size.";
-    console.log("[VALIDATE] Failed:", { userId, reason: "invalid_fileSize" });
+    const msg = 'Invalid file size. Please provide a valid positive file size.';
+    console.log('[VALIDATE] Failed:', { userId, reason: 'invalid_fileSize' });
     return { success: false, error: msg };
   }
 
@@ -117,7 +117,7 @@ export async function validateUploadAction(input: {
     input.duration,
   );
   if (!validation.allowed) {
-    console.log("[VALIDATE] Failed:", {
+    console.log('[VALIDATE] Failed:', {
       userId,
       message: validation.message,
       reason: validation.reason,
@@ -125,11 +125,11 @@ export async function validateUploadAction(input: {
     });
     return {
       success: false,
-      error: validation.message ?? "Upload not allowed",
+      error: validation.message ?? 'Upload not allowed',
     };
   }
 
-  console.log("[VALIDATE] Passed:", { userId, fileSize });
+  console.log('[VALIDATE] Passed:', { userId, fileSize });
   return { success: true };
 }
 
@@ -178,32 +178,32 @@ export async function createProjectAction(
     const authObj = await auth();
     const { userId } = authObj;
     if (!userId) {
-      return { success: false, error: "Unauthorized" };
+      return { success: false, error: 'Unauthorized' };
     }
 
     const { fileUrl, fileName, fileSize, mimeType, fileDuration } = input;
     if (!fileUrl || !fileName) {
-      return { success: false, error: "Missing required fields" };
+      return { success: false, error: 'Missing required fields' };
     }
 
     // Validate fileSize before calling checkUploadLimits (CreateProjectInput requires it)
     if (
       fileSize == null ||
-      typeof fileSize !== "number" ||
+      typeof fileSize !== 'number' ||
       Number.isNaN(fileSize) ||
       fileSize <= 0
     ) {
       return {
         success: false,
-        error: "Invalid file size. Please provide a valid positive file size.",
+        error: 'Invalid file size. Please provide a valid positive file size.',
       };
     }
 
     // Determine user's plan via Clerk (optional downstream use)
-    let plan: "free" | "pro" | "ultra" = "free";
+    let plan: 'free' | 'pro' | 'ultra' = 'free';
     const { has } = authObj;
-    if (has?.({ plan: "ultra" })) plan = "ultra";
-    else if (has?.({ plan: "pro" })) plan = "pro";
+    if (has?.({ plan: 'ultra' })) plan = 'ultra';
+    else if (has?.({ plan: 'pro' })) plan = 'pro';
 
     const validation = await checkUploadLimits(
       authObj,
@@ -214,13 +214,13 @@ export async function createProjectAction(
     if (!validation.allowed) {
       return {
         success: false,
-        error: validation.message ?? "Upload not allowed for your plan",
+        error: validation.message ?? 'Upload not allowed for your plan',
       };
     }
 
-    const fileExtension = fileName.split(".").pop() ?? "unknown";
+    const fileExtension = fileName.split('.').pop() ?? 'unknown';
 
-    const token = await authObj.getToken({ template: "convex" });
+    const token = await authObj.getToken({ template: 'convex' });
     const projectId = await fetchMutation(
       projectsApi.createProject,
       {
@@ -237,7 +237,7 @@ export async function createProjectAction(
 
     // Inngest event with retry/backoff
     const eventPayload = {
-      name: "podcast/uploaded" as const,
+      name: 'podcast/uploaded' as const,
       data: {
         projectId,
         userId,
@@ -265,7 +265,7 @@ export async function createProjectAction(
           await new Promise((r) => setTimeout(r, delayMs));
         } else {
           console.error(
-            "[createProjectAction] inngest.send failed after retries",
+            '[createProjectAction] inngest.send failed after retries',
             {
               projectId,
               userId,
@@ -275,13 +275,13 @@ export async function createProjectAction(
           );
           try {
             await del(fileUrl);
-            console.log("[createProjectAction] Removed uploaded blob:", {
+            console.log('[createProjectAction] Removed uploaded blob:', {
               userId,
               fileUrl,
             });
           } catch (blobDeleteErr) {
             console.error(
-              "[createProjectAction] Failed to remove uploaded blob:",
+              '[createProjectAction] Failed to remove uploaded blob:',
               { userId, fileUrl, error: blobDeleteErr },
             );
           }
@@ -292,13 +292,13 @@ export async function createProjectAction(
               { projectId, userId },
               { token: token ?? undefined },
             );
-            console.log("[createProjectAction] Removed orphaned project:", {
+            console.log('[createProjectAction] Removed orphaned project:', {
               projectId,
               userId,
             });
           } catch (deleteErr) {
             console.error(
-              "[createProjectAction] Failed to remove orphaned project:",
+              '[createProjectAction] Failed to remove orphaned project:',
               { projectId, userId, error: deleteErr },
             );
           }
@@ -309,7 +309,7 @@ export async function createProjectAction(
             error:
               lastError instanceof Error
                 ? lastError.message
-                : "Failed to trigger processing. Please try again.",
+                : 'Failed to trigger processing. Please try again.',
           };
         }
       }
@@ -317,7 +317,7 @@ export async function createProjectAction(
 
     return { success: true, projectId };
   } catch (error) {
-    console.error("Error Creating Project, Please Try Again Later:", error);
+    console.error('Error Creating Project, Please Try Again Later:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
@@ -339,7 +339,7 @@ export type DeleteProjectResult =
     };
 
 export async function deleteProjectAction(
-  projectId: Id<"projects">,
+  projectId: Id<'projects'>,
 ): Promise<DeleteProjectResult> {
   try {
     const authObj = await auth();
@@ -347,11 +347,11 @@ export async function deleteProjectAction(
     if (!userId) {
       return {
         success: false,
-        error: "Unauthorized, You Must Be Logged In To Delete A Project",
+        error: 'Unauthorized, You Must Be Logged In To Delete A Project',
       };
     }
 
-    const token = await authObj.getToken({ template: "convex" });
+    const token = await authObj.getToken({ template: 'convex' });
     const result = await fetchMutation(
       projectsApi.deleteProject,
       { projectId, userId },
@@ -377,7 +377,7 @@ export async function deleteProjectAction(
                 ? lastError.message
                 : String(lastError);
             console.warn(
-              "[ORPHANED_BLOB] Vercel blob deletion failed after project delete",
+              '[ORPHANED_BLOB] Vercel blob deletion failed after project delete',
               {
                 projectId,
                 userId,
@@ -399,7 +399,7 @@ export async function deleteProjectAction(
               );
             } catch (recordErr) {
               console.error(
-                "[ORPHANED_BLOB] Failed to record orphaned blob:",
+                '[ORPHANED_BLOB] Failed to record orphaned blob:',
                 recordErr,
               );
             }
@@ -417,11 +417,11 @@ export async function deleteProjectAction(
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting project:", error);
+    console.error('Error deleting project:', error);
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "Failed to delete project",
+        error instanceof Error ? error.message : 'Failed to delete project',
     };
   }
 }
@@ -430,7 +430,7 @@ export async function deleteProjectAction(
  * Update project display name
  */
 export async function updateDisplayNameAction(
-  projectId: Id<"projects">,
+  projectId: Id<'projects'>,
   displayName: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
@@ -440,7 +440,7 @@ export async function updateDisplayNameAction(
       return {
         success: false,
         error:
-          "Unauthorized, You Must Be Logged In To Update A Project Display Name",
+          'Unauthorized, You Must Be Logged In To Update A Project Display Name',
       };
     }
 
@@ -449,18 +449,18 @@ export async function updateDisplayNameAction(
       return {
         success: false,
         error:
-          "Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue",
+          'Display Name Cannot Be Empty, Please Provide A Valid Display Name To Continue',
       };
     }
     if (trimmedDisplayName.length > 200) {
       return {
         success: false,
         error:
-          "Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue",
+          'Display Name Cannot Be Longer Than 200 Characters, Please Provide A Shorter Display Name To Continue',
       };
     }
 
-    const token = await authObj.getToken({ template: "convex" });
+    const token = await authObj.getToken({ template: 'convex' });
     await fetchMutation(
       projectsApi.updateProjectDisplayName,
       {
@@ -473,7 +473,7 @@ export async function updateDisplayNameAction(
 
     return { success: true };
   } catch (error) {
-    console.error("Error Updating Display Name:", error);
+    console.error('Error Updating Display Name:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),

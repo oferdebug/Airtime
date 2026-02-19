@@ -31,7 +31,7 @@
  * - Must match frontend Convex provider configuration
  */
 
-import { ConvexHttpClient } from "convex/browser";
+import { ConvexHttpClient } from 'convex/browser';
 
 let _client: ConvexHttpClient | null = null;
 
@@ -44,9 +44,9 @@ let _client: ConvexHttpClient | null = null;
 export function getConvex(): ConvexHttpClient {
   if (_client) return _client;
   const url = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!url || url.trim() === "") {
+  if (!url || url.trim() === '') {
     throw new Error(
-      "NEXT_PUBLIC_CONVEX_URL is required. Set it in your environment.",
+      'NEXT_PUBLIC_CONVEX_URL is required. Set it in your environment.',
     );
   }
   _client = new ConvexHttpClient(url);

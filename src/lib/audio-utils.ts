@@ -36,13 +36,13 @@ export async function getAudioDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
     const audio = new Audio();
     const objectUrl = URL.createObjectURL(file);
-    audio.addEventListener("loadedmetadata", () => {
+    audio.addEventListener('loadedmetadata', () => {
       const duration = audio.duration;
       if (!Number.isFinite(duration)) {
         URL.revokeObjectURL(objectUrl);
         reject(
           new Error(
-            "Invalid or undecodable audio duration; file may be corrupted or unsupported",
+            'Invalid or undecodable audio duration; file may be corrupted or unsupported',
           ),
         );
         return;
@@ -54,8 +54,8 @@ export async function getAudioDuration(file: File): Promise<number> {
       resolve(safeDuration);
       URL.revokeObjectURL(objectUrl);
     });
-    audio.addEventListener("error", () => {
-      reject(new Error("Failed to load audio metadata"));
+    audio.addEventListener('error', () => {
+      reject(new Error('Failed to load audio metadata'));
       URL.revokeObjectURL(objectUrl);
     });
     audio.src = objectUrl;

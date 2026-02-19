@@ -1,36 +1,36 @@
-"use server";
+'use server';
 
-import { auth } from "@clerk/nextjs/server";
-import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
-import { inngest } from "@/app/api/inngest/client";
-import { getConvex } from "@/lib/convex-client";
-import type { RetryableJob } from "./retry-job";
+import { auth } from '@clerk/nextjs/server';
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
+import { inngest } from '@/app/api/inngest/client';
+import { getConvex } from '@/lib/convex-client';
+import type { RetryableJob } from './retry-job';
 
 // Local configuration for plan features and their corresponding job keys.
-type PlanName = "free" | "pro" | "ultra";
+type PlanName = 'free' | 'pro' | 'ultra';
 
 type FeatureName =
-  | "summary"
-  | "transcription"
-  | "socialPosts"
-  | "titles"
-  | "hashtags"
-  | "keyMoments"
-  | "youtubeTimestamps";
+  | 'summary'
+  | 'transcription'
+  | 'socialPosts'
+  | 'titles'
+  | 'hashtags'
+  | 'keyMoments'
+  | 'youtubeTimestamps';
 
-const FREE_FEATURES: FeatureName[] = ["summary"];
+const FREE_FEATURES: FeatureName[] = ['summary'];
 const PRO_FEATURES: FeatureName[] = [
   ...FREE_FEATURES,
-  "socialPosts",
-  "titles",
-  "hashtags",
+  'socialPosts',
+  'titles',
+  'hashtags',
 ];
 const ULTRA_FEATURES: FeatureName[] = [
   ...PRO_FEATURES,
-  "keyMoments",
-  "youtubeTimestamps",
-  "transcription",
+  'keyMoments',
+  'youtubeTimestamps',
+  'transcription',
 ];
 
 const PLAN_FEATURES: Record<PlanName, FeatureName[]> = {
@@ -42,20 +42,20 @@ const PLAN_FEATURES: Record<PlanName, FeatureName[]> = {
 const FEATURE_TO_JOB_MAP: Record<FeatureName, string | undefined> = {
   summary: undefined, // summary is always present / not a retryable job
   transcription: undefined, // transcription is not treated as a feature job here
-  socialPosts: "socialPosts",
-  titles: "titles",
-  hashtags: "hashtags",
-  keyMoments: "keyMoments",
-  youtubeTimestamps: "youtubeTimestamps",
+  socialPosts: 'socialPosts',
+  titles: 'titles',
+  hashtags: 'hashtags',
+  keyMoments: 'keyMoments',
+  youtubeTimestamps: 'youtubeTimestamps',
 };
 
 /** Maps job names to project property names for hasData checks (project schema uses title, youtubeTimestamps). */
 const JOB_TO_PROJECT_KEY: Record<string, string> = {
-  socialPosts: "socialPosts",
-  titles: "title",
-  hashtags: "hashtags",
-  keyMoments: "keyMoments",
-  youtubeTimestamps: "youtubeTimestamps",
+  socialPosts: 'socialPosts',
+  titles: 'title',
+  hashtags: 'hashtags',
+  keyMoments: 'keyMoments',
+  youtubeTimestamps: 'youtubeTimestamps',
 };
 
 /**
@@ -78,22 +78,22 @@ const JOB_TO_PROJECT_KEY: Record<string, string> = {
  * then triggers parallel Inngest jobs to generate them all at once.
  */
 
-export async function generateMissingFeatures(projectId: Id<"projects">) {
+export async function generateMissingFeatures(projectId: Id<'projects'>) {
   const authObj = await auth();
   const { userId, has } = authObj;
 
   if (!userId) {
     throw new Error(
-      "Unauthorized, You Must Be Logged In To Generate Missing Features",
+      'Unauthorized, You Must Be Logged In To Generate Missing Features',
     );
   }
 
   /** Check if the user has a valid plan */
-  let currentPlan: "free" | "pro" | "ultra" = "free";
-  if (has?.({ plan: "ultra" })) {
-    currentPlan = "ultra";
-  } else if (has?.({ plan: "pro" })) {
-    currentPlan = "pro";
+  let currentPlan: 'free' | 'pro' | 'ultra' = 'free';
+  if (has?.({ plan: 'ultra' })) {
+    currentPlan = 'ultra';
+  } else if (has?.({ plan: 'pro' })) {
+    currentPlan = 'pro';
   }
 
   /** Check if the project exists & generated */
@@ -101,21 +101,25 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
   const project = await convex.query(api.projects.getProject, { projectId });
 
   if (!project) {
-    throw new Error("Project not found or access denied");
+    throw new Error('Project not found or access denied');
   }
 
   if (project.userId !== userId) {
     throw new Error(
-      "You are not authorized to generate missing features for this project",
+      'You are not authorized to generate missing features for this project',
     );
   }
 
   // Infer what plan was used during processing based on generated features
-  let originalPlan: "free" | "pro" | "ultra" = "free";
-  if (project.keyMoments || project.youtubeTiestamps) {
-    originalPlan = "ultra";
+  let originalPlan: 'free' | 'pro' | 'ultra' = 'free';
+  const hasYoutubeTimestamps =
+    project.youtubeTiestamps ||
+    (project as typeof project & { youtubeTimestamps?: unknown })
+      .youtubeTimestamps;
+  if (project.keyMoments || hasYoutubeTimestamps) {
+    originalPlan = 'ultra';
   } else if (project.socialPosts || project.title) {
-    originalPlan = "pro";
+    originalPlan = 'pro';
   }
 
   /** Get All Features Available In Current Plan But Missing From Project */
@@ -139,7 +143,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
 
   if (missingJobs.length === 0) {
     throw new Error(
-      "No missing features to generate. All features for your plan are already available.",
+      'No missing features to generate. All features for your plan are already available.',
     );
   }
 
@@ -147,7 +151,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
   await Promise.all(
     missingJobs.map((job) =>
       inngest.send({
-        name: "podcast/retry-job",
+        name: 'podcast/retry-job',
         data: {
           projectId,
           job,
@@ -163,7 +167,7 @@ export async function generateMissingFeatures(projectId: Id<"projects">) {
     success: true,
     generated: missingJobs,
     message: `Generating ${missingJobs.length} feature${
-      missingJobs.length > 1 ? "s" : ""
-    }: ${missingJobs.join(", ")}`,
+      missingJobs.length > 1 ? 's' : ''
+    }: ${missingJobs.join(', ')}`,
   };
 }

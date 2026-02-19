@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useUser } from "@clerk/nextjs";
-import { useCallback, useMemo } from "react";
+import { useUser } from '@clerk/nextjs';
+import { useCallback, useMemo } from 'react';
 
-export type Plan = "free" | "pro" | "ultra" | null;
-export type PlanName = "free" | "pro" | "ultra";
+export type Plan = 'free' | 'pro' | 'ultra' | null;
+export type PlanName = 'free' | 'pro' | 'ultra';
 
-export const VALID_PLANS: PlanName[] = ["free", "pro", "ultra"];
+export const VALID_PLANS: PlanName[] = ['free', 'pro', 'ultra'];
 
 function isPlanName(value: string): value is PlanName {
   return VALID_PLANS.includes(value as PlanName);
@@ -42,7 +42,7 @@ export function usePlan(): UsePlanReturn {
     }
 
     // If user exists but no plan found, default to free
-    return "free";
+    return 'free';
   }, [user, isLoaded]);
 
   const hasPlan = useCallback(
@@ -56,8 +56,8 @@ export function usePlan(): UsePlanReturn {
   return {
     plan,
     hasPlan,
-    isFree: plan === "free",
-    isPro: plan === "pro",
-    isUltra: plan === "ultra",
+    isFree: plan === 'free',
+    isPro: plan === 'pro',
+    isUltra: plan === 'ultra',
   };
 }

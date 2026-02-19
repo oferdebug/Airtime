@@ -1,4 +1,4 @@
-"use client";
+'use client';
 /**
  * Upload Progress Component
  *
@@ -14,16 +14,16 @@
  * File metadata: name (truncated), size, duration (if available), status icon.
  */
 
-import { CheckCircle2, Clock, FileAudio, Loader2, XCircle } from "lucide-react";
-import { formatDuration, formatFileSize } from "@/lib/utils";
+import { CheckCircle2, Clock, FileAudio, Loader2, XCircle } from 'lucide-react';
+import { formatDuration, formatFileSize } from '@/lib/utils';
 
 export type UploadStatus =
-  | "idle"
-  | "uploading"
-  | "processing"
-  | "completed"
-  | "error"
-  | "canceled";
+  | 'idle'
+  | 'uploading'
+  | 'processing'
+  | 'completed'
+  | 'error'
+  | 'canceled';
 
 export interface UploadProgressProps {
   fileName: string;
@@ -35,36 +35,36 @@ export interface UploadProgressProps {
 }
 
 const STATUS_LABEL: Record<
-  Exclude<UploadStatus, "completed" | "error" | "canceled">,
+  Exclude<UploadStatus, 'completed' | 'error' | 'canceled'>,
   string
 > = {
-  idle: "Ready to upload",
-  uploading: "Uploading...",
-  processing: "Processing...",
+  idle: 'Ready to upload',
+  uploading: 'Uploading...',
+  processing: 'Processing...',
 };
 
 function StatusIcon({ status }: { status: UploadStatus }) {
-  if (status === "idle") return null;
-  if (status === "uploading" || status === "processing") {
+  if (status === 'idle') return null;
+  if (status === 'uploading' || status === 'processing') {
     return (
       <Loader2 className="h-7 w-7 animate-spin text-emerald-600" aria-hidden />
     );
   }
-  if (status === "completed") {
+  if (status === 'completed') {
     return <CheckCircle2 className="h-7 w-7 text-emerald-600" aria-hidden />;
   }
   return <XCircle className="h-7 w-7 text-red-500" aria-hidden />;
 }
 
 function ErrorHint({ error }: { error: string }) {
-  if (error.includes("plan limit")) {
+  if (error.includes('plan limit')) {
     return (
       <p className="mt-3 pt-3 border-t border-red-200 text-xs text-gray-600">
         💡 Upgrade your plan to upload larger files or more projects
       </p>
     );
   }
-  if (error.includes("Authentication")) {
+  if (error.includes('Authentication')) {
     return (
       <p className="mt-3 pt-3 border-t border-red-200 text-xs text-gray-600">
         💡 Try refreshing the page or signing in again
@@ -82,7 +82,7 @@ export function UploadProgress({
   status,
   error,
 }: UploadProgressProps) {
-  const showProgressBar = status === "uploading" || status === "processing";
+  const showProgressBar = status === 'uploading' || status === 'processing';
 
   return (
     <div className="glass-card-strong rounded-2xl p-6 hover-lift">
@@ -140,7 +140,7 @@ export function UploadProgress({
         )}
 
         {/* Completed message */}
-        {status === "completed" && (
+        {status === 'completed' && (
           <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4">
             <p className="text-sm font-semibold text-emerald-700">
               Upload completed! Redirecting to project dashboard...
@@ -149,7 +149,7 @@ export function UploadProgress({
         )}
 
         {/* Canceled message */}
-        {status === "canceled" && (
+        {status === 'canceled' && (
           <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4">
             <p className="text-sm font-semibold text-amber-800">
               Upload canceled
@@ -161,7 +161,7 @@ export function UploadProgress({
         )}
 
         {/* Error message */}
-        {status === "error" && error && (
+        {status === 'error' && error && (
           <div className="rounded-xl border-2 border-red-200 bg-red-50 p-5">
             <div className="flex items-start gap-4">
               <XCircle

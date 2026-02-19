@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { type ReactNode, useCallback } from "react";
-import { usePlan } from "@/hooks/use-plan";
+import { type ReactNode, useCallback } from 'react';
+import { usePlan } from '@/hooks/use-plan';
 
 interface PlanProtectProps {
   /**

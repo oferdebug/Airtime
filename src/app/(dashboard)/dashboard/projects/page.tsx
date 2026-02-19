@@ -1,18 +1,51 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { ProjectsList } from "@/components/ProjectsList";
+'use client';
 
-export default async function ProjectsPage() {
-  const authObj = await auth();
-  const { userId } = authObj;
+import { useAuth } from '@clerk/nextjs';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { ProjectsList } from '@/components/ProjectsList';
+
+export default function ProjectsPage() {
+  const { userId, isLoaded } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <div className="container max-w-6xl mx-auto py-10 px-4">
+        <div className="flex items-center justify-center min-h-[300px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
   if (!userId) {
-    redirect("/sign-in");
+    return (
+      <div className="container max-w-6xl mx-auto py-10 px-4">
+        <p className="text-muted-foreground">
+          Please sign in to view projects.{' '}
+          <Link
+            href="/sign-in"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="p-8 min-h-screen">
-      <h1 className="text-2xl font-bold">My Projects</h1>
-      <ProjectsList userId={userId} />
+    <div className="container max-w-6xl mx-auto py-10 px-4 space-y-6">
+      <div className="mb-2">
+        <h1 className="text-3xl font-bold tracking-tight">Podcast Library</h1>
+        <p className="text-muted-foreground mt-1">
+          View and manage your podcast projects.
+        </p>
+      </div>
+
+      <div className="glass-card rounded-2xl p-6">
+        <ProjectsList userId={userId} />
+      </div>
     </div>
   );
 }

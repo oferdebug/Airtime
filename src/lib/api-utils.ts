@@ -10,8 +10,8 @@
  *
  */
 
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { auth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 /**
  * Standardized API success response helper
@@ -59,7 +59,7 @@ export async function withAuth(): Promise<
 > {
   const { userId } = await auth();
   if (!userId) {
-    return { ok: false, response: apiError("Unauthorized", 401) };
+    return { ok: false, response: apiError('Unauthorized', 401) };
   }
   return { ok: true, userId };
 }

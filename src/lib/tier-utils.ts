@@ -7,18 +7,18 @@
  * - Determine minimum plan required for feature generation
  */
 
-import type { auth } from "@clerk/nextjs/server";
-import { fetchQuery } from "convex/nextjs";
-import { api } from "../../convex/_generated/api";
-import type { FeatureName, PlanName } from "./tier-config";
-import { PLAN_FEATURES, PLAN_LIMITS } from "./tier-config";
+import type { auth } from '@clerk/nextjs/server';
+import { fetchQuery } from 'convex/nextjs';
+import { api } from '../../convex/_generated/api';
+import type { FeatureName, PlanName } from './tier-config';
+import { FEATURES, PLAN_FEATURES, PLAN_LIMITS } from './tier-config';
 
 /** Clerk auth object; has() supports both feature and plan checks (e.g. has({ plan: "pro" })). */
 export type AuthObject = Awaited<ReturnType<typeof auth>>;
 
 export interface UploadValidationResult {
   allowed: boolean;
-  reason?: "file_size" | "duration" | "project_limit";
+  reason?: 'file_size' | 'duration' | 'project_limit';
   message?: string;
   currentCount?: number;
   limit?: number;
@@ -45,11 +45,11 @@ export async function checkUploadLimits(
   duration?: number,
 ): Promise<UploadValidationResult> {
   const { has } = authObj;
-  let plan: PlanName = "free";
-  if (has?.({ plan: "ultra" })) {
-    plan = "ultra";
-  } else if (has?.({ plan: "pro" })) {
-    plan = "pro";
+  let plan: PlanName = 'free';
+  if (has?.({ plan: 'ultra' })) {
+    plan = 'ultra';
+  } else if (has?.({ plan: 'pro' })) {
+    plan = 'pro';
   }
 
   const limits = PLAN_LIMITS[plan];
@@ -58,7 +58,7 @@ export async function checkUploadLimits(
   if (fileSize > limits.maxFileSize) {
     return {
       allowed: false,
-      reason: "file_size",
+      reason: 'file_size',
       message: `File size (${(fileSize / (1024 * 1024)).toFixed(1)}MB) exceeds your plan limit of ${(limits.maxFileSize / (1024 * 1024)).toFixed(0)}MB`,
       limit: limits.maxFileSize,
     };
@@ -70,7 +70,7 @@ export async function checkUploadLimits(
     const limitMinutes = Math.floor(limits.maxDuration / 60);
     return {
       allowed: false,
-      reason: "duration",
+      reason: 'duration',
       message: `Duration (${durationMinutes} minutes) exceeds your plan limit of ${limitMinutes} minutes`,
       limit: limits.maxDuration,
     };
@@ -78,8 +78,8 @@ export async function checkUploadLimits(
 
   // Check project count limit (skip for ultra - unlimited)
   if (limits.maxProjects !== null) {
-    const includeDeleted = plan === "free";
-    const token = await authObj.getToken({ template: "convex" });
+    const includeDeleted = plan === 'free';
+    const token = await authObj.getToken({ template: 'convex' });
     if (!token) {
       throw new Error(
         `Missing auth token for getUserProjectCount (userId=${userId}, template=convex)`,
@@ -94,8 +94,8 @@ export async function checkUploadLimits(
     if (projectCount >= limits.maxProjects) {
       return {
         allowed: false,
-        reason: "project_limit",
-        message: `You've reached your plan limit of ${limits.maxProjects} ${plan === "free" ? "total" : "active"} projects`,
+        reason: 'project_limit',
+        message: `You've reached your plan limit of ${limits.maxProjects} ${plan === 'free' ? 'total' : 'active'} projects`,
         currentCount: projectCount,
         limit: limits.maxProjects,
       };
@@ -149,7 +149,22 @@ export function planHasFeature(plan: PlanName, feature: FeatureName): boolean {
  * @returns Minimum plan name that includes this feature
  */
 export function getMinimumPlanForFeature(feature: FeatureName): PlanName {
-  if (PLAN_FEATURES.free.includes(feature)) return "free";
-  if (PLAN_FEATURES.pro.includes(feature)) return "pro";
-  return "ultra";
+  switch (feature) {
+    case FEATURES.SUMMARY:
+      return 'free';
+    case FEATURES.SOCIAL_POSTS:
+    case FEATURES.TITLES:
+    case FEATURES.HASHTAGS:
+      return 'pro';
+    case FEATURES.YOUTUBE_TIMESTAMPS:
+    case FEATURES.KEY_MOMENTS:
+    case FEATURES.SPEAKER_DIARIZATION:
+      return 'ultra';
+    default: {
+      const unhandledFeature: never = feature;
+      throw new Error(
+        `Unhandled feature in getMinimumPlanForFeature: ${unhandledFeature}`,
+      );
+    }
+  }
 }

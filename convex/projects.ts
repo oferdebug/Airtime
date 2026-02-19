@@ -5,14 +5,19 @@
  * saveTranscript, updateJobStatus, saveGeneratedContent, recordError
  */
 
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
-import type { MutationCtx } from "./_generated/server";
-import { internal } from "./_generated/api";
-import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { v } from 'convex/values';
+import { internal } from './_generated/api';
+import type { MutationCtx } from './_generated/server';
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from './_generated/server';
 
 export const getProjectById = query({
-  args: { id: v.id("projects") },
+  args: { id: v.id('projects') },
   handler: async (ctx, { id }) => {
     const identity = await ctx.auth.getUserIdentity();
     const userId = identity?.subject;
@@ -26,7 +31,7 @@ export const getProjectById = query({
 
 /** Same as getProjectById but accepts { projectId } for server actions. */
 export const getProject = query({
-  args: { projectId: v.id("projects") },
+  args: { projectId: v.id('projects') },
   handler: async (ctx, { projectId }) => {
     const identity = await ctx.auth.getUserIdentity();
     const userId = identity?.subject;
@@ -40,7 +45,7 @@ export const getProject = query({
 
 /**
  * Idempotent helper: ensure userProjectCounts exists for userId and increment.
- * Uses registry doc read+patch to trigger OCC retries so concurrent creators cannot insert duplicates.
+ * Registry is tracked per user to avoid a singleton write hotspot.
  */
 async function ensureAndIncrementCounter(
   ctx: MutationCtx,
@@ -54,8 +59,8 @@ async function ensureAndIncrementCounter(
 
     while (true) {
       const page = await ctx.db
-        .query("projects")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .query('projects')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
         .paginate({ numItems: 100, cursor });
 
       totalCount += page.page.length;
@@ -70,105 +75,74 @@ async function ensureAndIncrementCounter(
     return { totalCount, activeCount };
   };
 
-  const registries = await ctx.db
-    .query("userProjectCountsRegistry")
-    .withIndex("by_type", (q) => q.eq("type", "singleton"))
-    .collect();
+  const registry = await ctx.db
+    .query('userProjectCountsRegistry')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
 
-  if (registries.length > 1) {
-    console.warn("[REGISTRY_ANOMALY] Multiple registry documents found", {
-      count: registries.length,
+  const counter = await ctx.db
+    .query('userProjectCounts')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .first();
+
+  if (registry && counter) {
+    await ctx.db.patch(counter._id, {
+      totalCount: counter.totalCount + delta.total,
+      activeCount: counter.activeCount + delta.active,
     });
-  }
-
-  const initializedSet = new Set(
-    registries.flatMap((r) => r.initializedUserIds),
-  );
-  const primary = registries.sort(
-    (a, b) => a._creationTime - b._creationTime,
-  )[0];
-  if (initializedSet.has(userId)) {
-    const counter = await ctx.db
-      .query("userProjectCounts")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .first();
-    if (counter) {
-      await ctx.db.patch(counter._id, {
-        totalCount: counter.totalCount + delta.total,
-        activeCount: counter.activeCount + delta.active,
-      });
-    } else {
-      // Registry says initialized but counter is missing: rebuild from source of truth.
-      const projectCounts = await countUserProjects();
-      await ctx.db.insert("userProjectCounts", {
-        userId,
-        totalCount: projectCounts.totalCount + delta.total,
-        activeCount: projectCounts.activeCount + delta.active,
-      });
-    }
     return;
   }
 
   const projectCounts = await countUserProjects();
+  const totalCount = projectCounts.totalCount + delta.total;
+  const activeCount = projectCounts.activeCount + delta.active;
 
-  if (primary) {
-    await ctx.db.insert("userProjectCounts", {
+  if (counter) {
+    await ctx.db.patch(counter._id, { totalCount, activeCount });
+  } else {
+    await ctx.db.insert('userProjectCounts', {
       userId,
-      totalCount: projectCounts.totalCount + delta.total,
-      activeCount: projectCounts.activeCount + delta.active,
+      totalCount,
+      activeCount,
     });
-    await ctx.db.patch(primary._id, {
-      initializedUserIds: [...primary.initializedUserIds, userId],
-    });
-    return;
   }
 
-  const existingCounter = await ctx.db
-    .query("userProjectCounts")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .first();
-  if (existingCounter) {
-    await ctx.db.patch(existingCounter._id, {
-      totalCount: existingCounter.totalCount + delta.total,
-      activeCount: existingCounter.activeCount + delta.active,
+  if (!registry) {
+    await ctx.db.insert('userProjectCountsRegistry', {
+      userId,
+      initializedAt: Date.now(),
     });
-    await ctx.db.insert("userProjectCountsRegistry", {
-      type: "singleton",
-      initializedUserIds: [userId],
-    });
-    return;
   }
-
-  await ctx.db.insert("userProjectCountsRegistry", {
-    type: "singleton",
-    initializedUserIds: [userId],
-  });
-  await ctx.db.insert("userProjectCounts", {
-    userId,
-    totalCount: projectCounts.totalCount + delta.total,
-    activeCount: projectCounts.activeCount + delta.active,
-  });
 }
 
 /**
- * One-time seed: create registry and populate from existing userProjectCounts.
+ * One-time seed: create per-user registry docs from existing counters.
  * Run: npx convex run projects:seedUserProjectCountsRegistry
  */
-export const seedUserProjectCountsRegistry = mutation({
+export const seedUserProjectCountsRegistry = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const existing = await ctx.db
-      .query("userProjectCountsRegistry")
-      .withIndex("by_type", (q) => q.eq("type", "singleton"))
-      .first();
-    if (existing) return { seeded: false, message: "Registry already exists" };
-    const counters = await ctx.db.query("userProjectCounts").collect();
-    const userIds = [...new Set(counters.map((c) => c.userId))];
-    await ctx.db.insert("userProjectCountsRegistry", {
-      type: "singleton",
-      initializedUserIds: userIds,
-    });
-    return { seeded: true, userIds };
+    const counters = await ctx.db.query('userProjectCounts').collect();
+    let seededUsers = 0;
+
+    for (const counter of counters) {
+      const existing = await ctx.db
+        .query('userProjectCountsRegistry')
+        .withIndex('by_user', (q) => q.eq('userId', counter.userId))
+        .first();
+      if (existing) continue;
+
+      await ctx.db.insert('userProjectCountsRegistry', {
+        userId: counter.userId,
+        initializedAt: Date.now(),
+      });
+      seededUsers += 1;
+    }
+
+    return {
+      seededUsers,
+      totalUsers: counters.length,
+    };
   },
 });
 
@@ -192,17 +166,17 @@ export const createProject = mutation({
     const authUserId = identity?.subject;
     if (!authUserId) {
       throw new Error(
-        "Unauthorized: You must be signed in to create a project",
+        'Unauthorized: You must be signed in to create a project',
       );
     }
     if (authUserId !== args.userId) {
       throw new Error(
-        "Unauthorized: You cannot create projects for another user",
+        'Unauthorized: You cannot create projects for another user',
       );
     }
 
     const now = Date.now();
-    const projectId = await ctx.db.insert("projects", {
+    const projectId = await ctx.db.insert('projects', {
       userId: authUserId,
       inputUrl: args.inputUrl,
       fileName: args.fileName,
@@ -211,10 +185,10 @@ export const createProject = mutation({
       fileDuration: args.fileDuration,
       fileFormat: args.fileFormat,
       mimeType: args.mimeType,
-      status: "uploading",
+      status: 'uploading',
       jobStatus: {
-        transcription: "uploading",
-        contentGeneration: "pending",
+        transcription: 'uploading',
+        contentGeneration: 'pending',
       },
       createdAt: now,
       updatedAt: now,
@@ -231,22 +205,22 @@ export const createProject = mutation({
  */
 export const updateProjectStatus = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     status: v.union(
-      v.literal("pending"),
-      v.literal("uploading"),
-      v.literal("processing"),
-      v.literal("completed"),
-      v.literal("failed"),
+      v.literal('pending'),
+      v.literal('uploading'),
+      v.literal('processing'),
+      v.literal('completed'),
+      v.literal('failed'),
     ),
   },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
     const userId = identity?.subject;
     if (!userId || project.userId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const updates: {
       status: typeof args.status;
@@ -256,7 +230,7 @@ export const updateProjectStatus = mutation({
       status: args.status,
       updatedAt: Date.now(),
     };
-    if (args.status === "completed") {
+    if (args.status === 'completed') {
       updates.completedAt = Date.now();
     }
     await ctx.db.patch(args.projectId, updates);
@@ -269,7 +243,7 @@ export const updateProjectStatus = mutation({
  */
 export const saveTranscript = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     transcript: v.object({
       text: v.string(),
       segments: v.array(
@@ -315,11 +289,11 @@ export const saveTranscript = mutation({
   },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
     const userId = identity?.subject;
     if (!userId || project.userId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     await ctx.db.patch(args.projectId, {
       transcript: args.transcript,
@@ -334,32 +308,32 @@ export const saveTranscript = mutation({
  */
 export const updateJobStatus = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     transcription: v.optional(
       v.union(
-        v.literal("pending"),
-        v.literal("uploading"),
-        v.literal("processing"),
-        v.literal("completed"),
-        v.literal("failed"),
+        v.literal('pending'),
+        v.literal('uploading'),
+        v.literal('processing'),
+        v.literal('completed'),
+        v.literal('failed'),
       ),
     ),
     contentGeneration: v.optional(
       v.union(
-        v.literal("pending"),
-        v.literal("running"),
-        v.literal("completed"),
-        v.literal("failed"),
+        v.literal('pending'),
+        v.literal('running'),
+        v.literal('completed'),
+        v.literal('failed'),
       ),
     ),
   },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
     const callerId = identity?.subject;
     if (!callerId || project.userId !== callerId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const updates = {
       jobStatus: {
@@ -383,7 +357,7 @@ export const updateJobStatus = mutation({
  */
 export const saveGeneratedContent = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     keyMoments: v.optional(
       v.array(
         v.object({
@@ -433,11 +407,11 @@ export const saveGeneratedContent = mutation({
   handler: async (ctx, args) => {
     const { projectId, ...content } = args;
     const project = await ctx.db.get(projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
     const callerId = identity?.subject;
     if (!callerId || project.userId !== callerId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     await ctx.db.patch(projectId, {
       ...content,
@@ -452,7 +426,7 @@ export const saveGeneratedContent = mutation({
  */
 export const recordError = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     message: v.string(),
     step: v.string(),
     details: v.optional(
@@ -464,14 +438,14 @@ export const recordError = mutation({
   },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
     const callerId = identity?.subject;
     if (!callerId || project.userId !== callerId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     await ctx.db.patch(args.projectId, {
-      status: "failed",
+      status: 'failed',
       error: {
         message: args.message,
         step: args.step,
@@ -489,7 +463,7 @@ export const recordError = mutation({
  */
 export const saveJobErrors = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     jobErrors: v.object({
       keyMoments: v.optional(v.string()),
       summary: v.optional(v.string()),
@@ -501,11 +475,11 @@ export const saveJobErrors = mutation({
   },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
     const callerId = identity?.subject;
     if (!callerId || project.userId !== callerId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     await ctx.db.patch(args.projectId, {
       jobErrors: args.jobErrors,
@@ -521,20 +495,26 @@ export const saveJobErrors = mutation({
 export const listUserProjects = query({
   args: {
     userId: v.string(),
-    paginationOpts: paginationOptsValidator,
+    paginationOpts: v.object({
+      // usePaginatedQuery sends null for the first request cursor
+      cursor: v.union(v.string(), v.null()),
+      // Convex client may include pagination id metadata
+      id: v.optional(v.number()),
+      numItems: v.number(),
+    }),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== args.userId) {
-      throw new Error("Unauthorized: You can only list your own projects");
+      throw new Error('Unauthorized: You can only list your own projects');
     }
     const dbQuery = ctx.db
-      .query("projects")
-      .withIndex("by_user_and_deleted_at", (q) =>
-        q.eq("userId", args.userId).eq("deletedAt", undefined),
+      .query('projects')
+      .withIndex('by_user_and_deleted_at', (q) =>
+        q.eq('userId', args.userId).eq('deletedAt', undefined),
       )
-      .order("desc");
+      .order('desc');
     return await dbQuery.paginate(args.paginationOpts);
   },
 });
@@ -552,22 +532,24 @@ export const getUserProjectCount = query({
     const identity = await ctx.auth.getUserIdentity();
     const userId = identity?.subject;
     if (!userId || userId !== args.userId) {
-      throw new Error("Unauthorized: You can only get your own project count");
+      throw new Error('Unauthorized: You can only get your own project count');
     }
     const counter = await ctx.db
-      .query("userProjectCounts")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .query('userProjectCounts')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
       .first();
     if (counter) {
       return args.includeDeleted ? counter.totalCount : counter.activeCount;
     }
     // No counter: either new user (0 projects) or pre-deploy user needing backfill.
     // Return 0 to avoid expensive collect; run backfillProjectCounters to initialize.
-    console.warn("[MISSING_PROJECT_COUNTER] missing project counter, backfill needed", {
+    console.warn({
+      message:
+        '[MISSING_PROJECT_COUNTER] missing project counter, backfill needed',
       userId: args.userId,
       includeDeleted: args.includeDeleted,
-      query: "getUserProjectCount",
-      remediation: "run backfillProjectCounters",
+      query: 'getUserProjectCount',
+      remediation: 'run backfillProjectCounters',
     });
     return 0;
   },
@@ -584,8 +566,8 @@ export const getProjectBackfillPage = internalQuery({
   },
   handler: async (ctx, { cursor, numItems }) => {
     const result = await ctx.db
-      .query("projects")
-      .order("asc")
+      .query('projects')
+      .order('asc')
       .paginate({ numItems, cursor });
 
     return {
@@ -616,8 +598,8 @@ export const upsertUserProjectCounts = internalMutation({
   handler: async (ctx, { counts }) => {
     for (const { userId, total, active } of counts) {
       const existing = await ctx.db
-        .query("userProjectCounts")
-        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .query('userProjectCounts')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
         .first();
       if (existing) {
         await ctx.db.patch(existing._id, {
@@ -625,7 +607,7 @@ export const upsertUserProjectCounts = internalMutation({
           activeCount: active,
         });
       } else {
-        await ctx.db.insert("userProjectCounts", {
+        await ctx.db.insert('userProjectCounts', {
           userId,
           totalCount: total,
           activeCount: active,
@@ -711,7 +693,7 @@ export const backfillProjectCounters = action({
  */
 export const recordOrphanedBlob = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     orphanedBlobUrl: v.string(),
     error: v.string(),
@@ -720,19 +702,19 @@ export const recordOrphanedBlob = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     if (project.userId !== authUserId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     await ctx.db.patch(projectId, {
       orphanedBlob: true,
       orphanedBlobUrl,
       updatedAt: Date.now(),
     });
-    console.warn("[ORPHANED_BLOB] Recorded for cleanup:", {
+    console.warn('[ORPHANED_BLOB] Recorded for cleanup:', {
       projectId,
       userId,
       orphanedBlobUrl,
@@ -747,19 +729,19 @@ export const recordOrphanedBlob = mutation({
  */
 export const deleteProject = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
   },
   handler: async (ctx, { projectId, userId }) => {
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     if (project.userId !== authUserId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     if (project.deletedAt) {
       return { inputUrl: project.inputUrl };
@@ -769,8 +751,8 @@ export const deleteProject = mutation({
       updatedAt: Date.now(),
     });
     const counter = await ctx.db
-      .query("userProjectCounts")
-      .withIndex("by_user", (q) => q.eq("userId", authUserId))
+      .query('userProjectCounts')
+      .withIndex('by_user', (q) => q.eq('userId', authUserId))
       .first();
     if (counter && counter.activeCount > 0) {
       await ctx.db.patch(counter._id, {
@@ -786,7 +768,7 @@ export const deleteProject = mutation({
  */
 export const updateProjectDisplayName = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     displayName: v.string(),
   },
@@ -794,12 +776,12 @@ export const updateProjectDisplayName = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
-    if (!project) throw new Error("Project not found");
+    if (!project) throw new Error('Project not found');
     if (project.userId !== authUserId) {
-      throw new Error("Not authorized to update this project");
+      throw new Error('Not authorized to update this project');
     }
     await ctx.db.patch(projectId, {
       displayName: displayName.trim(),
@@ -811,7 +793,7 @@ export const updateProjectDisplayName = mutation({
 /** @deprecated Schema has no description field. Kept for compatibility. */
 export const updateProjectDescription = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     description: v.string(),
   },
@@ -819,14 +801,14 @@ export const updateProjectDescription = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId) {
-      throw new Error("Unauthorized: You must be signed in");
+      throw new Error('Unauthorized: You must be signed in');
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
-      throw new Error("Not authorized to update this project");
+      throw new Error('Not authorized to update this project');
     }
     console.warn(
-      "[DEPRECATED] updateProjectDescription is deprecated (schema has no description field). projectId:",
+      '[DEPRECATED] updateProjectDescription is deprecated (schema has no description field). projectId:',
       projectId,
     );
     // Schema has no description field; no-op
@@ -835,7 +817,7 @@ export const updateProjectDescription = mutation({
 
 export const updateProjectInputUrl = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     inputUrl: v.string(),
   },
@@ -843,11 +825,11 @@ export const updateProjectInputUrl = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
-      throw new Error("Not authorized to update this project");
+      throw new Error('Not authorized to update this project');
     }
     await ctx.db.patch(projectId, { inputUrl, updatedAt: Date.now() });
   },
@@ -855,7 +837,7 @@ export const updateProjectInputUrl = mutation({
 
 export const updateProjectFileName = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     fileName: v.string(),
   },
@@ -863,11 +845,11 @@ export const updateProjectFileName = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
-      throw new Error("Not authorized to update this project");
+      throw new Error('Not authorized to update this project');
     }
     await ctx.db.patch(projectId, { fileName, updatedAt: Date.now() });
   },
@@ -875,7 +857,7 @@ export const updateProjectFileName = mutation({
 
 export const updateProjectFileSize = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     fileSize: v.number(),
   },
@@ -883,11 +865,11 @@ export const updateProjectFileSize = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
-      throw new Error("Not authorized to update this project");
+      throw new Error('Not authorized to update this project');
     }
     await ctx.db.patch(projectId, { fileSize, updatedAt: Date.now() });
   },
@@ -895,7 +877,7 @@ export const updateProjectFileSize = mutation({
 
 export const updateProjectFileDuration = mutation({
   args: {
-    projectId: v.id("projects"),
+    projectId: v.id('projects'),
     userId: v.string(),
     fileDuration: v.number(),
   },
@@ -903,11 +885,11 @@ export const updateProjectFileDuration = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error("Unauthorized: You don't own this project");
+      throw new Error('Unauthorized: You don\'t own this project');
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
-      throw new Error("Not authorized to update this project");
+      throw new Error('Not authorized to update this project');
     }
     await ctx.db.patch(projectId, { fileDuration, updatedAt: Date.now() });
   },

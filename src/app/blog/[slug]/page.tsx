@@ -1,11 +1,11 @@
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
-import Footer from "@/components/Home/Footer";
-import { getBlogPost, getBlogPosts } from "@/lib/blog";
-import { formatDate } from "@/lib/format";
+import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Header } from '@/components/Header';
+import Footer from '@/components/Home/Footer';
+import { getBlogPost, getBlogPosts } from '@/lib/blog';
+import { formatDate } from '@/lib/format';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -17,7 +17,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPost(slug);
-  if (!post) return { title: "Post not found" };
+  if (!post) return { title: 'Post not found' };
   return {
     title: `${post.title} | Airtime Blog`,
     description: post.excerpt,

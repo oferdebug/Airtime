@@ -5,8 +5,8 @@
  * Includes file size limits, allowed formats, timing constants, and UI config.
  */
 /** biome-ignore-all assist/source/organizeImports: preserve import grouping for dropzone component clarity */
-import type { Accept } from "react-dropzone";
-import type { LucideIcon } from "lucide-react";
+import type { Accept } from 'react-dropzone';
+import type { LucideIcon } from 'lucide-react';
 import {
   FileSignature,
   Hash,
@@ -14,7 +14,7 @@ import {
   MessageSquare,
   Target,
   Youtube,
-} from "lucide-react";
+} from 'lucide-react';
 
 // File upload constraints
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit
@@ -28,43 +28,43 @@ export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit
  * - Validated both client-side (dropzone) and server-side (API route)
  */
 export const ALLOWED_AUDIO_TYPES = [
-  "audio/mpeg", // MP3 (standard)
-  "audio/mp3", // MP3 (alternate)
-  "audio/mp4", // M4A (standard)
-  "audio/m4a", // M4A (alternate)
-  "audio/x-m4a", // M4A (Apple)
-  "audio/wav", // WAV (standard)
-  "audio/x-wav", // WAV (Microsoft)
-  "audio/wave", // WAV (alternate)
-  "audio/aac", // AAC
-  "audio/aacp", // AAC+
-  "audio/ogg", // OGG Vorbis
-  "audio/opus", // Opus
-  "audio/webm", // WebM Audio
-  "audio/flac", // FLAC (standard)
-  "audio/x-flac", // FLAC (alternate)
-  "audio/3gpp", // 3GP
-  "audio/3gpp2", // 3G2
+  'audio/mpeg', // MP3 (standard)
+  'audio/mp3', // MP3 (alternate)
+  'audio/mp4', // M4A (standard)
+  'audio/m4a', // M4A (alternate)
+  'audio/x-m4a', // M4A (Apple)
+  'audio/wav', // WAV (standard)
+  'audio/x-wav', // WAV (Microsoft)
+  'audio/wave', // WAV (alternate)
+  'audio/aac', // AAC
+  'audio/aacp', // AAC+
+  'audio/ogg', // OGG Vorbis
+  'audio/opus', // Opus
+  'audio/webm', // WebM Audio
+  'audio/flac', // FLAC (standard)
+  'audio/x-flac', // FLAC (alternate)
+  'audio/3gpp', // 3GP
+  'audio/3gpp2', // 3G2
 ];
 
 const MIME_EXTENSIONS: Record<string, string[]> = {
-  "audio/mpeg": [".mp3"],
-  "audio/mp3": [".mp3"],
-  "audio/mp4": [".m4a", ".mp4"],
-  "audio/m4a": [".m4a"],
-  "audio/x-m4a": [".m4a"],
-  "audio/wav": [".wav", ".wave"],
-  "audio/x-wav": [".wav", ".wave"],
-  "audio/wave": [".wav", ".wave"],
-  "audio/aac": [".aac"],
-  "audio/aacp": [".aac"],
-  "audio/ogg": [".ogg", ".oga"],
-  "audio/opus": [".opus"],
-  "audio/webm": [".webm"],
-  "audio/flac": [".flac"],
-  "audio/x-flac": [".flac"],
-  "audio/3gpp": [".3gp"],
-  "audio/3gpp2": [".3g2"],
+  'audio/mpeg': ['.mp3'],
+  'audio/mp3': ['.mp3'],
+  'audio/mp4': ['.m4a', '.mp4'],
+  'audio/m4a': ['.m4a'],
+  'audio/x-m4a': ['.m4a'],
+  'audio/wav': ['.wav', '.wave'],
+  'audio/x-wav': ['.wav', '.wave'],
+  'audio/wave': ['.wav', '.wave'],
+  'audio/aac': ['.aac'],
+  'audio/aacp': ['.aac'],
+  'audio/ogg': ['.ogg', '.oga'],
+  'audio/opus': ['.opus'],
+  'audio/webm': ['.webm'],
+  'audio/flac': ['.flac'],
+  'audio/x-flac': ['.flac'],
+  'audio/3gpp': ['.3gp'],
+  'audio/3gpp2': ['.3g2'],
 };
 
 /** Accept object for file inputs derived from ALLOWED_AUDIO_TYPES */
@@ -113,45 +113,45 @@ export interface GenerationOutput {
 
 export const GENERATION_OUTPUTS: GenerationOutput[] = [
   {
-    id: "summary",
-    name: "Summary",
+    id: 'summary',
+    name: 'Summary',
     icon: FileSignature,
     description:
-      "Distilling key insights, main points, and actionable takeaways from your episode",
+      'Distilling key insights, main points, and actionable takeaways from your episode',
   },
   {
-    id: "key-moments",
-    name: "Key Moments",
+    id: 'key-moments',
+    name: 'Key Moments',
     icon: Target,
     description:
-      "Pinpointing timestamps, highlights, and quotable moments for easy sharing and clips",
+      'Pinpointing timestamps, highlights, and quotable moments for easy sharing and clips',
   },
   {
-    id: "social-posts",
-    name: "Social Posts",
+    id: 'social-posts',
+    name: 'Social Posts',
     icon: MessageSquare,
     description:
-      "Ready-to-publish captions for Twitter, LinkedIn, Instagram, TikTok, YouTube, and Facebook",
+      'Ready-to-publish captions for Twitter, LinkedIn, Instagram, TikTok, YouTube, and Facebook',
   },
   {
-    id: "titles",
-    name: "Titles",
+    id: 'titles',
+    name: 'Titles',
     icon: Heading,
     description:
-      "SEO-optimized titles and keywords designed to boost discoverability and clicks",
+      'SEO-optimized titles and keywords designed to boost discoverability and clicks',
   },
   {
-    id: "hashtags",
-    name: "Hashtags",
+    id: 'hashtags',
+    name: 'Hashtags',
     icon: Hash,
     description:
-      "Platform-specific hashtag sets to expand reach and join relevant conversations",
+      'Platform-specific hashtag sets to expand reach and join relevant conversations',
   },
   {
-    id: "youtube-timestamps",
-    name: "YouTube Timestamps",
+    id: 'youtube-timestamps',
+    name: 'YouTube Timestamps',
     icon: Youtube,
     description:
-      "Clickable chapter markers formatted and ready for YouTube video descriptions",
+      'Clickable chapter markers formatted and ready for YouTube video descriptions',
   },
 ];

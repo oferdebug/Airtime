@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Loader2, Mail } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Loader2, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 export function NewsletterSignup() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = email.trim();
     if (!trimmed || !/^\S+@\S+\.\S+$/.test(trimmed)) {
-      toast.error("Please enter a valid email address");
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -27,23 +27,23 @@ export function NewsletterSignup() {
       await new Promise((resolve, reject) => {
         setTimeout(() => {
           // Simulate ~10% failure rate for testing error handling (development only)
-          if (process.env.NODE_ENV === "development" && Math.random() < 0.1) {
-            reject(new Error("Network error: Unable to connect to server"));
+          if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
+            reject(new Error('Network error: Unable to connect to server'));
           } else {
             resolve(undefined);
           }
         }, 1000);
       });
 
-      toast.success("Successfully subscribed to our newsletter!", {
-        description: "Check your email for a confirmation message.",
+      toast.success('Successfully subscribed to our newsletter!', {
+        description: 'Check your email for a confirmation message.',
       });
-      setEmail("");
+      setEmail('');
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "Failed to subscribe. Please try again.";
+          : 'Failed to subscribe. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -57,10 +57,10 @@ export function NewsletterSignup() {
           <Mail className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h3 className="font-extrabold text-lg mb-1 text-slate-950">
+          <h3 className="font-extrabold text-lg mb-1 text-slate-950 dark:text-slate-100">
             Stay Updated
           </h3>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Get the latest podcast tips and product updates delivered to your
             inbox.
           </p>
@@ -87,7 +87,7 @@ export function NewsletterSignup() {
               Subscribing...
             </>
           ) : (
-            "Subscribe"
+            'Subscribe'
           )}
         </Button>
       </form>

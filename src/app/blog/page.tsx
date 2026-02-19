@@ -1,15 +1,15 @@
-import { ArrowRight, Calendar, Clock } from "lucide-react";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { Header } from "@/components/Header";
-import Footer from "@/components/Home/Footer";
-import { getBlogPosts } from "@/lib/blog";
-import { formatDate } from "@/lib/format";
+import { ArrowRight, Calendar, Clock } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Header } from '@/components/Header';
+import Footer from '@/components/Home/Footer';
+import { getBlogPosts } from '@/lib/blog';
+import { formatDate } from '@/lib/format';
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: 'Blog',
   description:
-    "Learn about podcasting, AI transcription, content creation, and more. Tips, tutorials, and insights from the Airtime team.",
+    'Learn about podcasting, AI transcription, content creation, and more. Tips, tutorials, and insights from the Airtime team.',
 };
 
 export default async function BlogPage() {

@@ -1,408 +1,332 @@
-"use client";
+'use client';
 
-import { api } from "@convex/_generated/api";
-import type { Doc, Id } from "@convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { useAuth } from '@clerk/nextjs';
+import { api } from '@convex/_generated/api';
+import type { Id } from '@convex/_generated/dataModel';
+import { useQuery } from 'convex/react';
+import { Loader2, Save, XIcon } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import {
-  AlertCircle,
-  ArrowLeft,
-  CheckCircle2,
-  FileAudio,
-  FileText,
-  Loader2,
-  Sparkles,
-  XCircle,
-} from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { formatDuration, formatFileSize } from "@/lib/utils";
+  deleteProjectAction,
+  updateDisplayNameAction,
+} from '@/app/actions/projects';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
-const getProjectById = api.projects.getProjectById;
-
-type StepStatus =
-  | "pending"
-  | "uploading"
-  | "processing"
-  | "running"
-  | "completed"
-  | "failed";
-
-function mapToStepStatus(value: unknown): StepStatus {
-  const valid: StepStatus[] = [
-    "pending",
-    "uploading",
-    "processing",
-    "running",
-    "completed",
-    "failed",
-  ];
-  return typeof value === "string" && valid.includes(value as StepStatus)
-    ? (value as StepStatus)
-    : "pending";
-}
-
-function computeOverallProgress(
-  status: string,
-  transcription: StepStatus,
-  contentGen: StepStatus,
-): number {
-  if (status === "completed") return 100;
-  let progress = 0;
-  if (transcription === "processing" || transcription === "uploading") {
-    progress = 25;
-  } else if (transcription === "completed") {
-    if (contentGen === "completed") return 100;
-    if (
-      contentGen === "running" ||
-      contentGen === "processing" ||
-      contentGen === "uploading"
-    ) {
-      progress = 75;
-    } else {
-      progress = 50;
-    }
-  }
-  return progress;
-}
-
-function StepIndicator({
-  status,
-  label,
-  icon: Icon,
-}: {
-  status: StepStatus;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  const config: Record<
-    StepStatus,
-    { icon: string; bg: string; label: string }
-  > = {
-    pending: {
-      icon: "text-muted-foreground",
-      bg: "bg-muted",
-      label: "Pending",
-    },
-    uploading: {
-      icon: "text-amber-600",
-      bg: "bg-amber-100",
-      label: "Uploading",
-    },
-    processing: {
-      icon: "text-brand-600",
-      bg: "bg-brand-100",
-      label: "Processing",
-    },
-    running: {
-      icon: "text-brand-600",
-      bg: "bg-brand-100",
-      label: "Running",
-    },
-    completed: {
-      icon: "text-emerald-600",
-      bg: "bg-emerald-100",
-      label: "Completed",
-    },
-    failed: {
-      icon: "text-red-600",
-      bg: "bg-red-100",
-      label: "Failed",
-    },
-  };
-
-  const c = config[status] ?? config.pending;
-  const isActive =
-    status === "uploading" || status === "processing" || status === "running";
-
-  return (
-    <div className="flex items-center gap-3">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${c.bg}`}
-      >
-        {status === "completed" ? (
-          <CheckCircle2 className={`h-5 w-5 ${c.icon}`} />
-        ) : status === "failed" ? (
-          <XCircle className={`h-5 w-5 ${c.icon}`} />
-        ) : isActive ? (
-          <Loader2 className={`h-5 w-5 animate-spin ${c.icon}`} />
-        ) : (
-          <Icon className={`h-5 w-5 ${c.icon}`} />
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-medium text-foreground">{label}</p>
-        <p className="text-sm text-muted-foreground">{c.label}</p>
-      </div>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const variant =
-    status === "completed"
-      ? "default"
-      : status === "failed"
-        ? "destructive"
-        : "secondary";
-
-  const label =
-    status === "uploading"
-      ? "Uploading"
-      : status === "processing"
-        ? "Processing"
-        : status === "completed"
-          ? "Completed"
-          : status === "failed"
-            ? "Failed"
-            : status;
-
-  return <Badge variant={variant}>{label}</Badge>;
+function isValidProjectId(value: string): boolean {
+  return /^[a-z0-9]+$/i.test(value);
 }
 
 export default function ProjectDetailsPage() {
-  const params = useParams();
-  const rawId = params?.id;
-  const projectId = (() => {
-    const str = rawId == null ? "" : Array.isArray(rawId) ? rawId[0] : rawId;
-    const trimmed = typeof str === "string" ? str.trim() : "";
-    return trimmed || null;
-  })() as Id<"projects"> | null;
+  const { userId } = useAuth();
+  const router = useRouter();
+  const { id } = useParams();
+
+  const projectId =
+    typeof id === 'string' && isValidProjectId(id)
+      ? (id as Id<'projects'>)
+      : null;
   const project = useQuery(
-    getProjectById,
-    projectId ? { id: projectId } : "skip",
+    api.projects.getProject,
+    projectId ? { projectId } : 'skip',
   );
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const transcriptionStatus = project?.jobStatus?.transcription ?? 'pending';
+  const generationStatus = project?.jobStatus?.contentGeneration ?? 'pending';
+
+  const handleStartEdit = () => {
+    setEditedName(project?.displayName || project?.fileName || '');
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedName('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!projectId) {
+      toast.error('Project not found');
+      return;
+    }
+
+    if (!editedName.trim()) {
+      toast.error('Project name could not be empty');
+      return;
+    }
+    const trimmedName = editedName.trim();
+
+    setIsSaving(true);
+    try {
+      const result = await updateDisplayNameAction(projectId, trimmedName);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to update project name');
+        return;
+      }
+      toast.success('Project Name Updated Successfully');
+      setEditedName(trimmedName);
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update project name, please try again',
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!projectId) {
+      toast.error('Project not found');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteProjectAction(projectId);
+      if (!result.success) {
+        toast.error(result.error || 'Failed to delete project, please try again');
+        return;
+      }
+      toast.success('Project Deleted Successfully');
+      setIsDeleteDialogOpen(false);
+      router.push('/dashboard/projects');
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete project, please try again',
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (!projectId) {
     return (
-      <div className="p-8 min-h-screen">
-        <h1 className="text-2xl font-bold">Project Not Found</h1>
-        <p className="mt-5 text-stone-500">No project ID provided.</p>
-        <Link
-          href="/dashboard/projects"
-          className="mt-6 inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Projects
-        </Link>
+      <div className="container max-w-7xl mx-auto py-10 px-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              Project not found.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (project === undefined) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center p-8">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-brand-500" />
-          <p className="text-muted-foreground">Loading project...</p>
+      <div className="container max-w-7xl mx-auto py-10 px-4">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
     );
   }
 
-  if (project === null) {
+  if (!project) {
     return (
-      <div className="p-8 min-h-screen">
-        <h1 className="text-2xl font-bold">Project Not Found</h1>
-        <p className="mt-5 text-stone-500">
-          This project does not exist or you do not have access.
-        </p>
-        <Link
-          href="/dashboard/projects"
-          className="mt-6 inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Projects
-        </Link>
+      <div className="container max-w-7xl mx-auto py-10 px-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              Project not found.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const proj = project as Doc<"projects">;
-  const status = proj.status ?? "uploading";
-  const jobStatus = proj.jobStatus ?? {};
-  const transcription = mapToStepStatus(jobStatus.transcription);
-  const contentGen = mapToStepStatus(jobStatus.contentGeneration);
+  if (!userId || project.userId !== userId) {
+    return (
+      <div className="container max-w-7xl mx-auto py-10 px-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              You Don&apos;t Have Access To This Project
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  const fileSizeNum = Number(proj.fileSize);
-  const fileDurationNum = Number(proj.fileDuration);
-
-  const overallProgress = computeOverallProgress(
-    status,
-    transcription,
-    contentGen,
-  );
+  const isProcessing = project.status === 'processing';
+  const isCompleted = project.status === 'completed';
+  const hasFailed = project.status === 'failed';
+  const showGenerating = isProcessing && generationStatus === 'running';
+  const showTranscribing =
+    isProcessing &&
+    (transcriptionStatus === 'uploading' ||
+      transcriptionStatus === 'processing');
 
   return (
-    <div className="min-h-screen p-6 md:p-8">
-      <div className="mx-auto max-w-3xl space-y-6">
-        {/* Back link */}
-        <Link
-          href="/dashboard/projects"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Projects
-        </Link>
-
-        {/* Header card */}
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-xl truncate">
-                {proj.displayName ?? proj.fileName}
-              </CardTitle>
-              <CardDescription className="mt-1">
-                {proj.fileFormat?.toUpperCase() ?? "Audio"} •{" "}
-                {Number.isFinite(fileSizeNum)
-                  ? formatFileSize(fileSizeNum)
-                  : proj.fileSize}{" "}
-                •{" "}
-                {Number.isFinite(fileDurationNum)
-                  ? formatDuration(fileDurationNum)
-                  : (proj.fileDuration ?? "—")}
-              </CardDescription>
-            </div>
-            <StatusBadge status={status} />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-muted-foreground">
-                  Overall progress
-                </span>
-                <span className="font-semibold text-foreground">
-                  {overallProgress}%
-                </span>
-              </div>
-              <Progress value={overallProgress} className="h-2" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Processing steps */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Processing steps</CardTitle>
-            <CardDescription>
-              Your podcast is being transcribed and analyzed by AI.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <StepIndicator
-              status={transcription}
-              label="Transcription"
-              icon={FileAudio}
-            />
-            <StepIndicator
-              status={contentGen}
-              label="Content generation"
-              icon={Sparkles}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Error display */}
-        {proj.error && (
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-5 w-5" /> Processing error
-              </CardTitle>
-              <CardDescription>
-                {proj.error.step && `Step: ${proj.error.step}`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-destructive">{proj.error.message}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Audio player */}
-        {proj.inputUrl && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileAudio className="h-5 w-5 text-brand-500" /> Audio
-              </CardTitle>
-              <CardDescription>Listen to your uploaded file</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* biome-ignore lint/a11y/useMediaCaption: track rendered conditionally when captionsUrl exists to avoid empty-track browser warnings */}
-              <audio
-                controls
-                className="w-full"
-                src={proj.inputUrl}
-                preload="metadata"
-                aria-label="Podcast audio"
+    <div className="container max-w-7xl mx-auto py-10 px-4 space-y-6">
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          {isEditing ? (
+            <div className="flex items-center gap-3">
+              <Input
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                className="h-auto py-3 text-2xl font-bold"
+                placeholder="Enter New Project Name"
+                autoFocus
+                disabled={isSaving}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSaveEdit}
+                disabled={isSaving}
               >
-                {proj.captionsUrl && (
-                  <track
-                    kind="captions"
-                    src={proj.captionsUrl}
-                    srcLang="en"
-                    label="English"
-                  />
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
                 )}
-                Your browser does not support the audio element.
-              </audio>
-            </CardContent>
-          </Card>
-        )}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h1
+                className={cn(
+                  'text-3xl font-bold tracking-tight',
+                  isProcessing && 'text-primary',
+                )}
+              >
+                {project.displayName || project.fileName}
+              </h1>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleStartEdit}
+                disabled={isSaving}
+              >
+                Edit
+              </Button>
+            </div>
+          )}
+        </div>
+        <Button
+          variant="destructive"
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? 'Deleting...' : 'Delete Project'}
+        </Button>
+      </div>
+      <ConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Delete project?"
+        description="Are you sure you want to delete this project? This action cannot be reversed."
+        confirmText={isDeleting ? 'Deleting...' : 'Delete project'}
+        cancelText="Cancel"
+        isConfirming={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
 
-        {/* Preview content when available */}
-        {(proj.summary || proj.transcript) && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-brand-500" /> Generated
-                content
-              </CardTitle>
-              <CardDescription>
-                Transcript and summary from your podcast
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {proj.summary?.tldr && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    TL;DR
-                  </p>
-                  <p className="text-foreground">{proj.summary.tldr}</p>
-                </div>
-              )}
-              {proj.summary?.bullets && proj.summary.bullets.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Key points
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-foreground">
-                    {proj.summary.bullets.map((b: string, idx: number) => (
-                      <li key={idx}>{b}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {proj.transcript?.text && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Transcript
-                  </p>
-                  <p className="text-foreground whitespace-pre-wrap line-clamp-6">
-                    {proj.transcript.text}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+      <div className="grid gap-5 md:grid-cols-3">
+        <Card className="glass-card md:col-span-1">
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Status</p>
+              <Badge variant="outline" className="capitalize">
+                {project.status}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Created{' '}
+              {new Date(project.createdAt).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </p>
+            {showTranscribing ? (
+              <p className="text-sm text-primary">Transcribing audio...</p>
+            ) : null}
+            {showGenerating ? (
+              <p className="text-sm text-primary">Generating content...</p>
+            ) : null}
+            {isCompleted ? (
+              <p className="text-sm text-emerald-600">Project completed.</p>
+            ) : null}
+            {hasFailed ? (
+              <p className="text-sm text-destructive">
+                Project processing failed.
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card md:col-span-2">
+          <CardContent className="space-y-4 p-6">
+            <h2 className="text-lg font-semibold">Summary</h2>
+            {project.summary?.tldr ? (
+              <p className="text-sm text-foreground/90 leading-relaxed">
+                {project.summary.tldr}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No summary generated yet.
+              </p>
+            )}
+
+            <h3 className="text-sm font-semibold pt-2">Key Moments</h3>
+            {project.keyMoments?.length ? (
+              <ul className="space-y-2">
+                {project.keyMoments.slice(0, 4).map((moment, idx) => (
+                  <li
+                    key={`${moment.timestamp}-${idx}`}
+                    className="rounded-lg border border-border px-3 py-2"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      {moment.time}
+                    </p>
+                    <p className="text-sm">{moment.description}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No key moments available.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
+

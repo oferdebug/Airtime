@@ -1,25 +1,25 @@
-import { Github, Linkedin, Mail, Mic2, Twitter } from "lucide-react";
-import Link from "next/link";
-import { NewsletterSignup } from "./NewsletterSignup";
+import { Github, Linkedin, Mail, Mic2, Twitter } from 'lucide-react';
+import Link from 'next/link';
+import { NewsletterSignup } from './NewsletterSignup';
 
 const footerLinks = {
   Product: [
-    { href: "/features", label: "Features" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/integrations", label: "Integrations" },
+    { href: '/features', label: 'Features' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/integrations', label: 'Integrations' },
   ],
   Company: [
-    { href: "/about", label: "About Us" },
-    { href: "/blog", label: "Blog" },
-    { href: "/careers", label: "Careers" },
-    { href: "/contact", label: "Contact" },
+    { href: '/about', label: 'About Us' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/careers', label: 'Careers' },
+    { href: '/contact', label: 'Contact' },
   ],
   Legal: [
-    { href: "/privacy", label: "Privacy Policy" },
-    { href: "/terms", label: "Terms of Service" },
-    { href: "/cookies", label: "Cookie Policy" },
-    { href: "/security", label: "Security" },
+    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms of Service' },
+    { href: '/cookies', label: 'Cookie Policy' },
+    { href: '/security', label: 'Security' },
   ],
 } as const;
 
@@ -27,7 +27,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative border-t border-brand-200/50 bg-gradient-to-b from-white via-brand-50/30 to-white">
+    <footer className="relative border-t border-brand-200/50 dark:border-white/10 bg-linear-to-b from-white via-brand-50/30 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Subtle mesh background */}
       <div className="absolute inset-0 mesh-background-subtle opacity-50" />
 
@@ -46,11 +46,11 @@ export default function Footer() {
                 <div className="p-2.5 rounded-xl gradient-brand shadow-lg">
                   <Mic2 className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-2xl font-extrabold gradient-brand-text">
+                <span className="text-2xl font-extrabold text-foreground">
                   Airtime
                 </span>
               </div>
-              <p className="text-slate-700 text-sm leading-relaxed mb-6 max-w-sm">
+              <p className="text-slate-800 dark:text-slate-300 text-sm leading-relaxed mb-6 max-w-sm">
                 Transform your podcasts into searchable, AI-powered content. Get
                 transcripts, summaries, and social posts in minutes.
               </p>
@@ -63,7 +63,7 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover-lift transition-all group"
                   aria-label="Twitter profile"
                 >
-                  <Twitter className="h-5 w-5 text-slate-600 group-hover:text-brand-600 transition-colors" />
+                  <Twitter className="h-5 w-5 text-slate-700 dark:text-slate-300 group-hover:text-brand-600 transition-colors" />
                 </a>
                 <a
                   href="https://github.com/airtime"
@@ -72,7 +72,7 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover-lift transition-all group"
                   aria-label="GitHub profile"
                 >
-                  <Github className="h-5 w-5 text-slate-600 group-hover:text-brand-600 transition-colors" />
+                  <Github className="h-5 w-5 text-slate-700 dark:text-slate-300 group-hover:text-brand-600 transition-colors" />
                 </a>
                 <a
                   href="https://linkedin.com/company/airtime"
@@ -81,21 +81,21 @@ export default function Footer() {
                   className="p-2 rounded-lg glass-card hover-lift transition-all group"
                   aria-label="LinkedIn profile"
                 >
-                  <Linkedin className="h-5 w-5 text-slate-600 group-hover:text-brand-600 transition-colors" />
+                  <Linkedin className="h-5 w-5 text-slate-700 dark:text-slate-300 group-hover:text-brand-600 transition-colors" />
                 </a>
                 <a
                   href="mailto:hello@airtime.com"
                   className="p-2 rounded-lg glass-card hover-lift transition-all group"
                   aria-label="Email"
                 >
-                  <Mail className="h-5 w-5 text-slate-600 group-hover:text-brand-600 transition-colors" />
+                  <Mail className="h-5 w-5 text-slate-700 dark:text-slate-300 group-hover:text-brand-600 transition-colors" />
                 </a>
               </div>
             </div>
 
             {Object.entries(footerLinks).map(([section, links]) => (
               <div key={section}>
-                <h3 className="font-extrabold mb-5 text-slate-950 text-sm uppercase tracking-wider">
+                <h3 className="font-extrabold mb-5 text-foreground text-sm uppercase tracking-wider">
                   {section}
                 </h3>
                 <ul className="space-y-3">
@@ -103,7 +103,7 @@ export default function Footer() {
                     <li key={href}>
                       <Link
                         href={href}
-                        className="text-slate-600 hover:text-brand-600 text-sm inline-block hover:translate-x-1 transition-all"
+                        className="text-slate-700 dark:text-slate-300 hover:text-brand-600 text-sm inline-block hover:translate-x-1 transition-all"
                       >
                         {label}
                       </Link>
@@ -115,13 +115,16 @@ export default function Footer() {
           </div>
 
           {/* Bottom Bar */}
-          <div className="pt-8 border-t border-brand-200/50">
+          <div className="pt-8 border-t border-brand-200/50 dark:border-white/10">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-slate-600" suppressHydrationWarning>
+              <p
+                className="text-sm text-slate-700 dark:text-slate-300"
+                suppressHydrationWarning
+              >
                 © {currentYear} Airtime. All rights reserved. This is a demo
                 project.
               </p>
-              <div className="flex items-center gap-6 text-sm text-slate-600">
+              <div className="flex items-center gap-6 text-sm text-slate-700 dark:text-slate-300">
                 <span className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   All systems operational
