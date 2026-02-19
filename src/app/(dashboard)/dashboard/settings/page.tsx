@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,6 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     try {
@@ -50,37 +49,27 @@ export default function SettingsPage() {
       setIsLoading(false);
     }
 
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
   }, []);
 
   const handleSave = () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
     setIsSaving(true);
-    saveTimeoutRef.current = setTimeout(() => {
-      try {
-        const settings: PersistedSettings = {
-          displayName,
-          podcastCategory,
-          emailNotifications,
-        };
-        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-        toast.success('Settings saved', {
-          description: `Notifications: ${emailNotifications ? 'enabled' : 'disabled'}`,
-        });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Unable to save settings.';
-        toast.error('Failed to save settings', { description: message });
-      } finally {
-        setIsSaving(false);
-      }
-    }, 250);
+    try {
+      const settings: PersistedSettings = {
+        displayName,
+        podcastCategory,
+        emailNotifications,
+      };
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+      toast.success('Settings saved', {
+        description: `Notifications: ${emailNotifications ? 'enabled' : 'disabled'}`,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to save settings.';
+      toast.error('Failed to save settings', { description: message });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
