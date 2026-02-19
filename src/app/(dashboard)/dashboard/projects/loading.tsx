@@ -16,7 +16,7 @@ function LoadingDashboard() {
       {/* Project Cards Skeleton */}
       <div className="grid gap-4">
         {[1, 2, 3].map((i) => (
-          <Card key={i}>
+          <Card key={i} className="@container">
             <CardContent className="p-4 @md:p-5">
               <div className="flex items-start gap-3 @md:gap-4">
                 {/* Icon Skeleton */}

@@ -5,58 +5,33 @@ import { api } from '@convex/_generated/api';
 import type { Id } from '@convex/_generated/dataModel';
 import { inngest } from '@/app/api/inngest/client';
 import { getConvex } from '@/lib/convex-client';
+import {
+  FEATURE_TO_JOB_MAP,
+  PLAN_FEATURES,
+  type PlanName,
+} from '@/lib/tier-config';
 import type { RetryableJob } from './retry-job';
 
-// Local configuration for plan features and their corresponding job keys.
-type PlanName = 'free' | 'pro' | 'ultra';
-
-type FeatureName =
-  | 'summary'
-  | 'transcription'
-  | 'socialPosts'
-  | 'titles'
-  | 'hashtags'
-  | 'keyMoments'
-  | 'youtubeTimestamps';
-
-const FREE_FEATURES: FeatureName[] = ['summary'];
-const PRO_FEATURES: FeatureName[] = [
-  ...FREE_FEATURES,
+const RETRYABLE_JOBS: ReadonlySet<RetryableJob> = new Set([
   'socialPosts',
   'titles',
   'hashtags',
-];
-const ULTRA_FEATURES: FeatureName[] = [
-  ...PRO_FEATURES,
   'keyMoments',
   'youtubeTimestamps',
-  'transcription',
-];
-
-const PLAN_FEATURES: Record<PlanName, FeatureName[]> = {
-  free: FREE_FEATURES,
-  pro: PRO_FEATURES,
-  ultra: ULTRA_FEATURES,
-};
-
-const FEATURE_TO_JOB_MAP: Record<FeatureName, string | undefined> = {
-  summary: undefined, // summary is always present / not a retryable job
-  transcription: undefined, // transcription is not treated as a feature job here
-  socialPosts: 'socialPosts',
-  titles: 'titles',
-  hashtags: 'hashtags',
-  keyMoments: 'keyMoments',
-  youtubeTimestamps: 'youtubeTimestamps',
-};
+]);
 
 /** Maps job names to project property names for hasData checks (project schema uses title, youtubeTimestamps). */
-const JOB_TO_PROJECT_KEY: Record<string, string> = {
+const JOB_TO_PROJECT_KEY: Record<RetryableJob, string> = {
   socialPosts: 'socialPosts',
   titles: 'title',
   hashtags: 'hashtags',
   keyMoments: 'keyMoments',
   youtubeTimestamps: 'youtubeTimestamps',
 };
+
+function isRetryableJob(jobName: string): jobName is RetryableJob {
+  return RETRYABLE_JOBS.has(jobName as RetryableJob);
+}
 
 /**
  * Server Action: Generate All Missing Features After Upgrade
@@ -89,7 +64,7 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
   }
 
   /** Check if the user has a valid plan */
-  let currentPlan: 'free' | 'pro' | 'ultra' = 'free';
+  let currentPlan: PlanName = 'free';
   if (has?.({ plan: 'ultra' })) {
     currentPlan = 'ultra';
   } else if (has?.({ plan: 'pro' })) {
@@ -111,11 +86,11 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
   }
 
   // Infer what plan was used during processing based on generated features
-  let originalPlan: 'free' | 'pro' | 'ultra' = 'free';
-  const hasYoutubeTimestamps =
-    project.youtubeTiestamps ||
+  let originalPlan: PlanName = 'free';
+  const hasYoutubeTimestamps = Boolean(
     (project as typeof project & { youtubeTimestamps?: unknown })
-      .youtubeTimestamps;
+      .youtubeTimestamps,
+  );
   if (project.keyMoments || hasYoutubeTimestamps) {
     originalPlan = 'ultra';
   } else if (project.socialPosts || project.title) {
@@ -123,21 +98,20 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
   }
 
   /** Get All Features Available In Current Plan But Missing From Project */
-  const avaliableFeatures = PLAN_FEATURES[currentPlan];
+  const availableFeatures = PLAN_FEATURES[currentPlan];
 
   const missingJobs: RetryableJob[] = [];
   // Check which features are available but not yet generated
-  for (const feature of avaliableFeatures) {
-    const jobName =
-      FEATURE_TO_JOB_MAP[feature as keyof typeof FEATURE_TO_JOB_MAP];
-    if (!jobName) continue; // Skip transcription and summary (always present)
+  for (const feature of availableFeatures) {
+    const jobName = FEATURE_TO_JOB_MAP[feature];
+    if (!jobName || !isRetryableJob(jobName)) continue;
 
     // Check if this data exists in the project (use project property names: title, youtubeTimestamps)
-    const projectKey = JOB_TO_PROJECT_KEY[jobName] ?? jobName;
+    const projectKey = JOB_TO_PROJECT_KEY[jobName];
     const hasData = Boolean(project[projectKey as keyof typeof project]);
 
     if (!hasData) {
-      missingJobs.push(jobName as RetryableJob);
+      missingJobs.push(jobName);
     }
   }
 

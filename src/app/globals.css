@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* stylelint-disable-next-line at-rule-no-unknown -- Tailwind custom at-rule */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {

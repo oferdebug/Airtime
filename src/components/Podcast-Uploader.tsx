@@ -69,6 +69,8 @@ export default function PodcastUploader() {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const uploadControllerRef = useRef<AbortController | null>(null);
+  const durationRequestIdRef = useRef(0);
+  const durationPromiseRef = useRef<Promise<number> | null>(null);
 
   const isBusy = uploadStatus === 'uploading' || uploadStatus === 'processing';
 
@@ -80,16 +82,22 @@ export default function PodcastUploader() {
    */
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
+    setFileDuration(undefined);
     setUploadStatus('idle');
     setUploadProgress(0);
     setError(null);
 
-    try {
-      const duration = await getAudioDuration(file);
+    const requestId = durationRequestIdRef.current + 1;
+    durationRequestIdRef.current = requestId;
+    const extractionPromise = getAudioDuration(file).catch(() =>
+      estimateDurationFromSize(file.size),
+    );
+    durationPromiseRef.current = extractionPromise;
+
+    const duration = await extractionPromise;
+    if (durationRequestIdRef.current === requestId) {
       setFileDuration(duration);
-    } catch {
-      const estimated = estimateDurationFromSize(file.size);
-      setFileDuration(estimated);
+      durationPromiseRef.current = null;
     }
   };
 
@@ -107,9 +115,29 @@ export default function PodcastUploader() {
       setUploadProgress(0);
       setError(null);
 
+      let resolvedDuration = fileDuration;
+      if (resolvedDuration == null) {
+        const pendingDurationPromise = durationPromiseRef.current;
+        if (pendingDurationPromise) {
+          resolvedDuration = await pendingDurationPromise;
+        } else {
+          const requestId = durationRequestIdRef.current + 1;
+          durationRequestIdRef.current = requestId;
+          const extractionPromise = getAudioDuration(selectedFile).catch(() =>
+            estimateDurationFromSize(selectedFile.size),
+          );
+          durationPromiseRef.current = extractionPromise;
+          resolvedDuration = await extractionPromise;
+          if (durationRequestIdRef.current === requestId) {
+            durationPromiseRef.current = null;
+          }
+        }
+        setFileDuration(resolvedDuration);
+      }
+
       const validation = await validateUploadAction({
         fileSize: selectedFile.size,
-        duration: fileDuration,
+        duration: resolvedDuration,
       });
 
       if (!validation.success) {
@@ -146,7 +174,7 @@ export default function PodcastUploader() {
         fileName: sanitizedName,
         fileSize: selectedFile.size,
         mimeType: selectedFile.type,
-        fileDuration,
+        fileDuration: resolvedDuration,
       });
 
       if ('success' in result && result.success === false) {
@@ -187,6 +215,8 @@ export default function PodcastUploader() {
   };
 
   const handleReset = () => {
+    durationRequestIdRef.current += 1;
+    durationPromiseRef.current = null;
     setSelectedFile(null);
     setFileDuration(undefined);
     setUploadStatus('idle');

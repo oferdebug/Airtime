@@ -53,7 +53,7 @@ export function ConfirmationDialog({
                 await onConfirm();
               } catch (error) {
                 onError?.(error);
-                throw error;
+                return;
               }
             }}
           >
