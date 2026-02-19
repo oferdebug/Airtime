@@ -23,9 +23,6 @@ interface NavItemConfig {
 export default function DashboardNav() {
   const pathname = usePathname();
   const isActive = (path: string) => {
-    if (path === '/dashboard/projects') {
-      return pathname === path || pathname.startsWith('/dashboard/projects/');
-    }
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 

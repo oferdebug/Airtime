@@ -22,7 +22,9 @@ export default function ProjectDetailsPage() {
   const router = useRouter();
   const { id } = useParams();
 
-  const projectId = typeof id === 'string' ? (id as Id<'projects'>) : null;
+  const isValidProjectIdParam =
+    typeof id === 'string' && id.length > 10 && /^[a-zA-Z0-9]+$/.test(id);
+  const projectId = isValidProjectIdParam ? (id as Id<'projects'>) : null;
   const project = useQuery(
     api.projects.getProject,
     projectId ? { projectId } : 'skip',

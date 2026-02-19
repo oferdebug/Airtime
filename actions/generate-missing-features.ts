@@ -88,10 +88,45 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
   // Infer what plan was used during processing based on generated features
   let originalPlan: PlanName = 'free';
   const hasYoutubeTimestamps = Boolean(project.youtubeTimestamps);
-  if (project.keyMoments || hasYoutubeTimestamps) {
-    originalPlan = 'ultra';
-  } else if (project.socialPosts || project.title) {
-    originalPlan = 'pro';
+  const storedPlan =
+    'plan' in project && typeof (project as any).plan === 'string'
+      ? ((project as any).plan as PlanName)
+      : undefined;
+
+  if (storedPlan === 'ultra' || storedPlan === 'pro' || storedPlan === 'free') {
+    originalPlan = storedPlan;
+  } else {
+    const ultraOnlyFeatures =
+      (PLAN_FEATURES['ultra'] || []).filter(
+        (f) => !(PLAN_FEATURES['pro'] || []).includes(f),
+      );
+
+    let hasUltraIndicator = false;
+    for (const feature of ultraOnlyFeatures) {
+      const jobName = FEATURE_TO_JOB_MAP[feature];
+      if (jobName && isRetryableJob(jobName)) {
+        const projectKey = JOB_TO_PROJECT_KEY[jobName];
+        if (projectKey in project) {
+          const value = (project as any)[projectKey];
+          const hasValue = Array.isArray(value) ? value.length > 0 : Boolean(value);
+          if (hasValue) {
+            hasUltraIndicator = true;
+            break;
+          }
+        }
+      } else if ('features' in project && Array.isArray((project as any).features)) {
+        if ((project as any).features.includes(feature)) {
+          hasUltraIndicator = true;
+          break;
+        }
+      }
+    }
+
+    if (hasUltraIndicator) {
+      originalPlan = 'ultra';
+    } else if (hasYoutubeTimestamps) {
+      originalPlan = 'pro';
+    }
   }
 
   /** Get All Features Available In Current Plan But Missing From Project */
@@ -107,7 +142,10 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
     const projectKey = JOB_TO_PROJECT_KEY[jobName];
     const hasData =
       projectKey in project &&
-      Boolean(project[projectKey as keyof typeof project]);
+      (() => {
+        const value = project[projectKey as keyof typeof project];
+        return Array.isArray(value) ? value.length > 0 : Boolean(value);
+      })();
 
     if (!hasData) {
       missingJobs.push(jobName);

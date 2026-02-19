@@ -9,6 +9,7 @@ export default function SignUpPage() {
         <div className="glass-card rounded-3xl p-8 space-y-5">
           <Link
             href="/"
+            aria-label="Go to Airtime homepage"
             className="inline-flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 shadow-sm"
           >
             <div className="p-2 rounded-xl gradient-brand text-white">

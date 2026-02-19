@@ -13,12 +13,17 @@ function Slider({
   max = 100,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root>) {
+  const resolvedValues = React.useMemo(() => {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(defaultValue)) return defaultValue;
+    return [min];
+  }, [value, defaultValue, min]);
+
   const thumbKeys = React.useMemo(() => {
-    const seenValues = new Map<number, number>();
     return resolvedValues.map((_, index) => {
       return `slider-thumb-${index}`;
     });
-  }, [value, defaultValue, min, max]);
+  }, [resolvedValues]);
 
   return (
     <SliderPrimitive.Root
