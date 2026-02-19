@@ -218,7 +218,7 @@ export default defineSchema({
     hashtags: v.optional(v.array(v.string())),
 
     //Platform Chapter Timestamps
-    youtubeTiestamps: v.optional(
+    youtubeTimestamps: v.optional(
       v.array(
         v.object({
           timestamp: v.string(), //Human-Readable Time Format

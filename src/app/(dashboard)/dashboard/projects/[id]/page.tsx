@@ -1,6 +1,5 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
 import { api } from '@convex/_generated/api';
 import type { Id } from '@convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
@@ -19,19 +18,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-function isValidProjectId(value: string): boolean {
-  return /^[a-z0-9]+$/i.test(value);
-}
-
 export default function ProjectDetailsPage() {
-  const { userId } = useAuth();
   const router = useRouter();
   const { id } = useParams();
 
-  const projectId =
-    typeof id === 'string' && isValidProjectId(id)
-      ? (id as Id<'projects'>)
-      : null;
+  const isValidProjectIdParam =
+    typeof id === 'string' && id.length > 10 && /^[a-zA-Z0-9]+$/.test(id);
+  const projectId = isValidProjectIdParam ? (id as Id<'projects'>) : null;
   const project = useQuery(
     api.projects.getProject,
     projectId ? { projectId } : 'skip',
@@ -151,20 +144,6 @@ export default function ProjectDetailsPage() {
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
               Project not found.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!userId || project.userId !== userId) {
-    return (
-      <div className="container max-w-7xl mx-auto py-10 px-4">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              You Don&apos;t Have Access To This Project
             </p>
           </CardContent>
         </Card>

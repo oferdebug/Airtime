@@ -13,26 +13,17 @@ function Slider({
   max = 100,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root>) {
-  const _values = React.useMemo(
-    () =>
-      Array.isArray(value)
-        ? value
-        : Array.isArray(defaultValue)
-          ? defaultValue
-          : [min, max],
-    [value, defaultValue, min, max],
-  );
+  const resolvedValues = React.useMemo(() => {
+    if (Array.isArray(value)) return value;
+    if (Array.isArray(defaultValue)) return defaultValue;
+    return [min];
+  }, [value, defaultValue, min]);
+
   const thumbKeys = React.useMemo(() => {
-    const occurrences = new Map<number, number>();
-    return _values.map((thumbValue) => {
-      const occurrenceCount = occurrences.get(thumbValue) ?? 0;
-      occurrences.set(thumbValue, occurrenceCount + 1);
-      return {
-        value: thumbValue,
-        key: `slider-thumb-${thumbValue}-${occurrenceCount}`,
-      };
+    return resolvedValues.map((_, index) => {
+      return `slider-thumb-${index}`;
     });
-  }, [_values]);
+  }, [resolvedValues]);
 
   return (
     <SliderPrimitive.Root
@@ -42,7 +33,7 @@ function Slider({
       min={min}
       max={max}
       className={cn(
-        'relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col',
+        'relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col',
         className,
       )}
       {...props}
@@ -60,10 +51,10 @@ function Slider({
           )}
         />
       </SliderPrimitive.Track>
-      {thumbKeys.map((thumb) => (
+      {thumbKeys.map((thumbKey) => (
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
-          key={thumb.key}
+          key={thumbKey}
           className="border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
         />
       ))}

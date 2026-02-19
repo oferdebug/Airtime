@@ -34,6 +34,13 @@ export function ConfirmationDialog({
   onConfirm,
   onError,
 }: ConfirmationDialogProps) {
+  const handleConfirmError = (error: unknown) => {
+    console.error('ConfirmationDialog: onConfirm failed to complete.', error);
+    if (onError) {
+      onError(error);
+    }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -51,9 +58,9 @@ export function ConfirmationDialog({
               event.preventDefault();
               try {
                 await onConfirm();
+                onOpenChange(false);
               } catch (error) {
-                onError?.(error);
-                throw error;
+                handleConfirmError(error);
               }
             }}
           >

@@ -15,15 +15,8 @@
  */
 
 import { CheckCircle2, Clock, FileAudio, Loader2, XCircle } from 'lucide-react';
+import type { UploadStatus } from '@/lib/types';
 import { formatDuration, formatFileSize } from '@/lib/utils';
-
-export type UploadStatus =
-  | 'idle'
-  | 'uploading'
-  | 'processing'
-  | 'completed'
-  | 'error'
-  | 'canceled';
 
 export interface UploadProgressProps {
   fileName: string;

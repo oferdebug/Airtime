@@ -5,26 +5,11 @@
  * Handles file sizes, durations, timestamps, dates, numbers, percentages,
  * plurals, lists, and text with consistent formatting.
  *
- * Uses established libraries (bytes, date-fns) and Intl for robust, localized formatting.
+ * Uses date-fns and Intl for robust, localized formatting.
  */
-import bytes from 'bytes';
 import { format } from 'date-fns';
 import { MS_PER_DAY, MS_PER_HOUR, MS_PER_MINUTE } from './constants';
-
-/**
- * Format file size in human-readable format
- *
- * Examples:
- * - 1024 → "1 KB"
- * - 1048576 → "1 MB"
- * - 1073741824 → "1 GB"
- *
- * Uses bytes library for consistent cross-platform formatting.
- */
-export function formatFileSize(size: number): string {
-  if (!Number.isFinite(size) || size < 0) return '0 B';
-  return bytes(size, { unitSeparator: ' ', decimalPlaces: 1 }) ?? '0 B';
-}
+export { formatFileSize } from './utils';
 
 /**
  * Format duration in MM:SS or HH:MM:SS format

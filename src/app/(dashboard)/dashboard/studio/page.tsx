@@ -60,7 +60,9 @@ export default function StudioPage() {
   const maxProjects = PLAN_LIMITS[plan].maxProjects;
 
   let remainingGenerations = '...';
-  if (maxProjects === null) {
+  if (activeProjectCount === undefined) {
+    remainingGenerations = '...';
+  } else if (maxProjects === null) {
     remainingGenerations = 'Unlimited';
   } else if (typeof activeProjectCount === 'number') {
     remainingGenerations = Math.max(0, maxProjects - activeProjectCount).toString();

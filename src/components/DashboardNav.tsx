@@ -23,28 +23,26 @@ interface NavItemConfig {
 export default function DashboardNav() {
   const pathname = usePathname();
   const isActive = (path: string) => {
-    if (path === '/dashboard/projects') {
-      return pathname === path || pathname.startsWith('/dashboard/projects/');
-    }
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const NavItem = ({ href, icon, label }: NavItemConfig) => (
-    <Link href={href}>
-      <Button
-        variant={'ghost'}
-        size={'sm'}
-        className={cn(
-          'gap-2 transition-all duration-300 font-medium',
-          isActive(href)
-            ? 'bg-brand-50/10 text-white hover:bg-brand-50/20 hover:scale-105 shadow-lg border border-brand-50/20'
-            : 'text-white/80 hover:bg-brand-50/10 hover:scale-105',
-        )}
-      >
+    <Button
+      asChild
+      variant={'ghost'}
+      size={'sm'}
+      className={cn(
+        'gap-2 transition-all duration-300 font-medium',
+        isActive(href)
+          ? 'bg-brand-50/10 text-white hover:bg-brand-50/20 hover:scale-105 shadow-lg border border-brand-50/20'
+          : 'text-white/80 hover:bg-brand-50/10 hover:scale-105',
+      )}
+    >
+      <Link href={href}>
         {icon}
         <span className={'hidden xl:inline'}>{label}</span>
-      </Button>
-    </Link>
+      </Link>
+    </Button>
   );
 
   const navItems: NavItemConfig[] = [

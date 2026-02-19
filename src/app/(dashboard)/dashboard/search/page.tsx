@@ -6,7 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
-const sampleResults = [
+interface SearchResult {
+  id: string;
+  title: string;
+  snippet: string;
+  timestamp: string;
+}
+
+const sampleResults: SearchResult[] = [
   {
     id: 'episode-24-pricing-growth-loops',
     title: 'Episode 24 - Pricing Growth Loops',
@@ -75,9 +82,9 @@ export default function SearchPage() {
 
           <div className="pt-2">
             <ul className="space-y-3">
-              {filteredResults.map((result, index) => (
+              {filteredResults.map((result) => (
                 <li
-                  key={result.id ?? `result-${index}`}
+                  key={result.id}
                   className="rounded-xl border border-border bg-card/50 p-4"
                 >
                   <div className="flex items-center justify-between gap-3">
