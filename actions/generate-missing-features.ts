@@ -87,10 +87,7 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
 
   // Infer what plan was used during processing based on generated features
   let originalPlan: PlanName = 'free';
-  const hasYoutubeTimestamps = Boolean(
-    (project as typeof project & { youtubeTimestamps?: unknown })
-      .youtubeTimestamps,
-  );
+  const hasYoutubeTimestamps = Boolean(project.youtubeTimestamps);
   if (project.keyMoments || hasYoutubeTimestamps) {
     originalPlan = 'ultra';
   } else if (project.socialPosts || project.title) {
@@ -108,7 +105,9 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
 
     // Check if this data exists in the project (use project property names: title, youtubeTimestamps)
     const projectKey = JOB_TO_PROJECT_KEY[jobName];
-    const hasData = Boolean(project[projectKey as keyof typeof project]);
+    const hasData =
+      projectKey in project &&
+      Boolean(project[projectKey as keyof typeof project]);
 
     if (!hasData) {
       missingJobs.push(jobName);

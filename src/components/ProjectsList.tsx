@@ -5,7 +5,7 @@ import { usePaginatedQuery } from 'convex/react';
 import { ChevronRight, Clock3, FileAudio2 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { formatDate } from '@/lib/format';
+import { formatSmartDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 function formatDuration(duration?: number | string) {
@@ -94,7 +94,7 @@ export function ProjectsList({ userId }: { userId: string }) {
                     {formatDuration(project.fileDuration)}
                   </span>
                   <span className="text-muted-foreground">
-                    {formatDate(project.createdAt)}
+                    {formatSmartDate(project.createdAt)}
                   </span>
                 </div>
               </Link>
