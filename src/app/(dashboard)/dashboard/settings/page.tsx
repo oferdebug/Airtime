@@ -105,6 +105,7 @@ export default function SettingsPage() {
               id="displayName"
               placeholder="Your name"
               value={displayName}
+              disabled={isLoading}
               onChange={(event) => setDisplayName(event.target.value)}
             />
           </div>
@@ -116,6 +117,7 @@ export default function SettingsPage() {
               id="podcastCategory"
               placeholder="Technology, Marketing, Education..."
               value={podcastCategory}
+              disabled={isLoading}
               onChange={(event) => setPodcastCategory(event.target.value)}
             />
           </div>
@@ -135,10 +137,11 @@ export default function SettingsPage() {
               id="emailNotifications"
               aria-describedby="emailNotifications-desc"
               checked={emailNotifications}
+              disabled={isLoading}
               onCheckedChange={setEmailNotifications}
             />
           </div>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving || isLoading}>
             {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
           {isLoading ? (

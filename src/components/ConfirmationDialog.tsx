@@ -52,6 +52,10 @@ export function ConfirmationDialog({
               try {
                 await onConfirm();
               } catch (error) {
+                console.error(
+                  'ConfirmationDialog: onConfirm failed to complete.',
+                  error,
+                );
                 onError?.(error);
                 return;
               }
