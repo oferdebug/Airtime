@@ -16,8 +16,8 @@ function Slider({
   const resolvedValues = React.useMemo(() => {
     if (Array.isArray(value)) return value;
     if (Array.isArray(defaultValue)) return defaultValue;
-    return [min];
-  }, [value, defaultValue, min]);
+    return [min, max];
+  }, [value, defaultValue, min, max]);
 
   const thumbKeys = React.useMemo(() => {
     return resolvedValues.map((_, index) => {

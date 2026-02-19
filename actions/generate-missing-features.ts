@@ -125,7 +125,7 @@ export async function generateMissingFeatures(projectId: Id<'projects'>) {
     if (hasUltraIndicator) {
       originalPlan = 'ultra';
     } else if (hasYoutubeTimestamps) {
-      originalPlan = 'pro';
+      originalPlan = 'ultra';
     }
   }
 
