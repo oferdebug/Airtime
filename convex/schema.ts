@@ -36,8 +36,11 @@ export default defineSchema({
     activeCount: v.number(),
   }).index('by_user', ['userId']),
   userProjectCountsRegistry: defineTable({
-    userId: v.string(),
-    initializedAt: v.number(),
+    // Backward-compatible with older singleton-style docs in local/dev data.
+    userId: v.optional(v.string()),
+    initializedAt: v.optional(v.number()),
+    initializedUserIds: v.optional(v.array(v.string())),
+    type: v.optional(v.string()),
   }).index('by_user', ['userId']),
   projects: defineTable({
     //NOTE - User Ownership And Metadata
@@ -55,8 +58,12 @@ export default defineSchema({
     captionsUrl: v.optional(v.string()), //VTT/captions URL for audio player
     fileName: v.string(), //Original Filename Displayed
     displayName: v.string(), //User Provided Display Name
-    fileSize: v.number(), //Original File Size in bytes
-    fileDuration: v.optional(v.number()), //Original File Duration in seconds
+    // Temporary backward-compatible union: older local docs stored this as string.
+    // TODO: tighten back to number-only after local data migration.
+    fileSize: v.union(v.number(), v.string()), // Original file size in bytes
+    // Temporary backward-compatible union: older local docs stored this as string.
+    // TODO: tighten back to number-only after local data migration.
+    fileDuration: v.optional(v.union(v.number(), v.string())), // Original file duration in seconds
     fileFormat: v.string(), //Original File Format Displayed
     mimeType: v.string(), //Original File MimeType Displayed
 

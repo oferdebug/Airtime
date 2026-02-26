@@ -3,7 +3,7 @@
 import { api } from '@convex/_generated/api';
 import type { Id } from '@convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
-import { Loader2, Save, XIcon } from 'lucide-react';
+import { Edit2, Loader2, Save, Trash2, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -12,11 +12,32 @@ import {
   updateDisplayNameAction,
 } from '@/app/actions/projects';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
-import { Badge } from '@/components/ui/badge';
+import { ProcessingFlow } from '@/components/processing-flow';
+import { TabContent } from '@/components/project-detail/tab-content';
+import {
+  DesktopTabTrigger,
+  MobileTabItem,
+} from '@/components/project-detail/tab-triggers';
+import type { ProjectDetailData } from '@/components/project-detail/types';
+import { ProjectStatusCard } from '@/components/project-status-card';
+import { HashtagsTab } from '@/components/project-tabs/hashtags-tab';
+import { KeyMomentsTab } from '@/components/project-tabs/key-moments-tab';
+import { SocialPostsTab } from '@/components/project-tabs/social-posts-tab';
+import { SummaryTab } from '@/components/project-tabs/summary-tab';
+import { TitlesTab } from '@/components/project-tabs/titles-tab';
+import { TranscriptTab } from '@/components/project-tabs/transcript-tab';
+import { YouTubeTimestampsTab } from '@/components/project-tabs/youtube-timestamps-tab';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
+import { PROJECT_TABS } from '@/lib/tab-config';
 
 export default function ProjectDetailsPage() {
   const router = useRouter();
@@ -28,13 +49,14 @@ export default function ProjectDetailsPage() {
   const project = useQuery(
     api.projects.getProject,
     projectId ? { projectId } : 'skip',
-  );
+  ) as ProjectDetailData | null | undefined;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('summary');
 
   const transcriptionStatus = project?.jobStatus?.transcription ?? 'pending';
   const generationStatus = project?.jobStatus?.contentGeneration ?? 'pending';
@@ -155,31 +177,22 @@ export default function ProjectDetailsPage() {
   const isCompleted = project.status === 'completed';
   const hasFailed = project.status === 'failed';
   const showGenerating = isProcessing && generationStatus === 'running';
-  const showTranscribing =
-    isProcessing &&
-    (transcriptionStatus === 'uploading' ||
-      transcriptionStatus === 'processing');
 
   return (
-    <div className="container max-w-7xl mx-auto py-10 px-4 space-y-6">
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
+    <div className="container max-w-7xl mx-auto py-10 px-4">
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
           {isEditing ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Input
                 value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                className="h-auto py-3 text-2xl font-bold"
-                placeholder="Enter New Project Name"
+                onChange={(event) => setEditedName(event.target.value)}
+                className="h-auto py-2 text-2xl font-bold"
+                placeholder="Project name"
                 autoFocus
                 disabled={isSaving}
               />
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSaveEdit}
-                disabled={isSaving}
-              >
+              <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -192,38 +205,40 @@ export default function ProjectDetailsPage() {
                 onClick={handleCancelEdit}
                 disabled={isSaving}
               >
-                <XIcon className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <h1
-                className={cn(
-                  'text-3xl font-bold tracking-tight',
-                  isProcessing && 'text-primary',
-                )}
-              >
+              <h1 className="wrap-break-word text-3xl font-bold tracking-tight">
                 {project.displayName || project.fileName}
               </h1>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleStartEdit}
-                disabled={isSaving}
-              >
-                Edit
-              </Button>
             </div>
           )}
         </div>
-        <Button
-          variant="destructive"
-          onClick={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? 'Deleting...' : 'Delete Project'}
-        </Button>
+        <div className="shrink-0 flex items-center gap-3">
+          {!isEditing && (
+            <Button variant="outline" size="lg" onClick={handleStartEdit}>
+              <Edit2 className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          )}
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
+            Delete
+          </Button>
+        </div>
       </div>
+
       <ConfirmationDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -235,75 +250,140 @@ export default function ProjectDetailsPage() {
         onConfirm={handleConfirmDelete}
       />
 
-      <div className="grid gap-5 md:grid-cols-3">
-        <Card className="glass-card md:col-span-1">
-          <CardContent className="space-y-4 p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">Status</p>
-              <Badge variant="outline" className="capitalize">
-                {project.status}
-              </Badge>
+      <div className="grid gap-6">
+        <ProjectStatusCard project={project} />
+
+        {isProcessing ? (
+          <ProcessingFlow
+            transcriptionStatus={transcriptionStatus}
+            generationStatus={generationStatus}
+            fileDuration={project.fileDuration}
+            createdAt={project.createdAt}
+          />
+        ) : null}
+
+        {hasFailed && project.error ? (
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive">Error</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{project.error.message}</p>
+              {project.error.step ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Failed at: {project.error.step}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {showGenerating || isCompleted ? (
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full space-y-0"
+          >
+            <div className="mb-6 rounded-xl border p-4 lg:hidden">
+              <Select value={activeTab} onValueChange={setActiveTab}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_TABS.map((tab) => (
+                    <MobileTabItem key={tab.value} tab={tab} />
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Created{' '}
-              {new Date(project.createdAt).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </p>
-            {showTranscribing ? (
-              <p className="text-sm text-primary">Transcribing audio...</p>
-            ) : null}
-            {showGenerating ? (
-              <p className="text-sm text-primary">Generating content...</p>
-            ) : null}
-            {isCompleted ? (
-              <p className="text-sm text-emerald-600">Project completed.</p>
-            ) : null}
-            {hasFailed ? (
-              <p className="text-sm text-destructive">
-                Project processing failed.
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
 
-        <Card className="glass-card md:col-span-2">
-          <CardContent className="space-y-4 p-6">
-            <h2 className="text-lg font-semibold">Summary</h2>
-            {project.summary?.tldr ? (
-              <p className="text-sm text-foreground/90 leading-relaxed">
-                {project.summary.tldr}
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No summary generated yet.
-              </p>
-            )}
-
-            <h3 className="text-sm font-semibold pt-2">Key Moments</h3>
-            {project.keyMoments?.length ? (
-              <ul className="space-y-2">
-                {project.keyMoments.slice(0, 4).map((moment, idx) => (
-                  <li
-                    key={`${moment.timestamp}-${idx}`}
-                    className="rounded-lg border border-border px-3 py-2"
-                  >
-                    <p className="text-xs text-muted-foreground">
-                      {moment.time}
-                    </p>
-                    <p className="text-sm">{moment.description}</p>
-                  </li>
+            <div className="mb-6 hidden rounded-xl border p-2 lg:block">
+              <TabsList className="flex h-auto w-full flex-wrap gap-2 bg-transparent">
+                {PROJECT_TABS.map((tab) => (
+                  <DesktopTabTrigger key={tab.value} tab={tab} />
                 ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No key moments available.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+              </TabsList>
+            </div>
+
+            <TabsContent value="summary" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.summary}
+                error={project.jobErrors?.summary}
+                emptyMessage="No summary available"
+              >
+                <SummaryTab summary={project.summary} />
+              </TabContent>
+            </TabsContent>
+
+            <TabsContent value="moments" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.keyMoments}
+                error={project.jobErrors?.keyMoments}
+                emptyMessage="No key moments detected"
+              >
+                <KeyMomentsTab keyMoments={project.keyMoments} />
+              </TabContent>
+            </TabsContent>
+
+            <TabsContent value="youtube-timestamps" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.youtubeTimestamps}
+                error={project.jobErrors?.youtubeTimestamps}
+                emptyMessage="No YouTube timestamps available"
+              >
+                <YouTubeTimestampsTab timestamps={project.youtubeTimestamps} />
+              </TabContent>
+            </TabsContent>
+
+            <TabsContent value="social" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.socialPosts}
+                error={project.jobErrors?.socialPosts}
+                emptyMessage="No social posts available"
+              >
+                <SocialPostsTab socialPosts={project.socialPosts} />
+              </TabContent>
+            </TabsContent>
+
+            <TabsContent value="hashtags" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.hashtags}
+                error={project.jobErrors?.hashtags}
+                emptyMessage="No hashtags available"
+              >
+                <HashtagsTab hashtags={project.hashtags} />
+              </TabContent>
+            </TabsContent>
+
+            <TabsContent value="titles" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.title}
+                error={project.jobErrors?.titles}
+                emptyMessage="No titles available"
+              >
+                <TitlesTab titles={project.title} />
+              </TabContent>
+            </TabsContent>
+
+            <TabsContent value="speakers" className="space-y-4">
+              <TabContent
+                isLoading={showGenerating}
+                data={project.transcript}
+                emptyMessage="No transcript available"
+              >
+                {project.transcript ? (
+                  <TranscriptTab transcript={project.transcript} />
+                ) : null}
+              </TabContent>
+            </TabsContent>
+          </Tabs>
+        ) : null}
       </div>
     </div>
   );

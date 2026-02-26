@@ -206,6 +206,7 @@ export const createProject = mutation({
 export const updateProjectStatus = mutation({
   args: {
     projectId: v.id('projects'),
+    systemUserId: v.optional(v.string()),
     status: v.union(
       v.literal('pending'),
       v.literal('uploading'),
@@ -218,9 +219,9 @@ export const updateProjectStatus = mutation({
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject ?? args.systemUserId;
     if (!userId || project.userId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const updates: {
       status: typeof args.status;
@@ -244,6 +245,7 @@ export const updateProjectStatus = mutation({
 export const saveTranscript = mutation({
   args: {
     projectId: v.id('projects'),
+    systemUserId: v.optional(v.string()),
     transcript: v.object({
       text: v.string(),
       segments: v.array(
@@ -291,9 +293,9 @@ export const saveTranscript = mutation({
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject;
+    const userId = identity?.subject ?? args.systemUserId;
     if (!userId || project.userId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(args.projectId, {
       transcript: args.transcript,
@@ -309,6 +311,7 @@ export const saveTranscript = mutation({
 export const updateJobStatus = mutation({
   args: {
     projectId: v.id('projects'),
+    systemUserId: v.optional(v.string()),
     transcription: v.optional(
       v.union(
         v.literal('pending'),
@@ -331,9 +334,9 @@ export const updateJobStatus = mutation({
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
-    const callerId = identity?.subject;
+    const callerId = identity?.subject ?? args.systemUserId;
     if (!callerId || project.userId !== callerId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const updates = {
       jobStatus: {
@@ -358,6 +361,7 @@ export const updateJobStatus = mutation({
 export const saveGeneratedContent = mutation({
   args: {
     projectId: v.id('projects'),
+    systemUserId: v.optional(v.string()),
     keyMoments: v.optional(
       v.array(
         v.object({
@@ -405,13 +409,14 @@ export const saveGeneratedContent = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const { projectId, ...content } = args;
+    // Keep auth fallback input out of persisted project fields.
+    const { projectId, systemUserId, ...content } = args;
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
-    const callerId = identity?.subject;
+    const callerId = identity?.subject ?? systemUserId;
     if (!callerId || project.userId !== callerId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(projectId, {
       ...content,
@@ -427,6 +432,7 @@ export const saveGeneratedContent = mutation({
 export const recordError = mutation({
   args: {
     projectId: v.id('projects'),
+    systemUserId: v.optional(v.string()),
     message: v.string(),
     step: v.string(),
     details: v.optional(
@@ -440,9 +446,9 @@ export const recordError = mutation({
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
-    const callerId = identity?.subject;
+    const callerId = identity?.subject ?? args.systemUserId;
     if (!callerId || project.userId !== callerId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(args.projectId, {
       status: 'failed',
@@ -464,6 +470,7 @@ export const recordError = mutation({
 export const saveJobErrors = mutation({
   args: {
     projectId: v.id('projects'),
+    systemUserId: v.optional(v.string()),
     jobErrors: v.object({
       keyMoments: v.optional(v.string()),
       summary: v.optional(v.string()),
@@ -477,9 +484,9 @@ export const saveJobErrors = mutation({
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
     const identity = await ctx.auth.getUserIdentity();
-    const callerId = identity?.subject;
+    const callerId = identity?.subject ?? args.systemUserId;
     if (!callerId || project.userId !== callerId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(args.projectId, {
       jobErrors: args.jobErrors,
@@ -702,12 +709,12 @@ export const recordOrphanedBlob = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error('Project not found');
     if (project.userId !== authUserId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     await ctx.db.patch(projectId, {
       orphanedBlob: true,
@@ -736,12 +743,12 @@ export const deleteProject = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error('Project not found');
     if (project.userId !== authUserId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     if (project.deletedAt) {
       return { inputUrl: project.inputUrl };
@@ -776,7 +783,7 @@ export const updateProjectDisplayName = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project) throw new Error('Project not found');
@@ -825,7 +832,7 @@ export const updateProjectInputUrl = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
@@ -845,7 +852,7 @@ export const updateProjectFileName = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
@@ -865,7 +872,7 @@ export const updateProjectFileSize = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {
@@ -885,7 +892,7 @@ export const updateProjectFileDuration = mutation({
     const identity = await ctx.auth.getUserIdentity();
     const authUserId = identity?.subject;
     if (!authUserId || authUserId !== userId) {
-      throw new Error('Unauthorized: You don\'t own this project');
+      throw new Error("Unauthorized: You don't own this project");
     }
     const project = await ctx.db.get(projectId);
     if (!project || project.userId !== authUserId) {

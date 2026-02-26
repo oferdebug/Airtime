@@ -32,12 +32,12 @@ export default function PricingSection({
           {/* Pricing Table */}
           <div className="flex justify-center w-full">
             <div
-              className={`clerk-pricing-theme ${compact ? 'max-w-4xl w-full' : 'max-w-5xl w-full'}`}
+              className={`glass-card ${compact ? 'max-w-4xl w-full' : 'max-w-5xl w-full'}`}
             >
               <PricingTable
                 fallback={
                   <div className="flex items-center justify-center py-20">
-                    <div className="text-center space-y-4 glass-card p-12 rounded-2xl">
+                    <div className="text-center space-y-4 p-12 rounded-2xl">
                       <Loader2 className="h-16 w-16 animate-spin text-brand-500 mx-auto" />
                       <p className="text-slate-900 dark:text-slate-100 text-lg font-medium">
                         Loading pricing options...

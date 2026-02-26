@@ -205,6 +205,14 @@ export async function createProjectAction(
     if (has?.({ plan: 'ultra' })) plan = 'ultra';
     else if (has?.({ plan: 'pro' })) plan = 'pro';
 
+    // Dev-only override for local feature testing without touching billing state.
+    if (
+      process.env.NODE_ENV === 'development' &&
+      userId === 'user_38nM3HxvFqco8owV18eUAN1NF0u'
+    ) {
+      plan = 'ultra';
+    }
+
     const validation = await checkUploadLimits(
       authObj,
       userId,

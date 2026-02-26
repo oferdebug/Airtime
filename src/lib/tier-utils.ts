@@ -78,7 +78,8 @@ export async function checkUploadLimits(
 
   // Check project count limit (skip for ultra - unlimited)
   if (limits.maxProjects !== null) {
-    const includeDeleted = plan === 'free';
+    // Count active projects only for all plans so deleted projects free slots.
+    const includeDeleted = false;
     const token = await authObj.getToken({ template: 'convex' });
     if (!token) {
       throw new Error(
@@ -95,7 +96,7 @@ export async function checkUploadLimits(
       return {
         allowed: false,
         reason: 'project_limit',
-        message: `You've reached your plan limit of ${limits.maxProjects} ${plan === 'free' ? 'total' : 'active'} projects`,
+        message: `You've reached your plan limit of ${limits.maxProjects} active projects`,
         currentCount: projectCount,
         limit: limits.maxProjects,
       };
