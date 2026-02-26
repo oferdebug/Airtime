@@ -2,10 +2,12 @@ import type { ProjectTranscript } from '@/components/project-detail/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TranscriptTabProps {
-  transcript: ProjectTranscript;
+  transcript?: ProjectTranscript | null;
 }
 
 export function TranscriptTab({ transcript }: TranscriptTabProps) {
+  if (!transcript?.text || transcript.text.trim().length === 0) return null;
+
   return (
     <Card>
       <CardHeader>
@@ -19,3 +21,4 @@ export function TranscriptTab({ transcript }: TranscriptTabProps) {
     </Card>
   );
 }
+

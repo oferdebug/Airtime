@@ -32,7 +32,7 @@ export default function PricingSection({
           {/* Pricing Table */}
           <div className="flex justify-center w-full">
             <div
-              className={`glass-card ${compact ? 'max-w-4xl w-full' : 'max-w-5xl w-full'}`}
+              className={`glass-card w-full ${compact ? 'max-w-4xl' : 'max-w-5xl'}`}
             >
               <PricingTable
                 fallback={

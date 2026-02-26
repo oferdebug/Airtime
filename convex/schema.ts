@@ -36,11 +36,10 @@ export default defineSchema({
     activeCount: v.number(),
   }).index('by_user', ['userId']),
   userProjectCountsRegistry: defineTable({
-    // Backward-compatible with older singleton-style docs in local/dev data.
-    userId: v.optional(v.string()),
-    initializedAt: v.optional(v.number()),
-    initializedUserIds: v.optional(v.array(v.string())),
-    type: v.optional(v.string()),
+    // Per-user registry documents only. Use `type` as an explicit discriminator.
+    type: v.literal('per-user'),
+    userId: v.string(),
+    initializedAt: v.number(),
   }).index('by_user', ['userId']),
   projects: defineTable({
     //NOTE - User Ownership And Metadata
@@ -59,10 +58,12 @@ export default defineSchema({
     fileName: v.string(), //Original Filename Displayed
     displayName: v.string(), //User Provided Display Name
     // Temporary backward-compatible union: older local docs stored this as string.
-    // TODO: tighten back to number-only after local data migration.
+    // TODO(MIG-2026-001): Remove union after metadata migration by 2026-03-15.
+    // Issue: docs/migration-tracking-issues.md#mig-2026-001-remove-temporary-project-file-metadata-unions
     fileSize: v.union(v.number(), v.string()), // Original file size in bytes
     // Temporary backward-compatible union: older local docs stored this as string.
-    // TODO: tighten back to number-only after local data migration.
+    // TODO(MIG-2026-001): Remove union after metadata migration by 2026-03-15.
+    // Issue: docs/migration-tracking-issues.md#mig-2026-001-remove-temporary-project-file-metadata-unions
     fileDuration: v.optional(v.union(v.number(), v.string())), // Original file duration in seconds
     fileFormat: v.string(), //Original File Format Displayed
     mimeType: v.string(), //Original File MimeType Displayed
@@ -108,6 +109,8 @@ export default defineSchema({
         titles: v.optional(v.string()),
         hashtags: v.optional(v.string()),
         youtubeTimestamps: v.optional(v.string()),
+        transcript: v.optional(v.string()),
+        general: v.optional(v.string()),
       }),
     ),
 
@@ -156,7 +159,7 @@ export default defineSchema({
               start: v.number(),
               end: v.number(),
               text: v.string(),
-              confidence: v.number(), //Detection Confidence
+              confidence: v.optional(v.number()), //Detection Confidence
             }),
           ),
         ),
@@ -212,7 +215,7 @@ export default defineSchema({
     ),
 
     //Ai Generated Title Suggestion
-    title: v.optional(
+    titles: v.optional(
       v.object({
         youtubeShort: v.array(v.string()), // For YouTube Short Form Title
         youtubeLong: v.array(v.string()), // For YouTube Long Form Title
@@ -249,3 +252,4 @@ export default defineSchema({
     .index('by_updated_at', ['updatedAt']) //List All Project For Updated At
     .index('by_completed_at', ['completedAt']), //List All Project For Completed At
 });
+

@@ -13,7 +13,16 @@ interface TabContentProps {
 function hasContent(data: unknown) {
   if (Array.isArray(data)) return data.length > 0;
   if (data == null) return false;
-  if (typeof data === 'object') return Object.keys(data).length > 0;
+  if (data instanceof Map || data instanceof Set) return data.size > 0;
+  if (typeof data === 'object') {
+    const hasKeys = Object.keys(data).length > 0;
+    const isPlainObject =
+      Object.prototype.toString.call(data) === '[object Object]';
+    if (isPlainObject) return hasKeys;
+    const maybeIsEmpty = (data as { isEmpty?: () => boolean }).isEmpty;
+    if (typeof maybeIsEmpty === 'function') return !maybeIsEmpty();
+    return hasKeys;
+  }
   if (typeof data === 'string') return data.trim().length > 0;
   return Boolean(data);
 }

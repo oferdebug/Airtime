@@ -6,6 +6,17 @@ interface ProjectStatusCardProps {
   project: ProjectDetailData;
 }
 
+function StatusRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <Badge variant="outline" className="capitalize">
+        {value}
+      </Badge>
+    </div>
+  );
+}
+
 export function ProjectStatusCard({ project }: ProjectStatusCardProps) {
   return (
     <Card>
@@ -13,24 +24,15 @@ export function ProjectStatusCard({ project }: ProjectStatusCardProps) {
         <CardTitle className="text-base">Project Status</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Overall</span>
-          <Badge variant="outline" className="capitalize">
-            {project.status}
-          </Badge>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Transcription</span>
-          <Badge variant="outline" className="capitalize">
-            {project.jobStatus?.transcription ?? 'pending'}
-          </Badge>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Generation</span>
-          <Badge variant="outline" className="capitalize">
-            {project.jobStatus?.contentGeneration ?? 'pending'}
-          </Badge>
-        </div>
+        <StatusRow label="Overall" value={project.status} />
+        <StatusRow
+          label="Transcription"
+          value={project.jobStatus?.transcription ?? 'pending'}
+        />
+        <StatusRow
+          label="Generation"
+          value={project.jobStatus?.contentGeneration ?? 'pending'}
+        />
       </CardContent>
     </Card>
   );

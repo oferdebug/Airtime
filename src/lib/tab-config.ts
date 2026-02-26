@@ -8,7 +8,7 @@ export interface ProjectTabConfig {
     | 'social'
     | 'hashtags'
     | 'titles'
-    | 'speakers';
+    | 'transcript';
   label: string;
   feature?: (typeof FEATURES)[keyof typeof FEATURES];
 }
@@ -24,5 +24,5 @@ export const PROJECT_TABS: ProjectTabConfig[] = [
   { value: 'social', label: 'Social Posts', feature: FEATURES.SOCIAL_POSTS },
   { value: 'hashtags', label: 'Hashtags', feature: FEATURES.HASHTAGS },
   { value: 'titles', label: 'Titles', feature: FEATURES.TITLES },
-  { value: 'speakers', label: 'Transcript' },
+  { value: 'transcript', label: 'Transcript' },
 ];

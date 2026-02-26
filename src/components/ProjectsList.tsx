@@ -6,14 +6,14 @@ import { ChevronRight, Clock3, FileAudio2 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { formatSmartDate } from '@/lib/format';
+import { getFileDurationAsNumber } from '@/lib/project-metadata';
 import { cn } from '@/lib/utils';
 
 function formatDuration(duration?: number | string) {
   if (duration === undefined || duration === null) {
     return 'N/A';
   }
-  const seconds =
-    typeof duration === 'string' ? Number.parseFloat(duration) : duration;
+  const seconds = getFileDurationAsNumber(duration);
   if (!Number.isFinite(seconds) || seconds < 0) {
     return 'N/A';
   }

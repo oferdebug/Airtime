@@ -44,6 +44,17 @@ export const getProject = query({
 });
 
 /**
+ * Normalizes a candidate projects document id using Convex's canonical id parser.
+ * Used by non-Convex runtimes (e.g., Inngest handlers) to validate project IDs.
+ */
+export const normalizeProjectId = query({
+  args: { projectId: v.string() },
+  handler: async (ctx, { projectId }) => {
+    return ctx.db.normalizeId('projects', projectId);
+  },
+});
+
+/**
  * Idempotent helper: ensure userProjectCounts exists for userId and increment.
  * Registry is tracked per user to avoid a singleton write hotspot.
  */
@@ -109,6 +120,7 @@ async function ensureAndIncrementCounter(
 
   if (!registry) {
     await ctx.db.insert('userProjectCountsRegistry', {
+      type: 'per-user',
       userId,
       initializedAt: Date.now(),
     });
@@ -133,6 +145,7 @@ export const seedUserProjectCountsRegistry = internalMutation({
       if (existing) continue;
 
       await ctx.db.insert('userProjectCountsRegistry', {
+        type: 'per-user',
         userId: counter.userId,
         initializedAt: Date.now(),
       });
@@ -272,7 +285,7 @@ export const saveTranscript = mutation({
             start: v.number(),
             end: v.number(),
             text: v.string(),
-            confidence: v.number(),
+            confidence: v.optional(v.number()),
           }),
         ),
       ),
@@ -391,7 +404,7 @@ export const saveGeneratedContent = mutation({
       }),
     ),
     hashtags: v.optional(v.array(v.string())),
-    title: v.optional(
+    titles: v.optional(
       v.object({
         youtubeShort: v.array(v.string()),
         youtubeLong: v.array(v.string()),
@@ -478,6 +491,8 @@ export const saveJobErrors = mutation({
       titles: v.optional(v.string()),
       hashtags: v.optional(v.string()),
       youtubeTimestamps: v.optional(v.string()),
+      transcript: v.optional(v.string()),
+      general: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args) => {
@@ -695,6 +710,91 @@ export const backfillProjectCounters = action({
 });
 
 /**
+ * Migration helper: normalize legacy string file metadata to numbers.
+ * Run: npx convex run projects:normalizeProjectFileMetadata
+ */
+export const normalizeProjectFileMetadataPage = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    numItems: v.number(),
+  },
+  handler: async (ctx, { cursor, numItems }) => {
+    const page = await ctx.db
+      .query('projects')
+      .order('asc')
+      .paginate({ numItems, cursor });
+
+    let patched = 0;
+    for (const project of page.page) {
+      const fileSize =
+        typeof project.fileSize === 'string'
+          ? Number.parseFloat(project.fileSize)
+          : project.fileSize;
+      const fileDuration =
+        typeof project.fileDuration === 'string'
+          ? Number.parseFloat(project.fileDuration)
+          : project.fileDuration;
+
+      const updates: { fileSize?: number; fileDuration?: number } = {};
+      if (
+        typeof project.fileSize === 'string' &&
+        Number.isFinite(fileSize) &&
+        fileSize >= 0
+      ) {
+        updates.fileSize = fileSize;
+      }
+      if (
+        typeof project.fileDuration === 'string' &&
+        typeof fileDuration === 'number' &&
+        Number.isFinite(fileDuration) &&
+        fileDuration >= 0
+      ) {
+        updates.fileDuration = fileDuration;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(project._id, updates);
+        patched += 1;
+      }
+    }
+
+    return {
+      patched,
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+    };
+  },
+});
+
+export const normalizeProjectFileMetadata = action({
+  args: {},
+  handler: async (ctx) => {
+    const batchSize = 200;
+    let cursor: string | null = null;
+    let pages = 0;
+    let patched = 0;
+
+    while (true) {
+      const result: {
+        patched: number;
+        isDone: boolean;
+        continueCursor: string;
+      } = await ctx.runMutation(internal.projects.normalizeProjectFileMetadataPage, {
+        cursor,
+        numItems: batchSize,
+      });
+
+      pages += 1;
+      patched += result.patched;
+      cursor = result.continueCursor;
+      if (result.isDone) break;
+    }
+
+    return { pages, patched };
+  },
+});
+
+/**
  * Records an orphaned blob when Vercel Blob deletion fails after project soft-delete.
  * Used for scheduled cleanup jobs to retry blob deletion.
  */
@@ -901,3 +1001,4 @@ export const updateProjectFileDuration = mutation({
     await ctx.db.patch(projectId, { fileDuration, updatedAt: Date.now() });
   },
 });
+

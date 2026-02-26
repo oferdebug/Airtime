@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"next dev\" \"convex dev\" \"pnpm dev:inngest\"",
-    "dev:inngest": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest",
+    "dev": "concurrently --kill-others \"next dev\" \"convex dev\" \"pnpm run dev:inngest\"",
+    "dev:inngest": "node scripts/dev-inngest.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

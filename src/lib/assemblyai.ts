@@ -17,7 +17,7 @@ type TranscriptSpeakerSegment = {
   start: number;
   end: number;
   text: string;
-  confidence: number;
+  confidence?: number;
 };
 
 type TranscriptChapter = {
@@ -42,6 +42,13 @@ type AssemblyAiWord = {
   confidence?: number;
 };
 
+type AssemblyAiSentenceSegment = {
+  text?: string;
+  start?: number;
+  end?: number;
+  words?: AssemblyAiWord[];
+};
+
 type AssemblyAiUtterance = {
   speaker?: string;
   start?: number;
@@ -64,6 +71,7 @@ type AssemblyAiTranscriptResponse = {
   error?: string;
   text?: string;
   words?: AssemblyAiWord[];
+  segments?: AssemblyAiSentenceSegment[];
   utterances?: AssemblyAiUtterance[];
   auto_chapters_result?: AssemblyAiChapter[];
 };
@@ -71,8 +79,100 @@ type AssemblyAiTranscriptResponse = {
 const BASE_URL = 'https://api.assemblyai.com/v2';
 const POLL_INTERVAL_MS = 3_000;
 const MAX_POLLS = 120;
-// AssemblyAI now requires an explicit speech model list on transcript creation.
-const DEFAULT_SPEECH_MODELS = ['universal-2'];
+const REQUEST_TIMEOUT_MS = 30_000;
+const RATE_LIMIT_MAX_RETRIES = 4;
+const RATE_LIMIT_BASE_DELAY_MS = 1_000;
+const RATE_LIMIT_BACKOFF_FACTOR = 2;
+const WORD_SEGMENT_GAP_MS = 1_500;
+const WORD_SEGMENT_MAX_WORDS = 24;
+// Prefer the current model first and keep previous model as fallback.
+const DEFAULT_SPEECH_MODELS = ['universal-3-pro', 'universal-2'];
+
+type TranscriptionPollingOptions = {
+  maxPolls?: number;
+  pollIntervalMs?: number;
+  backoffFactor?: number;
+  maxPollIntervalMs?: number;
+  requestTimeoutMs?: number;
+  rateLimitMaxRetries?: number;
+  rateLimitBaseDelayMs?: number;
+  rateLimitBackoffFactor?: number;
+};
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+  timeoutMessage: string,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(timeoutMessage);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function fetchWithRateLimitRetries(
+  url: string,
+  init: RequestInit,
+  requestTimeoutMs: number,
+  transcriptId: string,
+  rateLimitBaseDelayMs: number,
+  rateLimitBackoffFactor: number,
+  maxPollIntervalMs: number,
+  rateLimitMaxRetries: number,
+): Promise<Response> {
+  let rateLimitAttempt = 0;
+
+  while (true) {
+    const response = await fetchWithTimeout(
+      url,
+      init,
+      requestTimeoutMs,
+      `AssemblyAI poll request timed out for transcript ${transcriptId}`,
+    );
+
+    if (response.status === 429) {
+      rateLimitAttempt += 1;
+      const retryDelayMs = Math.min(
+        rateLimitBaseDelayMs * Math.pow(rateLimitBackoffFactor, rateLimitAttempt - 1),
+        maxPollIntervalMs,
+      );
+
+      console.warn('[assemblyai] Poll request rate-limited; retrying', {
+        transcriptId,
+        retryAttempt: rateLimitAttempt,
+        maxRetries: rateLimitMaxRetries,
+        retryDelayMs,
+      });
+
+      if (rateLimitAttempt > rateLimitMaxRetries) {
+        const body = await response.text();
+        throw new Error(
+          `AssemblyAI poll failed (429) after ${rateLimitMaxRetries} retries: ${body}`,
+        );
+      }
+
+      await delay(retryDelayMs);
+      continue;
+    }
+
+    return response;
+  }
+}
 
 function requireApiKey(): string {
   const apiKey = process.env.ASSEMBLYAI_API_KEY;
@@ -85,20 +185,26 @@ function requireApiKey(): string {
 async function startTranscription(
   apiKey: string,
   audioUrl: string,
+  requestTimeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<string> {
-  const response = await fetch(`${BASE_URL}/transcript`, {
-    method: 'POST',
-    headers: {
-      Authorization: apiKey,
-      'Content-Type': 'application/json',
+  const response = await fetchWithTimeout(
+    `${BASE_URL}/transcript`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        audio_url: audioUrl,
+        speech_models: DEFAULT_SPEECH_MODELS,
+        speaker_labels: true,
+        auto_chapters: true,
+      }),
     },
-    body: JSON.stringify({
-      audio_url: audioUrl,
-      speech_models: DEFAULT_SPEECH_MODELS,
-      speaker_labels: true,
-      auto_chapters: true,
-    }),
-  });
+    requestTimeoutMs,
+    'AssemblyAI start request timed out',
+  );
 
   if (!response.ok) {
     const body = await response.text();
@@ -115,12 +221,32 @@ async function startTranscription(
 async function pollTranscription(
   apiKey: string,
   transcriptId: string,
+  options?: TranscriptionPollingOptions,
 ): Promise<AssemblyAiTranscriptResponse> {
-  for (let attempt = 0; attempt < MAX_POLLS; attempt += 1) {
-    const response = await fetch(`${BASE_URL}/transcript/${transcriptId}`, {
-      method: 'GET',
-      headers: { Authorization: apiKey },
-    });
+  const maxPolls = options?.maxPolls ?? MAX_POLLS;
+  const pollIntervalMs = options?.pollIntervalMs ?? POLL_INTERVAL_MS;
+  const backoffFactor = options?.backoffFactor ?? 2;
+  const maxPollIntervalMs = options?.maxPollIntervalMs ?? POLL_INTERVAL_MS * 8;
+  const requestTimeoutMs = options?.requestTimeoutMs ?? REQUEST_TIMEOUT_MS;
+  const rateLimitMaxRetries = options?.rateLimitMaxRetries ?? RATE_LIMIT_MAX_RETRIES;
+  const rateLimitBaseDelayMs = options?.rateLimitBaseDelayMs ?? RATE_LIMIT_BASE_DELAY_MS;
+  const rateLimitBackoffFactor =
+    options?.rateLimitBackoffFactor ?? RATE_LIMIT_BACKOFF_FACTOR;
+
+  for (let attempt = 0; attempt < maxPolls; attempt += 1) {
+    const response = await fetchWithRateLimitRetries(
+      `${BASE_URL}/transcript/${transcriptId}`,
+      {
+        method: 'GET',
+        headers: { Authorization: apiKey },
+      },
+      requestTimeoutMs,
+      transcriptId,
+      rateLimitBaseDelayMs,
+      rateLimitBackoffFactor,
+      maxPollIntervalMs,
+      rateLimitMaxRetries,
+    );
 
     if (!response.ok) {
       const body = await response.text();
@@ -135,35 +261,102 @@ async function pollTranscription(
       throw new Error(data.error || 'AssemblyAI transcription failed');
     }
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, POLL_INTERVAL_MS);
-    });
+    const delayMs = Math.min(
+      pollIntervalMs * Math.pow(backoffFactor, attempt),
+      maxPollIntervalMs,
+    );
+    await delay(delayMs);
   }
 
   throw new Error('AssemblyAI transcription timed out');
 }
 
-function mapWordsToSegments(words: AssemblyAiWord[]): TranscriptSegment[] {
-  return words
+function mapWordsToWordSegments(words: AssemblyAiWord[]): TranscriptSegment[] {
+  const validWords = words
     .filter(
       (word) =>
         typeof word.text === 'string' &&
         typeof word.start === 'number' &&
         typeof word.end === 'number',
     )
-    .map((word, index) => ({
-      id: index,
+    .map((word) => ({
+      word: word.text as string,
       start: word.start as number,
       end: word.end as number,
-      text: word.text as string,
-      words: [
-        {
-          word: word.text as string,
-          start: word.start as number,
-          end: word.end as number,
-        },
-      ],
     }));
+
+  const segments: TranscriptSegment[] = [];
+  let currentWords: TranscriptWord[] = [];
+
+  const pushSegment = () => {
+    if (currentWords.length === 0) return;
+    const first = currentWords[0];
+    const last = currentWords[currentWords.length - 1];
+    segments.push({
+      id: segments.length,
+      start: first.start,
+      end: last.end,
+      text: currentWords.map((item) => item.word).join(' '),
+      words: currentWords,
+    });
+    currentWords = [];
+  };
+
+  for (const currentWord of validWords) {
+    const previousWord = currentWords[currentWords.length - 1];
+    const hasLargeGap =
+      previousWord != null &&
+      currentWord.start - previousWord.end > WORD_SEGMENT_GAP_MS;
+    const hasSentenceBoundary =
+      previousWord != null && /[.!?]["')\]]?$/.test(previousWord.word.trim());
+    const hitWordLimit = currentWords.length >= WORD_SEGMENT_MAX_WORDS;
+
+    if (hasLargeGap || hasSentenceBoundary || hitWordLimit) {
+      pushSegment();
+    }
+
+    currentWords.push(currentWord);
+  }
+
+  pushSegment();
+  return segments;
+}
+
+function mapSentenceSegments(
+  segments: AssemblyAiSentenceSegment[] | undefined,
+): TranscriptSegment[] | undefined {
+  if (!Array.isArray(segments) || segments.length === 0) return undefined;
+  const mapped = segments
+    .filter(
+      (segment) =>
+        typeof segment.text === 'string' &&
+        typeof segment.start === 'number' &&
+        typeof segment.end === 'number',
+    )
+    .map((segment, index) => {
+      const words = Array.isArray(segment.words)
+        ? segment.words
+            .filter(
+              (word) =>
+                typeof word.text === 'string' &&
+                typeof word.start === 'number' &&
+                typeof word.end === 'number',
+            )
+            .map((word) => ({
+              word: word.text as string,
+              start: word.start as number,
+              end: word.end as number,
+            }))
+        : undefined;
+      return {
+        id: index,
+        start: segment.start as number,
+        end: segment.end as number,
+        text: segment.text as string,
+        words,
+      };
+    });
+  return mapped.length > 0 ? mapped : undefined;
 }
 
 function mapUtterances(
@@ -186,7 +379,8 @@ function mapUtterances(
       start: item.start as number,
       end: item.end as number,
       text: item.text as string,
-      confidence: typeof item.confidence === 'number' ? item.confidence : 0.9,
+      confidence:
+        typeof item.confidence === 'number' ? item.confidence : undefined,
     }));
 
   return mapped.length > 0 ? mapped : undefined;
@@ -221,22 +415,38 @@ function mapChapters(
 
 export async function transcribeWithAssemblyAI(
   audioUrl: string,
+  pollingOptions?: TranscriptionPollingOptions,
 ): Promise<AssemblyTranscript> {
-  if (!audioUrl) {
+  if (typeof audioUrl !== 'string' || audioUrl.trim() === '') {
     throw new Error('audioUrl is required for transcription');
+  }
+  try {
+    new URL(audioUrl);
+  } catch {
+    throw new Error('invalid audioUrl format');
   }
 
   const apiKey = requireApiKey();
-  const transcriptId = await startTranscription(apiKey, audioUrl);
-  const result = await pollTranscription(apiKey, transcriptId);
+  const transcriptId = await startTranscription(
+    apiKey,
+    audioUrl,
+    pollingOptions?.requestTimeoutMs,
+  );
+  const result = await pollTranscription(apiKey, transcriptId, pollingOptions);
 
   const words = Array.isArray(result.words) ? result.words : [];
   const text = typeof result.text === 'string' ? result.text : '';
+  const sentenceSegments = mapSentenceSegments(result.segments);
 
   return {
     text,
-    segments: mapWordsToSegments(words),
+    segments: sentenceSegments ?? mapWordsToWordSegments(words),
     speakers: mapUtterances(result.utterances),
     chapters: mapChapters(result.auto_chapters_result),
   };
 }
+
+
+
+
+

@@ -40,6 +40,10 @@ The project follows a modern monorepo-style structure optimized for Convex and N
 - `src/hooks/`: Custom React hooks for audio management and state.
 - `src/lib/`: Utility functions and third-party configurations.
 
+### Migration Tracking
+
+- Active migration issue: `MIG-2026-001` (see `docs/migration-tracking-issues.md`)
+
 ---
 
 ## 🚀 Getting Started
@@ -53,6 +57,32 @@ The project follows a modern monorepo-style structure optimized for Convex and N
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+1. **Clone the repository:** `git clone https://github.com/your-username/your-repo-name.git`
+2. **Install dependencies:** `npm install`
+3. **Create `.env.local`** and add required API keys/secrets (Clerk, Convex, OpenAI, etc.).
+
+### Local Inngest Dev URL
+
+- `dev:inngest` uses `INNGEST_URL` when provided.
+- If `INNGEST_URL` is not set, it falls back to `http://localhost:${NEXT_PORT|PORT|3000}/api/inngest`.
+- Set `INNGEST_URL` (or `PORT`/`NEXT_PORT`) when Next.js runs on a non-3000 port.
+
+### Run in Development
+
+1. Start all local services (Next.js, Convex, Inngest): `npm run dev`
+2. Optional custom ports/URL:
+   - Windows (PowerShell/cmd): `set PORT=3001` or `set NEXT_PORT=3001` before running `npm run dev`
+   - POSIX (macOS/Linux): `export PORT=3001` (or `export NEXT_PORT=3001`) before `npm run dev`
+   - POSIX inline form: `PORT=3001 npm run dev`
+   - Windows INNGEST URL: `set INNGEST_URL=http://localhost:3001/api/inngest`
+   - POSIX INNGEST URL: `export INNGEST_URL=http://localhost:3001/api/inngest`
+   - POSIX inline INNGEST URL: `INNGEST_URL=http://localhost:3001/api/inngest npm run dev`
+
+### Production Commands
+
+- Build: `npm run build`
+- Start: `npm run start`
+
+### Quick Verification
+
+- Open `http://localhost:3000` (or your configured `PORT`/`NEXT_PORT`) and confirm the app loads.

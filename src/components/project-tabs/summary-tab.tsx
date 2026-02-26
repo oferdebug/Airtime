@@ -1,5 +1,6 @@
 import type { ProjectSummary } from '@/components/project-detail/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { withOccurrenceKeys } from '@/lib/keyed-list';
 
 interface SummaryTabProps {
   summary?: ProjectSummary;
@@ -7,6 +8,8 @@ interface SummaryTabProps {
 
 export function SummaryTab({ summary }: SummaryTabProps) {
   if (!summary) return null;
+  const bullets = Array.isArray(summary.bullets) ? summary.bullets : [];
+  const keyedBullets = withOccurrenceKeys(bullets);
 
   return (
     <Card>
@@ -15,10 +18,10 @@ export function SummaryTab({ summary }: SummaryTabProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm leading-relaxed">{summary.tldr}</p>
-        {summary.bullets.length > 0 ? (
+        {keyedBullets.length > 0 ? (
           <ul className="list-disc space-y-1 pl-5 text-sm">
-            {summary.bullets.map((bullet) => (
-              <li key={bullet}>{bullet}</li>
+            {keyedBullets.map(({ value, key }) => (
+              <li key={key}>{value}</li>
             ))}
           </ul>
         ) : null}

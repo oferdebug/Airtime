@@ -1,4 +1,4 @@
-// inngest/functions.js or inngest/functions.ts
+// Test handler for `test/hello.world` events in this file.
 import { inngest } from '../client';
 
 export const helloWorld = inngest.createFunction(
@@ -10,8 +10,12 @@ export const helloWorld = inngest.createFunction(
     await step.sleep('wait-a-moment', '1s');
 
     // The function returns a value which is logged in the Inngest dashboard
+    const safeEmail =
+      event.data && typeof event.data.email === 'string'
+        ? event.data.email
+        : 'no-email-provided';
     return {
-      message: `Hello, World! Received email: ${event.data.email}`,
+      message: `Hello, World! Received email: ${safeEmail}`,
     };
   },
 );

@@ -1,3 +1,5 @@
 export { podcastProcessor } from '@/inngest/functions/podcast-processor';
-export { episodeCreated } from './episode-created';
-export { helloWorld } from './hello-world';
+// NOTE: podcastProcessor lives in src/inngest as the production workflow module,
+// while app/api/inngest/functions contains route-local/testing handlers.
+export { podcastRetryJob } from '@/app/api/inngest/functions/episode-created';
+export { helloWorld } from '@/app/api/inngest/functions/hello-world';

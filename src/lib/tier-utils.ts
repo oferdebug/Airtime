@@ -43,14 +43,12 @@ export async function checkUploadLimits(
   userId: string,
   fileSize: number,
   duration?: number,
+  effectivePlan?: PlanName,
 ): Promise<UploadValidationResult> {
   const { has } = authObj;
-  let plan: PlanName = 'free';
-  if (has?.({ plan: 'ultra' })) {
-    plan = 'ultra';
-  } else if (has?.({ plan: 'pro' })) {
-    plan = 'pro';
-  }
+  const plan: PlanName =
+    effectivePlan ??
+    (has?.({ plan: 'ultra' }) ? 'ultra' : has?.({ plan: 'pro' }) ? 'pro' : 'free');
 
   const limits = PLAN_LIMITS[plan];
 
@@ -78,8 +76,6 @@ export async function checkUploadLimits(
 
   // Check project count limit (skip for ultra - unlimited)
   if (limits.maxProjects !== null) {
-    // Count active projects only for all plans so deleted projects free slots.
-    const includeDeleted = false;
     const token = await authObj.getToken({ template: 'convex' });
     if (!token) {
       throw new Error(
@@ -88,7 +84,7 @@ export async function checkUploadLimits(
     }
     const projectCount = await fetchQuery(
       api.projects.getUserProjectCount,
-      { userId, includeDeleted },
+      { userId, includeDeleted: false },
       { token },
     );
 

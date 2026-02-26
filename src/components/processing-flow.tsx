@@ -1,7 +1,9 @@
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatSmartDate } from '@/lib/format';
 
 interface ProcessingFlowProps {
+  isProcessing: boolean;
   transcriptionStatus: string;
   generationStatus: string;
   fileDuration?: number;
@@ -9,6 +11,7 @@ interface ProcessingFlowProps {
 }
 
 export function ProcessingFlow({
+  isProcessing,
   transcriptionStatus,
   generationStatus,
   fileDuration,
@@ -25,12 +28,16 @@ export function ProcessingFlow({
         <CardTitle className="text-base">Processing</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <div className="flex items-center gap-2 text-primary">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>We are processing your audio in real time.</span>
-        </div>
+        {isProcessing ? (
+          <div className="flex items-center gap-2 text-primary">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>We are processing your audio in real time.</span>
+          </div>
+        ) : (
+          <p className="text-muted-foreground">Processing is not active.</p>
+        )}
         <p className="text-muted-foreground">
-          Started {new Date(createdAt).toLocaleString()}
+          Started {formatSmartDate(createdAt)}
           {minutes ? ` • approx. ${minutes} min source file` : ''}
         </p>
         <div className="grid gap-1">

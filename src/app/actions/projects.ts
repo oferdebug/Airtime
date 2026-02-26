@@ -206,11 +206,20 @@ export async function createProjectAction(
     else if (has?.({ plan: 'pro' })) plan = 'pro';
 
     // Dev-only override for local feature testing without touching billing state.
+    const devTestUserId = process.env.DEV_TEST_USER_ID?.trim();
     if (
       process.env.NODE_ENV === 'development' &&
-      userId === 'user_38nM3HxvFqco8owV18eUAN1NF0u'
+      devTestUserId &&
+      userId === devTestUserId
     ) {
+      const originalPlan = plan;
       plan = 'ultra';
+      console.warn('[createProjectAction] Dev plan override enabled', {
+        userId,
+        originalPlan,
+        overriddenPlan: plan,
+        devTestUserId,
+      });
     }
 
     const validation = await checkUploadLimits(
@@ -218,6 +227,7 @@ export async function createProjectAction(
       userId,
       fileSize,
       fileDuration,
+      plan,
     );
     if (!validation.allowed) {
       return {

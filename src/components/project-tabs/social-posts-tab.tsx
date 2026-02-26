@@ -7,6 +7,10 @@ interface SocialPostsTabProps {
 
 export function SocialPostsTab({ socialPosts }: SocialPostsTabProps) {
   if (!socialPosts) return null;
+  const entries = Object.entries(socialPosts).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string',
+  );
+  if (entries.length === 0) return null;
 
   return (
     <Card>
@@ -14,7 +18,7 @@ export function SocialPostsTab({ socialPosts }: SocialPostsTabProps) {
         <CardTitle>Social Posts</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {Object.entries(socialPosts).map(([platform, post]) => (
+        {entries.map(([platform, post]) => (
           <div key={platform} className="rounded-md border p-3">
             <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
               {platform}

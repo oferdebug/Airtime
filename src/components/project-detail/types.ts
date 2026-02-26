@@ -13,12 +13,12 @@ export interface ProjectKeyMoment {
 }
 
 export interface ProjectSocialPosts {
-  twitter: string;
-  linkedin: string;
-  instagram: string;
-  tiktok: string;
-  youtube: string;
-  facebook: string;
+  twitter?: string;
+  linkedin?: string;
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  facebook?: string;
 }
 
 export interface ProjectTitles {
@@ -67,16 +67,19 @@ export interface ProjectDetailData {
     titles?: string;
     hashtags?: string;
     youtubeTimestamps?: string;
+    transcript?: string;
+    general?: string;
   };
   error?: {
     message: string;
-    step?: string;
+    step: string;
   };
   summary?: ProjectSummary;
   keyMoments?: ProjectKeyMoment[];
   socialPosts?: ProjectSocialPosts;
   hashtags?: string[];
-  title?: ProjectTitles;
+  titles?: ProjectTitles;
   youtubeTimestamps?: ProjectYouTubeTimestamp[];
   transcript?: ProjectTranscript;
 }
+

@@ -1,7 +1,7 @@
 'use client';
 
 import { api } from '@convex/_generated/api';
-import type { Id } from '@convex/_generated/dataModel';
+import type { Doc, Id } from '@convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { Edit2, Loader2, Save, Trash2, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
@@ -37,19 +37,31 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
+import { getFileDurationAsNumber } from '@/lib/project-metadata';
 import { PROJECT_TABS } from '@/lib/tab-config';
+
+function toProjectDetailData(
+  project: Doc<'projects'> | null | undefined,
+): ProjectDetailData | null | undefined {
+  if (project == null) return project;
+  return {
+    ...project,
+    fileDuration: getFileDurationAsNumber(project.fileDuration),
+  };
+}
 
 export default function ProjectDetailsPage() {
   const router = useRouter();
   const { id } = useParams();
-
+  // Convex document ids are alphanumeric and at least 11 chars; validate before casting.
   const isValidProjectIdParam =
     typeof id === 'string' && id.length > 10 && /^[a-zA-Z0-9]+$/.test(id);
   const projectId = isValidProjectIdParam ? (id as Id<'projects'>) : null;
-  const project = useQuery(
+  const rawProject = useQuery(
     api.projects.getProject,
     projectId ? { projectId } : 'skip',
-  ) as ProjectDetailData | null | undefined;
+  );
+  const project = toProjectDetailData(rawProject);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState('');
@@ -253,16 +265,17 @@ export default function ProjectDetailsPage() {
       <div className="grid gap-6">
         <ProjectStatusCard project={project} />
 
-        {isProcessing ? (
+        {isProcessing && (
           <ProcessingFlow
+            isProcessing={isProcessing}
             transcriptionStatus={transcriptionStatus}
             generationStatus={generationStatus}
             fileDuration={project.fileDuration}
             createdAt={project.createdAt}
           />
-        ) : null}
+        )}
 
-        {hasFailed && project.error ? (
+        {hasFailed && project.error && (
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="text-destructive">Error</CardTitle>
@@ -276,7 +289,7 @@ export default function ProjectDetailsPage() {
               ) : null}
             </CardContent>
           </Card>
-        ) : null}
+        )}
 
         {showGenerating || isCompleted ? (
           <Tabs
@@ -363,23 +376,26 @@ export default function ProjectDetailsPage() {
             <TabsContent value="titles" className="space-y-4">
               <TabContent
                 isLoading={showGenerating}
-                data={project.title}
+                data={project.titles}
                 error={project.jobErrors?.titles}
                 emptyMessage="No titles available"
               >
-                <TitlesTab titles={project.title} />
+                <TitlesTab titles={project.titles} />
               </TabContent>
             </TabsContent>
 
-            <TabsContent value="speakers" className="space-y-4">
+            <TabsContent value="transcript" className="space-y-4">
               <TabContent
                 isLoading={showGenerating}
                 data={project.transcript}
+                error={
+                  transcriptionStatus === 'failed'
+                    ? project.jobErrors?.transcript
+                    : undefined
+                }
                 emptyMessage="No transcript available"
               >
-                {project.transcript ? (
-                  <TranscriptTab transcript={project.transcript} />
-                ) : null}
+                <TranscriptTab transcript={project.transcript} />
               </TabContent>
             </TabsContent>
           </Tabs>
@@ -388,4 +404,5 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+
 
